@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenex Solutions - Search Results</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/shared-styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding-top: 70px;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+            position: relative;
+        }
+
+        /* Left: Company Name and Navigation Links */
+        .nav-left {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            gap: 70px;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Navigation Links moved to left section */
+        .nav-center {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links li a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links li a::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links li a:hover::after {
+            width: 100%;
+        }
+
+        /* Right: Search, Auth, and Controls */
+        .nav-right {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            min-width: 0;
+            max-width: 50%;
+            z-index: 2;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Global Search Bar */
+        .global-search {
+            position: relative;
+            max-width: 240px;
+            width: 100%;
+            flex: 0 1 200px;
+            min-width: 160px;
+        }
+
+        .global-search-input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            background: var(--glass-bg);
+            color: var(--text);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            outline: none;
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .global-search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: var(--bg-light);
+        }
+
+        .container .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1rem;
+            z-index: 1;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: var(--glass-shadow);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1001;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: var(--glass-bg);
+        }
+
+        .theme-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text);
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Mobile Navigation */
+        .nav-mobile {
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .nav-center { display: none; }
+            .global-search { flex: 0 1 240px; max-width: 240px; min-width: 180px; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .nav-mobile {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .nav-actions {
+                gap: 12px;
+            }
+
+            .theme-toggle {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 60px 0 40px;
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Search Info */
+        .search-info {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .search-query {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .results-count {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Filters */
+        .filters-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .filters-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            display: block;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            background: var(--bg-light);
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .result-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .result-type {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .type-product {
+            background: var(--primary);
+            color: white;
+        }
+
+        .type-solution {
+            background: var(--success);
+            color: white;
+        }
+
+        .type-publication {
+            background: var(--info);
+            color: white;
+        }
+
+        .type-repository {
+            background: var(--warning);
+            color: white;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+            line-height: 1.4;
+            padding-right: 80px;
+        }
+
+        .result-description {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .result-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .result-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Loading and Empty States */
+        .loading-state, .empty-state, .error-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+
+        .loading-state i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            animation: spin 2s linear infinite;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .error-state i {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .state-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .state-description {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 40px;
+        }
+
+        .pagination-btn {
+            padding: 8px 16px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .pagination-btn:hover:not(.disabled) {
+            background: var(--primary);
+            color: white;
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .search-info {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1>Search Results</h1>
+            <p>Discover content across our products, publications, solutions, and repositories</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Search Info -->
+        <div class="search-info" id="search-info">
+            <div class="search-query" id="search-query">Searching...</div>
+            <div class="results-count" id="results-count">Loading results...</div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label for="category-filter">Filter by Type</label>
+                    <select id="category-filter" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="products">Products</option>
+                        <option value="solutions">Solutions</option>
+                        <option value="publications">Publications</option>
+                        <option value="repositories">Repositories</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="sort-filter">Sort by</label>
+                    <select id="sort-filter" class="filter-select">
+                        <option value="relevance">Relevance</option>
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="title">Title A-Z</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results-container">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <div class="state-title">Searching...</div>
+                <div class="state-description">Finding the best matches for your query</div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Determine backend base URL similar to shared-components
+        const getBackendBaseUrl = () => {
+            if (window.WordPressConfig) {
+                return window.WordPressConfig.getApiUrl().replace('/api', '');
+            }
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return window.location.protocol === 'https:' ? 'https://localhost:7151' : 'http://localhost:7150';
+            }
+            return window.location.protocol === 'https:' ? 'https://localhost:7151' : 'http://localhost:7150';
+        };
+        const backendBaseUrl = getBackendBaseUrl();
+        const globalSearchApiUrl = `${backendBaseUrl}/api/GlobalSearch`;
+        
+        let currentQuery = '';
+        let currentPage = 1;
+        let currentCategory = '';
+        let currentSort = 'relevance';
+        let searchResults = [];
+        let totalResults = 0;
+        let totalPages = 0;
+
+        // Get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Update URL parameters
+        function updateUrl() {
+            const params = new URLSearchParams();
+            if (currentQuery) params.set('q', currentQuery);
+            if (currentCategory) params.set('category', currentCategory);
+            if (currentPage > 1) params.set('page', currentPage);
+            if (currentSort !== 'relevance') params.set('sort', currentSort);
+            
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.pushState(null, '', newUrl);
+        }
+
+        // Initialize search from URL parameters
+        function initializeFromUrl() {
+            currentQuery = getUrlParameter('q') || '';
+            currentCategory = getUrlParameter('category') || '';
+            currentPage = parseInt(getUrlParameter('page')) || 1;
+            currentSort = getUrlParameter('sort') || 'relevance';
+
+            // Update UI
+            const gsInputInit = document.getElementById('global-search-input');
+            if (gsInputInit) gsInputInit.value = currentQuery;
+            const catInit = document.getElementById('category-filter');
+            if (catInit) catInit.value = currentCategory;
+            const sortInit = document.getElementById('sort-filter');
+            if (sortInit) sortInit.value = currentSort;
+
+            if (currentQuery) {
+                performSearch();
+            } else {
+                showEmptyState();
+            }
+        }
+
+        // Perform search
+        async function performSearch() {
+            if (!currentQuery.trim()) {
+                showEmptyState();
+                return;
+            }
+
+            showLoadingState();
+            updateSearchInfo();
+
+            try {
+                const params = new URLSearchParams({
+                    query: currentQuery,
+                    page: currentPage,
+                    pageSize: 12
+                });
+
+                if (currentCategory) {
+                    params.set('category', currentCategory);
+                }
+
+                const response = await fetch(`${globalSearchApiUrl}?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+
+                const data = await response.json();
+                searchResults = data.results || [];
+                totalResults = data.totalResults || 0;
+                totalPages = data.totalPages || 0;
+
+                // Sort results if needed
+                sortResults();
+                renderResults();
+                renderPagination();
+                updateSearchInfo();
+                updateUrl();
+
+            } catch (error) {
+                console.error('Search error:', error);
+                showErrorState();
+            }
+        }
+
+        // Sort results based on current sort option
+        function sortResults() {
+            searchResults.sort((a, b) => {
+                switch (currentSort) {
+                    case 'newest':
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    case 'oldest':
+                        return new Date(a.createdAt) - new Date(b.createdAt);
+                    case 'title':
+                        return a.title.localeCompare(b.title);
+                    case 'relevance':
+                    default:
+                        return b.relevance - a.relevance;
+                }
+            });
+        }
+
+        // Update search info display
+        function updateSearchInfo() {
+            const queryEl = document.getElementById('search-query');
+            const countEl = document.getElementById('results-count');
+
+            queryEl.textContent = currentQuery ? `Results for "${currentQuery}"` : 'Search Results';
+            
+            if (totalResults > 0) {
+                const start = (currentPage - 1) * 12 + 1;
+                const end = Math.min(currentPage * 12, totalResults);
+                countEl.textContent = `Showing ${start}-${end} of ${totalResults} results`;
+            } else {
+                countEl.textContent = 'No results found';
+            }
+        }
+
+        // Render search results
+        function renderResults() {
+            const container = document.getElementById('results-container');
+
+            if (searchResults.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            const resultsHtml = searchResults.map(result => {
+                const typeClass = `type-${result.type}`;
+                const typeLabel = result.type.charAt(0).toUpperCase() + result.type.slice(1);
+                
+                return `
+                    <div class="result-card" onclick="navigateToResult('${result.type}', ${result.id}, '${result.url}')">
+                        <div class="result-type ${typeClass}">${typeLabel}</div>
+                        <h3 class="result-title">${escapeHtml(result.title)}</h3>
+                        <p class="result-description">${escapeHtml(result.description)}</p>
+                        
+                        <div class="result-meta">
+                            ${result.domain ? `
+                                <div class="meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>${result.domain}</span>
+                                </div>
+                            ` : ''}
+                            ${result.category ? `
+                                <div class="meta-item">
+                                    <i class="fas fa-folder"></i>
+                                    <span>${result.category}</span>
+                                </div>
+                            ` : ''}
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>${formatDate(result.createdAt)}</span>
+                            </div>
+                        </div>
+
+                        <div class="result-actions">
+                            <button class="result-btn btn-primary" onclick="event.stopPropagation(); navigateToResult('${result.type}', ${result.id}, '${result.url}')">
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </button>
+                            ${generateSecondaryAction(result)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div class="results-grid">${resultsHtml}</div>`;
+        }
+
+        // Generate secondary action button based on result type
+        function generateSecondaryAction(result) {
+            switch (result.type) {
+                case 'product':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('product', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-external-link-alt"></i>
+                        Learn More
+                    </button>`;
+                case 'publication':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('publication', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-file-pdf"></i>
+                        View Paper
+                    </button>`;
+                case 'repository':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('repository', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-code"></i>
+                        Repository
+                    </button>`;
+                case 'solution':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('solution', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-lightbulb"></i>
+                        Solution
+                    </button>`;
+                default:
+                    return '';
+            }
+        }
+
+        // Navigate to result based on type
+        function navigateToResult(type, id, url) {
+            const useUrlDirectly = (u) => !!u && (u.startsWith('http') || u.endsWith('.html'));
+            if (useUrlDirectly(url)) {
+                window.location.href = url;
+                return;
+            }
+            switch (type) {
+                case 'product':
+                    window.location.href = `Products.html?id=${id}`;
+                    break;
+                case 'publication':
+                    window.location.href = `Publications.html?id=${id}`;
+                    break;
+                case 'repository':
+                    window.location.href = `Repository.html?id=${id}`;
+                    break;
+                case 'solution':
+                    window.location.href = `solutions.html?id=${id}`;
+                    break;
+                default:
+                    if (url) {
+                        window.open(url, '_blank');
+                    }
+            }
+        }
+
+        // View publication (for direct publication viewing)
+        function viewPublication(id) {
+            window.location.href = `Publications.html?id=${id}`;
+        }
+
+        // Render pagination
+        function renderPagination() {
+            const container = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+
+            let paginationHtml = '';
+
+            // Previous button
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                        onclick="changePage(${currentPage - 1})"
+                        ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+            if (endPage - startPage + 1 < maxVisible) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                paginationHtml += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    paginationHtml += `<span class="pagination-btn disabled">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `
+                    <button class="pagination-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">${i}</button>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHtml += `<span class="pagination-btn disabled">...</span>`;
+                }
+                paginationHtml += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+
+            // Next button
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                        onclick="changePage(${currentPage + 1})"
+                        ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+
+            container.innerHTML = paginationHtml;
+        }
+
+        // Change page
+        function changePage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            currentPage = page;
+            performSearch();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Show different states
+        function showLoadingState() {
+            document.getElementById('results-container').innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div class="state-title">Searching...</div>
+                    <div class="state-description">Finding the best matches for your query</div>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('results-container').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <div class="state-title">No Results Found</div>
+                    <div class="state-description">
+                        ${currentQuery ? 
+                            `We couldn't find any results for "${currentQuery}". Try different keywords or remove filters.` :
+                            'Enter a search query to find content across our platform.'
+                        }
+                    </div>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+            updateSearchInfo();
+        }
+
+        function showErrorState() {
+            document.getElementById('results-container').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="state-title">Search Error</div>
+                    <div class="state-description">Something went wrong. Please try again later.</div>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const gsInput = document.getElementById('global-search-input');
+            if (gsInput) {
+                gsInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        currentQuery = e.target.value.trim();
+                        currentPage = 1;
+                        performSearch();
+                    }
+                });
+            }
+
+            const catSelect = document.getElementById('category-filter');
+            if (catSelect) {
+                catSelect.addEventListener('change', (e) => {
+                    currentCategory = e.target.value;
+                    currentPage = 1;
+                    performSearch();
+                });
+            }
+
+            const sortSelect = document.getElementById('sort-filter');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', (e) => {
+                    currentSort = e.target.value;
+                    sortResults();
+                    renderResults();
+                    updateUrl();
+                });
+            }
+        });
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', currentTheme);
+        if (themeToggle) {
+            themeToggle.innerHTML = `<i class="fas fa-${currentTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
+            themeToggle.addEventListener('click', () => {
+                const newTheme = htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeToggle.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', initializeFromUrl);
+    </script>
+
+    <!-- Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Shared Components Script -->
+    <script src="/js/shared-components.js"></script>
+</body>
+</html>

@@ -1,0 +1,3198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenex Solutions - Publications</title>
+    <link rel="icon" type="image/x-icon" href="/components/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/shared-styles.css">
+<style>
+        /* Publications page specific styles only - body and container handled by shared-styles.css */
+
+        .header {
+            background: url('/content/publications-hero.jpg') center/cover;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 0 0 20px 20px;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            z-index: 1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 40px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .header-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .header-content p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+
+        /* Filters Section - Following About/Home design patterns */
+        .filter-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            will-change: transform;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.8s ease-out forwards;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .filter-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            z-index: -1;
+        }
+
+        .filter-section:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 200px 150px;
+            gap: 24px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .filter-input, .filter-select {
+            width: 100%;
+            height: 100%;
+            padding: 14px 18px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), var(--glass-shadow);
+            transform: translateY(-2px);
+        }
+
+        .search-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-group .search-icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            font-size: 1.1rem;
+            z-index: 10;
+        }
+        
+        .search-group .filter-input {
+            padding-right: 50px;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg-light);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-secondary:hover::before {
+            opacity: 0.5;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .publications-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+            padding: 0;
+        }
+
+        .publication-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            will-change: transform;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideInUpStagger 0.8s ease-out forwards;
+            box-shadow: var(--glass-shadow);
+        }
+
+        @keyframes slideInUpStagger {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .publication-card:nth-child(1) { animation-delay: 0.1s; }
+        .publication-card:nth-child(2) { animation-delay: 0.2s; }
+        .publication-card:nth-child(3) { animation-delay: 0.3s; }
+        .publication-card:nth-child(4) { animation-delay: 0.4s; }
+        .publication-card:nth-child(5) { animation-delay: 0.5s; }
+        .publication-card:nth-child(6) { animation-delay: 0.6s; }
+        .publication-card:nth-child(7) { animation-delay: 0.7s; }
+        .publication-card:nth-child(8) { animation-delay: 0.8s; }
+
+        .publication-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .publication-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            z-index: -1;
+        }
+
+        .publication-thumbnail {
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            display: block; /* Changed to block */
+        }
+
+        .publication-thumbnail img {
+            position: absolute; /* Position absolutely within container */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+
+        .publication-thumbnail .fallback-icon {
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .publication-content {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .publication-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .domain-tag {
+            background: var(--primary);
+            color: var(--bg-light);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .publication-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .stars {
+            color: #ffc107;
+        }
+
+        .publication-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--text);
+            line-height: 1.3;
+            background: linear-gradient(90deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .publication-authors {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .publication-abstract {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 4.8em; /* ensure consistent height for 4 lines */
+        }
+
+        .publication-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: auto; /* push actions to bottom */
+            align-items: stretch;
+        }
+
+        .action-btn {
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1 1 140px;
+            justify-content: center;
+            min-width: 110px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .action-btn.download {
+            background: var(--primary);
+            color: var(--bg-light);
+        }
+
+        .action-btn.download:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-btn.download:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .action-btn.view {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .action-btn.view:hover {
+            background: var(--primary);
+            color: var(--bg-light);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-btn.view:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .action-btn.preview {
+            background: var(--info);
+            color: var(--bg-light);
+        }
+
+        .action-btn.preview:hover {
+            background: #0891b2;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-btn.preview:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+        
+        .action-btn.locked {
+            background: var(--neutral);
+            color: var(--bg-light);
+        }
+        
+        .action-btn.locked:hover {
+            background: #6b7280;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+            /* Comments Section Styles */
+            .comments-section {
+                margin-top: 20px;
+            }
+
+            .comments-header {
+                margin-bottom: 20px;
+            }
+
+            .comments-title {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--text);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .comments-title i {
+                color: var(--primary);
+            }
+
+            .publication-rating-section {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 20px;
+                backdrop-filter: var(--glass-blur);
+            }
+
+            .rating-form h4 {
+                color: var(--text);
+                margin-bottom: 15px;
+                font-size: 1.1rem;
+                font-weight: 600;
+            }
+
+            .star-rating {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .rating-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .rating-stars-container {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            .submit-rating-btn {
+                padding: 6px 12px !important;
+                font-size: 0.85rem !important;
+                min-width: auto !important;
+                height: auto !important;
+                border-radius: 6px !important;
+                display: none;
+                align-self: flex-start;
+            }
+
+            .star-rating i {
+                font-size: 1.5rem;
+                color: #ddd;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .star-rating i:hover,
+            .star-rating i.active {
+                color: #ffc107;
+                transform: scale(1.1);
+            }
+
+            .add-comment-form {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 30px;
+                backdrop-filter: var(--glass-blur);
+            }
+
+            .comment-textarea {
+                width: 100%;
+                padding: 15px;
+                border: 1px solid var(--glass-border);
+                border-radius: 8px;
+                background: var(--bg-light);
+                color: var(--text);
+                font-size: 0.95rem;
+                line-height: 1.6;
+                resize: vertical;
+                min-height: 120px;
+                font-family: inherit;
+                transition: all 0.3s ease;
+            }
+
+            .comment-textarea:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+            .comment-form-actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 15px;
+            }
+
+            .character-count {
+                color: var(--text-muted);
+                font-size: 0.9rem;
+            }
+
+            .comment-buttons {
+                display: flex;
+                gap: 10px;
+            }
+
+            .comments-list {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 12px;
+                backdrop-filter: var(--glass-blur);
+                max-height: 600px;
+                overflow-y: auto;
+            }
+
+            .comments-loading,
+            .comments-empty {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-muted);
+            }
+
+            .comments-loading i {
+                font-size: 2rem;
+                margin-bottom: 15px;
+                color: var(--primary);
+            }
+
+            .comment-item {
+                padding: 20px;
+                border-bottom: 1px solid var(--glass-border);
+                transition: background-color 0.3s ease;
+            }
+
+            .comment-item:last-child {
+                border-bottom: none;
+            }
+
+            .comment-item:hover {
+                background: var(--glass-bg);
+            }
+
+            .comment-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 12px;
+            }
+
+            .comment-author-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .comment-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, var(--primary), var(--accent));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+
+            .comment-author-details h4 {
+                margin: 0;
+                color: var(--text);
+                font-size: 1rem;
+                font-weight: 600;
+            }
+
+            .comment-date {
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                margin-top: 2px;
+            }
+
+            .comment-rating {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .comment-stars {
+                display: flex;
+                gap: 2px;
+            }
+
+            .comment-stars i {
+                font-size: 0.9rem;
+                color: #ffc107;
+            }
+
+            .comment-content {
+                margin-left: 52px;
+                color: var(--text);
+                line-height: 1.6;
+                font-size: 0.95rem;
+            }
+
+            .comment-actions {
+                margin-left: 52px;
+                margin-top: 15px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .comment-action {
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 0.85rem;
+                padding: 5px 10px;
+                border-radius: 4px;
+                transition: all 0.3s ease;
+            }
+
+            .comment-action:hover {
+                background: var(--glass-bg);
+                color: var(--primary);
+            }
+
+            .comment-action.liked {
+                color: var(--primary);
+            }
+
+            @media (max-width: 768px) {
+                .comments-section {
+                    margin-top: 15px;
+                }
+
+                .publication-rating-section,
+                .add-comment-form {
+                    padding: 15px;
+                }
+
+                .rating-stars-container {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+
+                .star-rating {
+                    margin-bottom: 0;
+                }
+
+                .submit-rating-btn {
+                    align-self: stretch;
+                    text-align: center;
+                }
+
+                .comment-item {
+                    padding: 15px;
+                }
+
+                .comment-content,
+                .comment-actions {
+                    margin-left: 0;
+                    margin-top: 10px;
+                }
+
+                .comment-author-info {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 8px;
+                }
+
+                .comment-form-actions {
+                    flex-direction: column;
+                    gap: 15px;
+                    align-items: stretch;
+                }
+
+                .comment-buttons {
+                    justify-content: stretch;
+                }
+
+                .comment-buttons .btn {
+                    flex: 1;
+                }
+            }
+
+        .publication-date {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .loading-state, .empty-state, .error-state {
+            text-align: center;
+            padding: 60px 24px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .loading-state i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Section Styles with consistent theme */
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 24px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+        
+        /* Divider Styles */
+        .divider {
+            position: relative;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-light), var(--accent));
+            border-radius: 2px;
+            margin: 40px auto;
+            width: 120px;
+            overflow: hidden;
+            clear: both;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            animation: shine 2s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        .loading-state h3, .empty-state h3, .error-state h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .loading-state p, .empty-state p, .error-state p {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .publication-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-light);
+            border-radius: 16px;
+            max-width: 800px;
+            margin: 20px auto;
+            position: relative;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--glass-border);
+        }
+
+        .modal-header {
+            padding: 24px 24px 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--accent);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .modal-authors {
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .modal-abstract {
+            color: var(--text);
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        #footer-placeholder {
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                height: 350px;
+            }
+
+            .header-content h1 {
+                font-size: 2.4rem;
+            }
+
+            .header-content p {
+                font-size: 1.1rem;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .publications-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .publication-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                flex: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                height: 300px;
+            }
+
+            .header-content {
+                padding: 20px;
+            }
+
+            .header-content h1 {
+                font-size: 2rem;
+            }
+
+            .header-content p {
+                font-size: 1rem;
+            }
+
+            .publications-grid {
+                gap: 16px;
+            }
+
+            .publication-content {
+                padding: 20px;
+            }
+        }
+
+
+        /* Pagination Styles */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            padding: 10px 14px;
+            min-width: 44px;
+            height: 44px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .pagination-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0.1), transparent);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .pagination-btn:hover:not(.disabled):not(.active) {
+            background: var(--primary-light);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .pagination-btn:hover:not(.disabled):not(.active)::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--glass-bg);
+        }
+
+        .pagination-info {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pagination-ellipsis {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .pagination {
+                gap: 4px;
+                margin: 20px 0;
+            }
+
+            .pagination-btn {
+                padding: 6px 10px;
+                min-width: 36px;
+                height: 36px;
+                font-size: 0.85rem;
+            }
+
+            .pagination-info {
+                font-size: 0.8rem;
+                margin: 0 8px;
+            }
+        }
+
+        /* Stats Bar - Following About/Home design */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stats-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            z-index: -1;
+        }
+
+        .stats-bar:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .stats-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .stats-number {
+            font-weight: 800;
+            font-size: 1.2rem;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded by JavaScript -->
+    <div id="header-placeholder"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <h1>Research & Publications</h1>
+            <p>Discover cutting-edge research papers, whitepapers, and technical publications from our team of experts</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="section-title">Discover Our Publications</h2>
+        
+        <section class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">Search Publications</label>
+                    <div class="search-group">
+                        <input type="text" id="search-input" class="filter-input" placeholder="Search by title, author, or keywords...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Domain</label>
+                    <select id="domain-filter" class="filter-select">
+                        <option value="">All Domains</option>
+                        <option value="AI">Artificial Intelligence</option>
+                        <option value="ML">Machine Learning</option>
+                        <option value="Cloud">Cloud Computing</option>
+                        <option value="Security">Cybersecurity</option>
+                        <option value="Data">Data Science</option>
+                        <option value="Web">Web Development</option>
+                        <option value="Mobile">Mobile Development</option>
+                        <option value="DevOps">DevOps</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Sort By</label>
+                    <select id="sort-filter" class="filter-select">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="title">Title</option>
+                        <option value="author">Author</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="publications-section" id="publications-wrapper">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Loading Publications</h3>
+                <p>Preparing our research library for you...</p>
+            </div>
+        </section>
+
+        <div class="pagination" id="pagination" style="display: none;">
+            <!-- Pagination will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Publication Detail Modal -->
+    <div class="publication-modal" id="publication-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div></div>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h2 class="modal-title" id="modal-title"></h2>
+                <p class="modal-authors" id="modal-authors"></p>
+                <div class="modal-abstract" id="modal-abstract"></div>
+                <div class="modal-actions" id="modal-actions">
+                </div>
+                
+                <!-- Comments Section -->
+                <div class="comments-section" id="comments-section">
+                    <div class="comments-header">
+                        <h3 class="comments-title">
+                            <i class="fas fa-comments"></i>
+                            <span id="comments-count">Comments</span>
+                        </h3>
+                        
+                        <!-- Rate Publication Section -->
+                        <div class="publication-rating-section" id="publication-rating-section">
+                            <div class="rating-form">
+                                <h4>Rate this Publication:</h4>
+                                <div class="rating-controls">
+                                    <div class="rating-stars-container">
+                                        <div class="star-rating" id="star-rating">
+                                            <i class="far fa-star" data-rating="1"></i>
+                                            <i class="far fa-star" data-rating="2"></i>
+                                            <i class="far fa-star" data-rating="3"></i>
+                                            <i class="far fa-star" data-rating="4"></i>
+                                            <i class="far fa-star" data-rating="5"></i>
+                                        </div>
+                                        <button class="btn btn-primary submit-rating-btn" id="submit-rating-btn" onclick="submitRating()">
+                                            <i class="fas fa-check"></i> Rate
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Comment Form -->
+                    <div class="add-comment-form" id="add-comment-form">
+                        <div class="comment-input-area">
+                            <textarea 
+                                id="comment-text" 
+                                class="comment-textarea" 
+                                placeholder="Share your thoughts about this publication..."
+                                rows="4"
+                                maxlength="1000"></textarea>
+                            <div class="comment-form-actions">
+                                <div class="character-count">
+                                    <span id="char-count">0</span>/1000
+                                </div>
+                                <div class="comment-buttons">
+                                    <button class="btn btn-secondary" onclick="clearComment()">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                    <button class="btn btn-primary" onclick="submitComment()" id="submit-comment-btn">
+                                        <i class="fas fa-paper-plane"></i> Post Comment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments List -->
+                    <div class="comments-list" id="comments-list">
+                        <div class="comments-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Loading comments...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dynamic backend URL detection to avoid mixed content issues
+        const getBackendBaseUrl = () => {
+            const currentProtocol = window.location.protocol;
+            const isHttps = currentProtocol === 'https:';
+            const port = isHttps ? '7151' : '7150';
+            return `${currentProtocol}//localhost:${port}`;
+        };
+        
+        const backendBaseUrl = getBackendBaseUrl();
+        const apiUrl = `${backendBaseUrl}/api/publications`;
+        const wrapper = document.getElementById("publications-wrapper");
+        let currentUser = null;
+        let allPublications = [];
+        let filteredPublications = [];
+        let currentPage = 1;
+        let pageSize = 8;
+
+        // Authentication Management
+        class InlineAuthManager {
+            constructor() {
+                this.baseUrl = getBackendBaseUrl();
+                this.user = null;
+                this.init();
+            }
+
+            init() {
+                this.user = this.getCurrentUser();
+                this.checkTokenExpiration();
+                
+                // Check token expiration every minute
+                setInterval(() => this.checkTokenExpiration(), 60000);
+                
+                // Initialize auth display
+                this.initAuthDisplay();
+            }
+
+            getCurrentUser() {
+                const userInfo = localStorage.getItem('userInfo');
+                const token = localStorage.getItem('authToken');
+                
+                if (userInfo && token) {
+                    try {
+                        const user = JSON.parse(userInfo);
+                        const expiresAt = new Date(user.expiresAt);
+                        
+                        if (expiresAt > new Date()) {
+                            return user;
+                        } else {
+                            this.clearAuthData();
+                            return null;
+                        }
+                    } catch (error) {
+                        console.error('Error parsing user info:', error);
+                        this.clearAuthData();
+                        return null;
+                    }
+                }
+                return null;
+            }
+
+            getAuthHeaders() {
+                const token = localStorage.getItem('authToken');
+                return token ? { 'Authorization': `Bearer ${token}` } : {};
+            }
+
+            isAuthenticated() {
+                return this.user !== null;
+            }
+
+            clearAuthData() {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                this.user = null;
+            }
+
+            checkTokenExpiration() {
+                const userInfo = localStorage.getItem('userInfo');
+                if (userInfo) {
+                    try {
+                        const user = JSON.parse(userInfo);
+                        const expiresAt = new Date(user.expiresAt);
+                        
+                        if (expiresAt <= new Date()) {
+                            console.log('Token expired, clearing auth data');
+                            this.clearAuthData();
+                            this.onTokenExpired();
+                        }
+                    } catch (error) {
+                        console.error('Error checking token expiration:', error);
+                        this.clearAuthData();
+                    }
+                }
+            }
+
+            onTokenExpired() {
+                this.showNotification('Your session has expired. Please log in again.', 'warning');
+                this.initAuthDisplay(); // Refresh display
+                setTimeout(() => {
+                    if (window.confirm('Your session has expired. Would you like to go to the login page?')) {
+                        window.location.href = './Auth.html';
+                    }
+                }, 3000);
+            }
+
+            showLoginPrompt() {
+                const message = 'You need to log in to access this feature. Would you like to go to the login page?';
+                if (window.confirm(message)) {
+                    window.location.href = './Auth.html';
+                }
+            }
+
+            async makeAuthenticatedRequest(url, options = {}) {
+                const headers = {
+                    ...this.getAuthHeaders(),
+                    ...(options.headers || {})
+                };
+
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    this.clearAuthData();
+                    this.initAuthDisplay();
+                    
+                    if (response.status === 401) {
+                        this.showNotification('Please log in to access this feature.', 'warning');
+                        this.showLoginPrompt();
+                    } else {
+                        this.showNotification('Access denied. You don\'t have permission to perform this action.', 'error');
+                    }
+                    
+                    throw new Error(`Authentication error: ${response.status}`);
+                }
+
+                return response;
+            }
+
+            initAuthDisplay() {
+                // Only update the navbar authentication state, no floating auth display
+                checkNavbarAuthState();
+            }
+
+            logout() {
+                if (window.confirm('Are you sure you want to logout?')) {
+                    this.clearAuthData();
+                    this.showNotification('You have been logged out successfully.', 'success');
+                    this.initAuthDisplay();
+                    
+                    setTimeout(() => {
+                        if (window.confirm('Would you like to go to the login page?')) {
+                            window.location.href = './Auth.html';
+                        }
+                    }, 1500);
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                if (typeof showNotification === 'function') {
+                    showNotification(message, type);
+                    return;
+                }
+                
+                const icons = {
+                    success: '✅',
+                    error: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
+                };
+                
+                alert(`${icons[type] || icons.info} ${message}`);
+            }
+        }
+
+        // Create auth manager instance
+        const authManager = new InlineAuthManager();
+
+        // Authentication functions (for backward compatibility)
+        function getCurrentUser() {
+            return authManager.getCurrentUser();
+        }
+
+        function getAuthHeaders() {
+            return authManager.getAuthHeaders();
+        }
+
+        // Navbar authentication state management
+        function checkNavbarAuthState() {
+            const token = localStorage.getItem('authToken');
+            const userInfo = localStorage.getItem('userInfo');
+            
+            if (token && userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    const expiresAt = new Date(user.expiresAt);
+                    
+                    if (expiresAt > new Date()) {
+                        showNavbarLoggedInState(user);
+                        return true;
+                    } else {
+                        clearNavbarAuthData();
+                    }
+                } catch (error) {
+                    clearNavbarAuthData();
+                }
+            }
+            
+            showNavbarLoggedOutState();
+            return false;
+        }
+        
+        function showNavbarLoggedInState(user) {
+            const loggedOutSection = document.getElementById('logged-out-section');
+            const loggedInSection = document.getElementById('logged-in-section');
+            const userAvatar = document.getElementById('user-avatar');
+            const userName = document.getElementById('user-name');
+            
+            if (loggedOutSection) loggedOutSection.style.display = 'none';
+            if (loggedInSection) loggedInSection.style.display = 'flex';
+            
+            if (userAvatar) {
+                const initials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+                userAvatar.textContent = initials;
+            }
+            
+            if (userName) {
+                userName.textContent = `${user.firstName || ''} ${user.lastName || ''}`;
+            }
+        }
+        
+        function showNavbarLoggedOutState() {
+            const loggedOutSection = document.getElementById('logged-out-section');
+            const loggedInSection = document.getElementById('logged-in-section');
+            
+            if (loggedOutSection) loggedOutSection.style.display = 'block';
+            if (loggedInSection) loggedInSection.style.display = 'none';
+        }
+        
+        function clearNavbarAuthData() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+        }
+        
+        // Navbar logout functionality
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    clearNavbarAuthData();
+                    showNavbarLoggedOutState();
+                    currentUser = null;
+                }
+            });
+        }
+
+        async function loadPublications() {
+            try {
+                showLoadingState();
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('Failed to fetch publications');
+                allPublications = await response.json();
+                
+                if (allPublications.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+                
+                filteredPublications = [...allPublications];
+                renderPublications(filteredPublications);
+                handleDeepLink();
+            } catch (error) {
+                console.error("Error loading publications:", error);
+                showErrorState();
+            }
+        }
+
+        async function searchPublications() {
+            const domain = document.getElementById('domain-filter').value;
+            const title = document.getElementById('title-search').value;
+            const author = document.getElementById('author-search').value;
+            const keywords = document.getElementById('keyword-search').value;
+
+            console.log('Search parameters:', { domain, title, author, keywords });
+
+            // If no filters, show all publications
+            if (!domain && !title && !author && !keywords) {
+                console.log('No filters, showing all publications');
+                filteredPublications = [...allPublications];
+                currentPage = 1;
+                renderPublications(filteredPublications);
+                return;
+            }
+
+            try {
+                showLoadingState();
+                let results = [];
+                
+                // If domain filter is selected, use domain endpoint
+                if (domain) {
+                    console.log('Searching by domain:', domain);
+                    const domainUrl = `${apiUrl}/domain/${encodeURIComponent(domain)}`;
+                    console.log('Domain API URL:', domainUrl);
+                    
+                    const response = await fetch(domainUrl);
+                    if (!response.ok) {
+                        console.error('Domain search failed:', response.status, response.statusText);
+                        throw new Error(`Domain search failed: ${response.status}`);
+                    }
+                    results = await response.json();
+                    console.log('Domain search results:', results.length, 'publications');
+                    
+                    // Apply additional client-side filters if needed
+                    if (title || author || keywords) {
+                        results = filterPublications(results, { title, author, keywords });
+                        console.log('After client-side filtering:', results.length, 'publications');
+                    }
+                } else {
+                    // Use search endpoint for text-based searches
+                    const params = new URLSearchParams();
+                    if (title) params.append('title', title);
+                    if (author) params.append('author', author);
+                    if (keywords) params.append('keywords', keywords);
+                    
+                    const searchUrl = `${apiUrl}/search?${params}`;
+                    console.log('Search API URL:', searchUrl);
+                    
+                    const response = await fetch(searchUrl);
+                    if (!response.ok) {
+                        console.error('Text search failed:', response.status, response.statusText);
+                        
+                        // Fallback to client-side filtering if API search fails
+                        console.log('Falling back to client-side search');
+                        results = filterPublications(allPublications, { title, author, keywords });
+                    } else {
+                        results = await response.json();
+                        console.log('API search results:', results.length, 'publications');
+                    }
+                }
+                
+                if (results.length === 0) {
+                    console.log('No results found');
+                    showEmptyState("No publications found matching your criteria.");
+                    return;
+                }
+                
+                console.log('Rendering search results:', results.length, 'publications');
+                filteredPublications = [...results];
+                currentPage = 1;
+                renderPublications(filteredPublications);
+                
+            } catch (error) {
+                console.error("Error searching publications:", error);
+                
+                // Fallback to client-side filtering
+                console.log('Error occurred, falling back to client-side filtering');
+                try {
+                    const results = filterPublications(allPublications, { domain, title, author, keywords });
+                    if (results.length === 0) {
+                        showEmptyState("No publications found matching your criteria.");
+                    } else {
+                        filteredPublications = [...results];
+                        currentPage = 1;
+                        renderPublications(filteredPublications);
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback filtering also failed:', fallbackError);
+                    showErrorState();
+                }
+            }
+        }
+        
+        // Client-side filtering function as fallback
+        function filterPublications(publications, filters) {
+            if (!publications || !Array.isArray(publications)) {
+                console.error('Invalid publications array for filtering');
+                return [];
+            }
+            
+            console.log('Client-side filtering:', publications.length, 'publications with filters:', filters);
+            
+            return publications.filter(pub => {
+                let matches = true;
+                
+                // Domain filter
+                if (filters.domain && pub.domain) {
+                    matches = matches && pub.domain.toLowerCase() === filters.domain.toLowerCase();
+                }
+                
+                // Title filter
+                if (filters.title && pub.title) {
+                    matches = matches && pub.title.toLowerCase().includes(filters.title.toLowerCase());
+                }
+                
+                // Author filter
+                if (filters.author && pub.authors) {
+                    matches = matches && pub.authors.toLowerCase().includes(filters.author.toLowerCase());
+                }
+                
+                // Keywords filter (check in title, abstract, and keywords fields)
+                if (filters.keywords) {
+                    const keywordMatch = (
+                        (pub.title && pub.title.toLowerCase().includes(filters.keywords.toLowerCase())) ||
+                        (pub.abstract && pub.abstract.toLowerCase().includes(filters.keywords.toLowerCase())) ||
+                        (pub.keywords && pub.keywords.toLowerCase().includes(filters.keywords.toLowerCase()))
+                    );
+                    matches = matches && keywordMatch;
+                }
+                
+                return matches;
+            });
+        }
+
+        function renderPublications(publications) {
+            if (publications.length === 0) {
+                wrapper.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>No publications found</h3>
+                        <p>Try adjusting your search criteria or filters.</p>
+                    </div>
+                `;
+                hidePagination();
+                return;
+            }
+
+            // Calculate pagination
+            const totalPages = Math.ceil(publications.length / pageSize);
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const currentPagePublications = publications.slice(startIndex, endIndex);
+
+            const publicationsHtml = currentPagePublications.map(pub => {
+                return `
+                <div class="publication-card" id="publication-${pub.id}">
+                    <div class="publication-thumbnail">
+                        ${pub.thumbnailUrl ? 
+                            `<img src="${formatImageUrl(pub.thumbnailUrl)}" alt="${pub.title}" onerror="this.parentElement.innerHTML='<i class=\\"fas fa-file-pdf fallback-icon\\"></i>'">`:  
+                            `<i class="fas fa-file-pdf fallback-icon"></i>`
+                        }
+                        <div class="publication-date">${formatDate(pub.publishedDate)}</div>
+                    </div>
+                    <div class="publication-content">
+                        <div class="publication-meta">
+                            <span class="domain-tag">${pub.domain}</span>
+                            ${pub.averageRating > 0 ? `
+                                <div class="publication-rating">
+                                    <div class="stars">${generateStars(pub.averageRating)}</div>
+                                    <span>(${pub.ratingCount})</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <h3 class="publication-title">${pub.title}</h3>
+                        <p class="publication-authors">By ${pub.authors}</p>
+                        <div class="publication-abstract">${pub.abstract}</div>
+                        <div class="publication-actions">
+                            ${generatePublicationActions(pub)}
+                            <button class="action-btn view" onclick="viewPublication(${pub.id})">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+
+            wrapper.innerHTML = `
+                <div class="publications-grid">
+                    ${publicationsHtml}
+                </div>
+            `;
+
+            // Render pagination
+            renderPagination(totalPages);
+        }
+
+        function handleDeepLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (!id) return;
+            const el = document.getElementById(`publication-${id}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                try { viewPublication(parseInt(id, 10)); } catch {}
+            }
+        }
+
+        async function viewPublication(id) {
+            try {
+                const response = await fetch(`${apiUrl}/${id}`);
+                if (!response.ok) throw new Error('Publication not found');
+                const publication = await response.json();
+                
+                document.getElementById('modal-title').textContent = publication.title;
+                document.getElementById('modal-authors').textContent = `By ${publication.authors}`;
+                document.getElementById('modal-abstract').innerHTML = publication.abstract;
+                
+                const actionsHtml = [];
+                
+                // Generate download button based on authentication
+                if (publication.downloadUrl) {
+                    if (!currentUser) {
+                        actionsHtml.push(`
+                            <button class="btn btn-outline" onclick="showLoginPrompt('download', ${publication.id})">
+                                <i class="fas fa-lock"></i> Login to Download
+                            </button>
+                        `);
+                    } else {
+                        actionsHtml.push(`
+                            <button class="btn btn-primary" onclick="downloadPublication(${publication.id}, '${publication.title}')">
+                                <i class="fas fa-download"></i> Download Publication
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Preview button for documents
+                if (publication.downloadUrl && publication.downloadUrl.toLowerCase().includes('.pdf')) {
+                    actionsHtml.push(`
+                        <button class="btn btn-secondary" onclick="previewDocument('${formatImageUrl(publication.downloadUrl)}', '${publication.title}')">
+                            <i class="fas fa-eye"></i> Preview PDF
+                        </button>
+                    `);
+                }
+                
+                
+                document.getElementById('modal-actions').innerHTML = actionsHtml.join('');
+                
+                // Load comments for this publication
+                await loadComments(publication.id);
+                
+                document.getElementById('publication-modal').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            } catch (error) {
+                console.error("Error loading publication details:", error);
+            }
+        }
+
+        // Generate publication action buttons based on authentication
+        function generatePublicationActions(publication) {
+            let actions = [];
+            
+            if (publication.downloadUrl) {
+                if (!currentUser) {
+                    actions.push(`
+                        <button class="action-btn locked" onclick="showLoginPrompt('download', ${publication.id})">
+                            <i class="fas fa-lock"></i> Login Required
+                        </button>
+                    `);
+                } else {
+                    actions.push(`
+                        <button class="action-btn download" onclick="downloadPublication(${publication.id}, '${publication.title}')">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    `);
+                }
+            }
+            
+            return actions.join('');
+        }
+
+        // Download publication with authentication
+        async function downloadPublication(publicationId, title) {
+            try {
+                const headers = getAuthHeaders();
+                const response = await fetch(`${apiUrl}/${publicationId}/download`, {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (response.ok) {
+                    // Get the filename from the response headers or use a default
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename="(.+)"/);  
+                        if (filenameMatch) {
+                            filename = filenameMatch[1];
+                        }
+                    }
+                    
+                    // Create download link
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = downloadUrl;
+                    downloadLink.download = filename;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    window.URL.revokeObjectURL(downloadUrl);
+                    
+                    showNotification('Download started successfully!', 'success');
+                } else if (response.status === 401) {
+                    showNotification('Please log in to download publications.', 'warning');
+                    showLoginPrompt('download', publicationId);
+                } else if (response.status === 403) {
+                    showNotification('You do not have permission to download this publication.', 'warning');
+                } else {
+                    throw new Error('Download failed');
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                showNotification('Failed to download publication. Please try again.', 'error');
+            }
+        }
+
+        function previewDocument(url, title) {
+            // Create preview modal for PDF
+            const previewModal = document.createElement('div');
+            previewModal.className = 'preview-modal';
+            previewModal.innerHTML = `
+                <div class="preview-modal-content">
+                    <div class="preview-header">
+                        <h3>${title}</h3>
+                        <button class="preview-close" onclick="this.closest('.preview-modal').remove(); document.body.style.overflow = 'auto';">&times;</button>
+                    </div>
+                    <div class="preview-body">
+                        <embed src="${url}" type="application/pdf" width="100%" height="600px" />
+                    </div>
+                </div>
+            `;
+            
+            // Add styles for preview modal if not already present
+            if (!document.getElementById('preview-modal-styles')) {
+                const style = document.createElement('style');
+                style.id = 'preview-modal-styles';
+                style.textContent = `
+                    .preview-modal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.8);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10000;
+                        padding: 20px;
+                    }
+                    .preview-modal-content {
+                        background: var(--bg-light);
+                        border-radius: 12px;
+                        width: 90%;
+                        max-width: 900px;
+                        height: 90%;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .preview-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 20px;
+                        border-bottom: 1px solid var(--glass-border);
+                    }
+                    .preview-header h3 {
+                        margin: 0;
+                        color: var(--text);
+                    }
+                    .preview-close {
+                        background: none;
+                        border: none;
+                        font-size: 24px;
+                        cursor: pointer;
+                        color: var(--text-muted);
+                    }
+                    .preview-body {
+                        flex: 1;
+                        padding: 20px;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(previewModal);
+            document.body.style.overflow = 'hidden';
+        }
+
+
+        function showLoginPrompt(action = 'download', publicationId = null) {
+            let message = 'You need to log in to access this feature. Would you like to go to the login page?';
+            
+            if (action === 'download') {
+                message = 'You need to log in to download publications. Would you like to go to the login page?';
+            } else if (action === 'comment') {
+                message = 'You need to log in to post comments. Would you like to go to the login page?';
+            } else if (action === 'rate') {
+                message = 'You need to log in to rate publications. Would you like to go to the login page?';
+            }
+            
+            const shouldRedirect = confirm(message);
+            if (shouldRedirect) {
+                // Store the intended action and publication ID for after login
+                const returnUrl = encodeURIComponent(window.location.href);
+                const currentPubId = publicationId || currentPublicationId;
+                
+                // Store modal state in sessionStorage for restoration after login
+                if (currentPubId) {
+                    sessionStorage.setItem('pendingAction', JSON.stringify({
+                        action: action,
+                        publicationId: currentPubId,
+                        returnUrl: window.location.href
+                    }));
+                }
+                
+                window.location.href = `./Auth.html?returnUrl=${returnUrl}&action=${action}&publicationId=${currentPubId || ''}`;
+            }
+        }
+
+        // Handle pending actions after login
+        async function handlePendingAction() {
+            const pendingActionData = sessionStorage.getItem('pendingAction');
+            
+            if (pendingActionData && currentUser) {
+                try {
+                    const pendingAction = JSON.parse(pendingActionData);
+                    
+                    // Clear the pending action
+                    sessionStorage.removeItem('pendingAction');
+                    
+                    // Wait a bit for the page to fully load
+                    setTimeout(async () => {
+                        // Open the publication modal first
+                        await showPublicationDetails(pendingAction.publicationId);
+                        
+                        // Execute the pending action
+                        switch (pendingAction.action) {
+                            case 'comment':
+                                // Focus on comment textarea
+                                const commentTextarea = document.getElementById('comment-text');
+                                if (commentTextarea) {
+                                    commentTextarea.focus();
+                                    showNotification('You can now post your comment!', 'success');
+                                }
+                                break;
+                            case 'rate':
+                                // Scroll to rating section
+                                const ratingSection = document.getElementById('publication-rating-section');
+                                if (ratingSection) {
+                                    ratingSection.scrollIntoView({ behavior: 'smooth' });
+                                    showNotification('You can now rate this publication!', 'success');
+                                }
+                                break;
+                            case 'download':
+                                // Automatically start download
+                                showNotification('Starting your download...', 'success');
+                                // Find the download button and click it
+                                const downloadBtn = document.querySelector('#modal-actions .btn-primary[onclick*="downloadPublication"]');
+                                if (downloadBtn) {
+                                    setTimeout(() => downloadBtn.click(), 500);
+                                }
+                                break;
+                        }
+                    }, 1000);
+                } catch (error) {
+                    console.error('Error handling pending action:', error);
+                    sessionStorage.removeItem('pendingAction');
+                }
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${getNotificationIcon(type)}"></i>
+                <span>${message}</span>
+                <button class="notification-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            // Add notification styles if not already present
+            if (!document.getElementById('notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    .notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: var(--bg-light);
+                        border: 1px solid var(--glass-border);
+                        border-radius: 8px;
+                        padding: 16px 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        box-shadow: var(--glass-shadow);
+                        backdrop-filter: var(--glass-blur);
+                        z-index: 9999;
+                        min-width: 300px;
+                        animation: slideInRight 0.3s ease;
+                    }
+                    .notification-success { border-color: var(--success); color: var(--success); }
+                    .notification-error { border-color: var(--accent); color: var(--accent); }
+                    .notification-warning { border-color: var(--warning); color: var(--warning); }
+                    .notification-info { border-color: var(--info); color: var(--info); }
+                    .notification-close {
+                        background: none;
+                        border: none;
+                        color: var(--text-muted);
+                        cursor: pointer;
+                        padding: 4px;
+                        margin-left: auto;
+                    }
+                    .action-btn.locked {
+                        background: var(--neutral);
+                        color: var(--bg-light);
+                    }
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'success': return 'check-circle';
+                case 'error': return 'exclamation-circle';
+                case 'warning': return 'exclamation-triangle';
+                case 'info': 
+                default: return 'info-circle';
+            }
+        }
+
+        function formatImageUrl(url) {
+            if (!url) return '';
+            if (url.startsWith('http')) return url;
+            if (url.startsWith('/')) return `${backendBaseUrl}${url}`;
+            return `${backendBaseUrl}/${url}`;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            return stars;
+        }
+
+        function showLoadingState() {
+            wrapper.innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <h3>Loading Publications</h3>
+                    <p>Preparing our research library for you...</p>
+                </div>
+            `;
+        }
+
+        function showEmptyState(message = "No publications available at the moment.") {
+            wrapper.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-file-alt" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 20px;"></i>
+                    <h3>No Publications Found</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function showErrorState() {
+            wrapper.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i>
+                    <h3>Unable to Load Publications</h3>
+                    <p>Please check your connection and try again.</p>
+                    <button class="btn btn-primary" onclick="loadPublications()" style="margin-top: 20px;">
+                        <i class="fas fa-sync-alt"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        // Function to perform search from the new unified input
+        async function performSearch() {
+            const searchQuery = document.getElementById('search-input').value;
+            const domain = document.getElementById('domain-filter').value;
+            const sortBy = document.getElementById('sort-filter').value;
+
+            console.log('Search parameters:', { searchQuery, domain, sortBy });
+
+            // If no filters, show all publications with sorting
+            if (!domain && !searchQuery) {
+                console.log('No filters, showing all publications');
+                filteredPublications = [...allPublications];
+                
+                // Apply sorting
+                if (sortBy) {
+                    applySorting(filteredPublications, sortBy);
+                }
+                
+                currentPage = 1;
+                renderPublications(filteredPublications);
+                return;
+            }
+
+            try {
+                showLoadingState();
+                let results = [];
+                
+                // If domain filter is selected, use domain endpoint
+                if (domain) {
+                    console.log('Searching by domain:', domain);
+                    const domainUrl = `${apiUrl}/domain/${encodeURIComponent(domain)}`;
+                    console.log('Domain API URL:', domainUrl);
+                    
+                    const response = await fetch(domainUrl);
+                    if (!response.ok) {
+                        console.error('Domain search failed:', response.status, response.statusText);
+                        throw new Error(`Domain search failed: ${response.status}`);
+                    }
+                    results = await response.json();
+                    console.log('Domain search results:', results.length, 'publications');
+                    
+                    // Apply additional client-side filters if needed
+                    if (searchQuery) {
+                        results = filterPublications(results, { keywords: searchQuery });
+                        console.log('After client-side filtering:', results.length, 'publications');
+                    }
+                } else if (searchQuery) {
+                    // Use search endpoint for text-based searches
+                    const params = new URLSearchParams();
+                    params.append('keywords', searchQuery);
+                    
+                    const searchUrl = `${apiUrl}/search?${params}`;
+                    console.log('Search API URL:', searchUrl);
+                    
+                    const response = await fetch(searchUrl);
+                    if (!response.ok) {
+                        console.error('Text search failed:', response.status, response.statusText);
+                        
+                        // Fallback to client-side filtering if API search fails
+                        console.log('Falling back to client-side search');
+                        results = filterPublications(allPublications, { keywords: searchQuery });
+                    } else {
+                        results = await response.json();
+                        console.log('API search results:', results.length, 'publications');
+                    }
+                }
+                
+                if (results.length === 0) {
+                    console.log('No results found');
+                    showEmptyState("No publications found matching your criteria.");
+                    return;
+                }
+                
+                // Apply sorting
+                if (sortBy) {
+                    applySorting(results, sortBy);
+                }
+                
+                console.log('Rendering search results:', results.length, 'publications');
+                filteredPublications = [...results];
+                currentPage = 1;
+                renderPublications(filteredPublications);
+                
+            } catch (error) {
+                console.error("Error searching publications:", error);
+                
+                // Fallback to client-side filtering
+                console.log('Error occurred, falling back to client-side filtering');
+                try {
+                    const results = filterPublications(allPublications, { domain, keywords: searchQuery });
+                    if (results.length === 0) {
+                        showEmptyState("No publications found matching your criteria.");
+                    } else {
+                        // Apply sorting
+                        if (sortBy) {
+                            applySorting(results, sortBy);
+                        }
+                        
+                        filteredPublications = [...results];
+                        currentPage = 1;
+                        renderPublications(filteredPublications);
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback filtering also failed:', fallbackError);
+                    showErrorState();
+                }
+            }
+        }
+        
+        // Helper function to apply sorting
+        function applySorting(publications, sortBy) {
+            switch (sortBy) {
+                case 'oldest':
+                    publications.sort((a, b) => new Date(a.publishedDate) - new Date(b.publishedDate));
+                    break;
+                case 'title':
+                    publications.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'author':
+                    publications.sort((a, b) => a.authors.localeCompare(b.authors));
+                    break;
+                case 'newest':
+                default:
+                    publications.sort((a, b) => new Date(b.publishedDate) - new Date(a.publishedDate));
+                    break;
+            }
+        }
+
+        // Debounced search functionality
+        let searchDebounceTimeout = null;
+        
+        function debouncedSearch() {
+            if (searchDebounceTimeout) {
+                clearTimeout(searchDebounceTimeout);
+            }
+            searchDebounceTimeout = setTimeout(performSearch, 500);
+        }
+
+        // Event listeners
+        document.getElementById('search-input').addEventListener('input', debouncedSearch);
+        document.getElementById('domain-filter').addEventListener('change', performSearch);
+        document.getElementById('sort-filter').addEventListener('change', performSearch);
+
+        // Modal event listeners
+        document.getElementById('modal-close-btn').addEventListener('click', () => {
+            document.getElementById('publication-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        document.getElementById('publication-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('publication-modal')) {
+                document.getElementById('publication-modal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            currentUser = getCurrentUser();
+            checkNavbarAuthState();
+            loadPublications();
+            handlePendingAction();
+        });
+
+        // Enter key support for search inputs (with null check)
+        ['title-search', 'author-search', 'keyword-search'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performSearch();
+                    }
+                });
+            }
+        });
+        
+        // Add enter key support for the main search input
+        const mainSearchInput = document.getElementById('search-input');
+        if (mainSearchInput) {
+            mainSearchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        }
+
+        
+        function escapeQuotes(str) {
+            if (!str) return '';
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+        
+        // Add escape for HTML attributes
+        function escapeForHtmlAttribute(str) {
+            if (!str) return '';
+            return str.replace(/'/g, '&apos;').replace(/"/g, '&quot;').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        // Comments and Rating System Variables (moved to top)
+        let currentPublicationId = null;
+        let selectedRating = 0;
+        let userRating = null;
+
+        // Comments and Rating Functions
+        async function loadComments(publicationId) {
+            currentPublicationId = publicationId;
+            const commentsList = document.getElementById('comments-list');
+            
+            try {
+                // Show loading state
+                commentsList.innerHTML = `
+                    <div class="comments-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading comments...</span>
+                    </div>
+                `;
+                
+                // Load comments from API
+                const response = await fetch(`${backendBaseUrl}/api/comments/publication/${publicationId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load comments');
+                }
+                
+                const comments = await response.json();
+                
+                // Update comments count
+                document.getElementById('comments-count').textContent = `Comments (${comments.length})`;
+                
+                // Load user's rating if logged in
+                if (currentUser) {
+                    await loadUserRating(publicationId);
+                }
+                
+                // Render comments
+                renderComments(comments);
+                
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                commentsList.innerHTML = `
+                    <div class="comments-empty">
+                        <i class="fas fa-comment-slash"></i>
+                        <p>Unable to load comments. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadUserRating(publicationId) {
+            if (!currentUser) {
+                // Hide rating section for non-authenticated users
+                const ratingSection = document.getElementById('publication-rating-section');
+                if (ratingSection) {
+                    ratingSection.style.display = 'none';
+                }
+                return;
+            }
+            
+            try {
+                const headers = getAuthHeaders();
+                // Check if headers contain valid auth token
+                if (!headers || !headers['Authorization']) {
+                    console.log('No auth token available for ratings');
+                    userRating = null;
+                    selectedRating = 0;
+                    const submitBtn = document.getElementById('submit-rating-btn');
+                    if (submitBtn) submitBtn.style.display = 'none';
+                    return;
+                }
+                
+                const response = await fetch(`${backendBaseUrl}/api/ratings/user/${publicationId}`, {
+                    headers: headers
+                });
+                
+                if (response.ok) {
+                    userRating = await response.json();
+                    selectedRating = userRating.rating;
+                    updateStarDisplay(selectedRating);
+                    const submitBtn = document.getElementById('submit-rating-btn');
+                    if (submitBtn) submitBtn.style.display = 'none';
+                } else if (response.status === 404) {
+                    // User hasn't rated yet - this is normal, not an error
+                    console.log('User has not rated this publication yet');
+                    userRating = null;
+                    selectedRating = 0;
+                    updateStarDisplay(0);
+                    const submitBtn = document.getElementById('submit-rating-btn');
+                    if (submitBtn) submitBtn.style.display = 'none';
+                } else if (response.status === 401) {
+                    // Unauthorized - token might be expired
+                    console.log('Unauthorized for ratings - token might be expired');
+                    userRating = null;
+                    selectedRating = 0;
+                    updateStarDisplay(0);
+                } else {
+                    console.warn(`Unexpected response status for ratings: ${response.status}`);
+                    userRating = null;
+                    selectedRating = 0;
+                    updateStarDisplay(0);
+                }
+            } catch (error) {
+                console.log('Error loading user rating (this is normal if user has not rated yet):', error.message);
+                userRating = null;
+                selectedRating = 0;
+                updateStarDisplay(0);
+            }
+        }
+
+        function renderComments(comments) {
+            const commentsList = document.getElementById('comments-list');
+            
+            if (comments.length === 0) {
+                commentsList.innerHTML = `
+                    <div class="comments-empty">
+                        <i class="fas fa-comments" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 15px;"></i>
+                        <p>No comments yet. Be the first to share your thoughts!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const commentsHtml = comments.map(comment => {
+                const authorInitials = comment.authorName ? comment.authorName.split(' ').map(n => n[0]).join('').toUpperCase() : '?';
+                const commentDate = new Date(comment.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <div class="comment-author-info">
+                                <div class="comment-avatar">
+                                    ${authorInitials}
+                                </div>
+                                <div class="comment-author-details">
+                                    <h4>${escapeHtml(comment.authorName || 'Anonymous')}</h4>
+                                    <div class="comment-date">${commentDate}</div>
+                                </div>
+                            </div>
+                            ${comment.rating > 0 ? `
+                                <div class="comment-rating">
+                                    <div class="comment-stars">
+                                        ${generateStars(comment.rating)}
+                                    </div>
+                                    <span>${comment.rating}/5</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="comment-content">
+                            ${escapeHtml(comment.content).replace(/\n/g, '<br>')}
+                        </div>
+                        <div class="comment-actions">
+                            <button class="comment-action ${comment.isLiked ? 'liked' : ''}" onclick="toggleCommentLike(${comment.id})">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span>${comment.likesCount || 0}</span>
+                            </button>
+                            <button class="comment-action" onclick="reportComment(${comment.id})">
+                                <i class="fas fa-flag"></i>
+                                Report
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            commentsList.innerHTML = commentsHtml;
+        }
+
+        // Star rating functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const starRating = document.getElementById('star-rating');
+            if (starRating) {
+                starRating.addEventListener('click', function(e) {
+                    if (!currentUser) {
+                        showNotification('Please log in to rate publications', 'warning');
+                        return;
+                    }
+                    
+                    const star = e.target.closest('i[data-rating]');
+                    if (star) {
+                        selectedRating = parseInt(star.dataset.rating);
+                        updateStarDisplay(selectedRating);
+                        document.getElementById('submit-rating-btn').style.display = 'inline-flex';
+                    }
+                });
+                
+                starRating.addEventListener('mouseover', function(e) {
+                    const star = e.target.closest('i[data-rating]');
+                    if (star && currentUser) {
+                        const hoverRating = parseInt(star.dataset.rating);
+                        updateStarDisplay(hoverRating);
+                    }
+                });
+                
+                starRating.addEventListener('mouseleave', function() {
+                    if (currentUser) {
+                        updateStarDisplay(selectedRating);
+                    }
+                });
+            }
+        });
+
+        function updateStarDisplay(rating) {
+            const stars = document.querySelectorAll('#star-rating i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('far');
+                    star.classList.add('fas', 'active');
+                } else {
+                    star.classList.remove('fas', 'active');
+                    star.classList.add('far');
+                }
+            });
+        }
+
+        async function submitRating() {
+            if (!currentUser) {
+                showLoginPrompt('rate', currentPublicationId);
+                return;
+            }
+            
+            if (selectedRating === 0) {
+                showNotification('Please select a rating', 'warning');
+                return;
+            }
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                };
+                
+                const method = userRating ? 'PUT' : 'POST';
+                const url = userRating 
+                    ? `${backendBaseUrl}/api/ratings/${userRating.id}`
+                    : `${backendBaseUrl}/api/ratings`;
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify({
+                        publicationId: currentPublicationId,
+                        rating: selectedRating
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to submit rating');
+                }
+                
+                userRating = await response.json();
+                document.getElementById('submit-rating-btn').style.display = 'none';
+                
+                showNotification('Rating submitted successfully!', 'success');
+                
+                // Reload publication data to update average rating
+                // You might want to update this in the UI without full reload
+                
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+                showNotification('Failed to submit rating. Please try again.', 'error');
+            }
+        }
+
+        // Comment form functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const commentTextarea = document.getElementById('comment-text');
+            const charCount = document.getElementById('char-count');
+            
+            if (commentTextarea && charCount) {
+                commentTextarea.addEventListener('input', function() {
+                    const count = this.value.length;
+                    charCount.textContent = count;
+                    
+                    if (count > 900) {
+                        charCount.style.color = 'var(--accent)';
+                    } else if (count > 800) {
+                        charCount.style.color = 'var(--warning)';
+                    } else {
+                        charCount.style.color = 'var(--text-muted)';
+                    }
+                });
+            }
+        });
+
+        function clearComment() {
+            document.getElementById('comment-text').value = '';
+            document.getElementById('char-count').textContent = '0';
+            document.getElementById('char-count').style.color = 'var(--text-muted)';
+        }
+
+        async function submitComment() {
+            if (!currentUser) {
+                showLoginPrompt('comment', currentPublicationId);
+                return;
+            }
+            
+            const commentText = document.getElementById('comment-text').value.trim();
+            
+            if (!commentText) {
+                showNotification('Please enter a comment', 'warning');
+                return;
+            }
+            
+            if (commentText.length > 1000) {
+                showNotification('Comment is too long (max 1000 characters)', 'warning');
+                return;
+            }
+            
+            try {
+                const submitBtn = document.getElementById('submit-comment-btn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+                
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                };
+                
+                const response = await fetch(`${backendBaseUrl}/api/comments`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        publicationId: currentPublicationId,
+                        content: commentText,
+                        rating: 0 // Comments don't have ratings, only separate rating system
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to post comment');
+                }
+                
+                clearComment();
+                showNotification('Comment posted successfully!', 'success');
+                
+                // Reload comments
+                await loadComments(currentPublicationId);
+                
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                showNotification('Failed to post comment. Please try again.', 'error');
+            } finally {
+                const submitBtn = document.getElementById('submit-comment-btn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment';
+            }
+        }
+
+        async function toggleCommentLike(commentId) {
+            if (!currentUser) {
+                showNotification('Please log in to like comments', 'warning');
+                return;
+            }
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                };
+                
+                const response = await fetch(`${backendBaseUrl}/api/comments/${commentId}/like`, {
+                    method: 'POST',
+                    headers: headers
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to toggle like');
+                }
+                
+                // Reload comments to update like status
+                await loadComments(currentPublicationId);
+                
+            } catch (error) {
+                console.error('Error toggling comment like:', error);
+                showNotification('Failed to update like. Please try again.', 'error');
+            }
+        }
+
+        function reportComment(commentId) {
+            if (!currentUser) {
+                showNotification('Please log in to report comments', 'warning');
+                return;
+            }
+            
+            const reason = prompt('Please provide a reason for reporting this comment:');
+            if (!reason || !reason.trim()) {
+                return;
+            }
+            
+            // In a real application, you would send this to the backend
+            showNotification('Comment reported. Thank you for helping keep our community safe.', 'info');
+        }
+
+        // Global Search Functionality
+        let searchTimeout = null;
+        let selectedSuggestionIndex = -1;
+        let currentSuggestions = [];
+
+        // Initialize global search
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('global-search-input');
+            const suggestionsContainer = document.getElementById('search-suggestions');
+
+            if (searchInput && suggestionsContainer) {
+                // Search input event listeners
+                searchInput.addEventListener('input', handleSearchInput);
+                searchInput.addEventListener('keydown', handleSearchKeydown);
+                searchInput.addEventListener('focus', handleSearchFocus);
+
+                // Hide suggestions when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                        hideSuggestions();
+                    }
+                });
+            }
+        });
+
+        function handleSearchInput(e) {
+            const query = e.target.value.trim();
+            selectedSuggestionIndex = -1;
+
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            if (query.length < 2) {
+                hideSuggestions();
+                return;
+            }
+
+            // Debounce search requests
+            searchTimeout = setTimeout(() => {
+                performGlobalSearch(query);
+            }, 300);
+        }
+
+        function handleSearchKeydown(e) {
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            const suggestions = suggestionsContainer.querySelectorAll('.suggestion-item');
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, suggestions.length - 1);
+                    updateSuggestionSelection();
+                    break;
+
+                case 'ArrowUp':
+                    e.preventDefault();
+                    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+                    updateSuggestionSelection();
+                    break;
+
+                case 'Enter':
+                    e.preventDefault();
+                    if (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex]) {
+                        selectSuggestion(currentSuggestions[selectedSuggestionIndex]);
+                    } else {
+                        performGlobalSearchNavigation(e.target.value.trim());
+                    }
+                    break;
+
+                case 'Escape':
+                    hideSuggestions();
+                    e.target.blur();
+                    break;
+            }
+        }
+
+        function handleSearchFocus(e) {
+            const query = e.target.value.trim();
+            if (query.length >= 2) {
+                performGlobalSearch(query);
+            }
+        }
+
+        async function performGlobalSearch(query) {
+            try {
+                const response = await fetch(`${backendBaseUrl}/api/search/global?query=${encodeURIComponent(query)}`);
+                if (!response.ok) {
+                    console.log('Global search API not available, using local search');
+                    performLocalSearch(query);
+                    return;
+                }
+
+                const results = await response.json();
+                currentSuggestions = results;
+                displaySuggestions(results);
+
+            } catch (error) {
+                console.error('Global search error:', error);
+                performLocalSearch(query);
+            }
+        }
+
+        function performLocalSearch(query) {
+            // Search in publications only (since we're on the Publications page)
+            const matchingPublications = allPublications
+                .filter(pub => 
+                    pub.title.toLowerCase().includes(query.toLowerCase()) ||
+                    pub.authors.toLowerCase().includes(query.toLowerCase()) ||
+                    pub.abstract.toLowerCase().includes(query.toLowerCase()) ||
+                    pub.domain.toLowerCase().includes(query.toLowerCase())
+                )
+                .slice(0, 5)
+                .map(pub => ({
+                    type: 'publication',
+                    title: pub.title,
+                    description: `By ${pub.authors}`,
+                    domain: pub.domain,
+                    url: null,
+                    id: pub.id
+                }));
+
+            currentSuggestions = matchingPublications;
+            displaySuggestions(matchingPublications);
+        }
+
+        function displaySuggestions(suggestions) {
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            
+            if (!suggestions || suggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            const suggestionsHtml = suggestions.map((suggestion, index) => {
+                const icon = getTypeIcon(suggestion.type);
+                return `
+                    <div class="suggestion-item" data-index="${index}" onclick="selectSuggestion(currentSuggestions[${index}])">
+                        <i class="suggestion-icon ${icon}"></i>
+                        <div class="suggestion-content">
+                            <div class="suggestion-title">${escapeHtml(suggestion.title)}</div>
+                            <div class="suggestion-meta">${escapeHtml(suggestion.description || suggestion.type)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add "Search for everything" option
+            const searchQuery = document.getElementById('global-search-input').value.trim();
+            const searchAllHtml = `
+                <div class="suggestion-item" onclick="performGlobalSearchNavigation('${escapeForHtmlAttribute(searchQuery)}')">
+                    <i class="suggestion-icon fas fa-search"></i>
+                    <div class="suggestion-content">
+                        <div class="suggestion-title">Search for "${escapeHtml(searchQuery)}"</div>
+                        <div class="suggestion-meta">View all results</div>
+                    </div>
+                </div>
+            `;
+
+            suggestionsContainer.innerHTML = suggestionsHtml + searchAllHtml;
+            suggestionsContainer.classList.add('show');
+            selectedSuggestionIndex = -1;
+        }
+
+        function updateSuggestionSelection() {
+            const suggestions = document.querySelectorAll('.suggestion-item');
+            
+            suggestions.forEach((suggestion, index) => {
+                if (index === selectedSuggestionIndex) {
+                    suggestion.classList.add('selected');
+                } else {
+                    suggestion.classList.remove('selected');
+                }
+            });
+        }
+
+        function selectSuggestion(suggestion) {
+            hideSuggestions();
+            
+            if (suggestion.type === 'publication') {
+                // If it's a publication and we're on the publications page, show the modal
+                viewPublication(suggestion.id);
+            } else if (suggestion.url) {
+                // Navigate to the URL
+                window.location.href = suggestion.url;
+            } else {
+                // Navigate to search results page
+                const query = document.getElementById('global-search-input').value.trim();
+                navigateToSearchResults(query);
+            }
+        }
+
+        function performGlobalSearchNavigation(query) {
+            hideSuggestions();
+            if (query) {
+                navigateToSearchResults(query);
+            }
+        }
+
+        function navigateToSearchResults(query) {
+            const params = new URLSearchParams();
+            params.append('q', query);
+            window.location.href = `SearchResults?${params.toString()}`;
+        }
+
+        function hideSuggestions() {
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            suggestionsContainer.classList.remove('show');
+            selectedSuggestionIndex = -1;
+        }
+
+        function getTypeIcon(type) {
+            switch (type) {
+                case 'publication':
+                    return 'fas fa-file-alt';
+                case 'product':
+                    return 'fas fa-cube';
+                case 'solution':
+                    return 'fas fa-lightbulb';
+                case 'repository':
+                    return 'fab fa-github';
+                default:
+                    return 'fas fa-search';
+            }
+        }
+
+        // Pagination Functions
+        function renderPagination(totalPages) {
+            const paginationContainer = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                hidePagination();
+                return;
+            }
+
+            let paginationHtml = '';
+
+            // Previous button
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                        onclick="${currentPage === 1 ? '' : `changePage(${currentPage - 1})`}" 
+                        ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+
+            // Calculate page range to display
+            const maxVisiblePages = 5;
+            let startPage, endPage;
+
+            if (totalPages <= maxVisiblePages) {
+                startPage = 1;
+                endPage = totalPages;
+            } else {
+                const halfVisible = Math.floor(maxVisiblePages / 2);
+                
+                if (currentPage <= halfVisible) {
+                    startPage = 1;
+                    endPage = maxVisiblePages;
+                } else if (currentPage + halfVisible >= totalPages) {
+                    startPage = totalPages - maxVisiblePages + 1;
+                    endPage = totalPages;
+                } else {
+                    startPage = currentPage - halfVisible;
+                    endPage = currentPage + halfVisible;
+                }
+            }
+
+            // Add first page and ellipsis if needed
+            if (startPage > 1) {
+                paginationHtml += `
+                    <button class="pagination-btn" onclick="changePage(1)">1</button>
+                `;
+                if (startPage > 2) {
+                    paginationHtml += `<span class="pagination-ellipsis">...</span>`;
+                }
+            }
+
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `
+                    <button class="pagination-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="${i === currentPage ? '' : `changePage(${i})`}">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            // Add last page and ellipsis if needed
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHtml += `<span class="pagination-ellipsis">...</span>`;
+                }
+                paginationHtml += `
+                    <button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>
+                `;
+            }
+
+            // Next button
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                        onclick="${currentPage === totalPages ? '' : `changePage(${currentPage + 1})`}" 
+                        ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+
+            // Pagination info
+            const startItem = (currentPage - 1) * pageSize + 1;
+            const endItem = Math.min(currentPage * pageSize, filteredPublications.length);
+            paginationHtml += `
+                <div class="pagination-info">
+                    <span>Showing ${startItem}-${endItem} of ${filteredPublications.length} publications</span>
+                </div>
+            `;
+
+            paginationContainer.innerHTML = paginationHtml;
+            paginationContainer.style.display = 'flex';
+        }
+
+        function hidePagination() {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.style.display = 'none';
+        }
+
+        function changePage(newPage) {
+            if (newPage < 1 || newPage > Math.ceil(filteredPublications.length / pageSize)) {
+                return;
+            }
+            
+            currentPage = newPage;
+            renderPublications(filteredPublications);
+            
+            // Scroll to top of publications section
+            document.getElementById('publications-wrapper').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadPublications);
+    </script>
+
+    <!-- Footer will be loaded by JavaScript -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Include shared components JavaScript -->
+    <script src="/js/shared-components.js"></script>
+
+</body>
+</html>
+

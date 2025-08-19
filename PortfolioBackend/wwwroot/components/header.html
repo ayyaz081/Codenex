@@ -1,0 +1,64 @@
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="Home.html" class="nav-logo">
+                <img src="/components/logo.png" alt="Codenex Solutions" class="nav-logo-img">
+                <span class="nav-logo-text">Codenex Solutions</span>
+            </a>
+            <div class="nav-center">
+                <ul class="nav-links">
+                    <li><a href="Home.html"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="About.html"><i class="fas fa-user-circle"></i> About</a></li>
+                    <li><a href="Publications.html"><i class="fas fa-file-alt"></i> Publications</a></li>
+                    <li><a href="Products.html"><i class="fas fa-cube"></i> Products</a></li>
+                    <li><a href="Repository.html"><i class="fab fa-github"></i> Repository</a></li>
+                    <li><a href="Solutions.html"><i class="fas fa-lightbulb"></i> Solutions</a></li>
+                    <li><a href="Contact.html"><i class="fas fa-envelope"></i> Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-actions">
+                <div class="global-search" id="global-search">
+                    <div class="search-icon-container" id="search-icon-container">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    <div class="search-input-container">
+                        <input type="text" 
+                               class="global-search-input" 
+                               id="global-search-input" 
+                               placeholder="Search products, publications, solutions..."
+                               autocomplete="off">
+                    </div>
+                    <div class="search-suggestions" id="search-suggestions"></div>
+                </div>
+                <div id="auth-section">
+                    <div id="logged-out-section">
+                        <a href="Auth.html" class="auth-btn login-btn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Login
+                        </a>
+                    </div>
+                    <div id="logged-in-section" style="display: none;">
+                        <div class="user-info">
+                            <div class="user-avatar" id="user-avatar">U</div>
+                            <span id="user-name">User</span>
+                        </div>
+                        <button class="auth-btn logout-btn" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+                <button class="theme-toggle" id="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="nav-mobile">
+                    <button class="nav-toggle" id="nav-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
