@@ -16,17 +16,10 @@ builder.Services.AddControllers();
 // Enable response caching
 builder.Services.AddResponseCaching();
 
-// Configure DbContext with SQL Server
+// Configure DbContext with SQLite
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        connectionString,
-        sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null
-        )
-    )
+    options.UseSqlite(connectionString)
 );
 
 // Add CORS policy to allow any origin (for development)
@@ -135,10 +128,10 @@ builder.Services.AddAuthentication(options =>
 // Add custom services
 builder.Services.AddScoped<TokenService>();
 
-builder.Services.AddHealthChecks()
-    .AddSqlServer(connectionString ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
