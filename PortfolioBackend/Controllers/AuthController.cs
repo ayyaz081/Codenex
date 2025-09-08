@@ -184,7 +184,7 @@ namespace PortfolioBackend.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        public async Task<IActionResult> ForgotPassword([FromBody] EmailDto forgotPasswordDto)
         {
             try
             {
@@ -384,7 +384,7 @@ namespace PortfolioBackend.Controllers
         }
 
         [HttpPost("resend-verification")]
-        public async Task<IActionResult> ResendVerificationEmail([FromBody] ResendVerificationDto resendDto)
+        public async Task<IActionResult> ResendVerificationEmail([FromBody] EmailDto resendDto)
         {
             try
             {
@@ -612,7 +612,7 @@ namespace PortfolioBackend.Controllers
         // POST: api/auth/test-email - Test email functionality (Admin only)
         [HttpPost("test-email")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> TestEmail([FromBody] TestEmailDto testEmailDto)
+        public async Task<IActionResult> TestEmail([FromBody] EmailDto testEmailDto)
         {
             try
             {

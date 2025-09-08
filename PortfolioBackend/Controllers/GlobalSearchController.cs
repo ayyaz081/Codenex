@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PortfolioBackend.Data;
 using PortfolioBackend.DTOs;
-using System.Text.Json;
 
 namespace PortfolioBackend.Controllers
 {
@@ -12,6 +11,7 @@ namespace PortfolioBackend.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<GlobalSearchController> _logger;
+        private static readonly Random _random = new();
 
         public GlobalSearchController(
             AppDbContext context,
@@ -41,14 +41,21 @@ namespace PortfolioBackend.Controllers
                 var results = new List<GlobalSearchResultDto>();
                 var resultsByType = new Dictionary<string, int>();
 
-                // Search based on category filter
+                // Search based on category filter - use parallel execution for better performance
                 var searchCategories = GetSearchCategories(category);
 
-                foreach (var searchCategory in searchCategories)
+                var searchTasks = searchCategories.Select(async searchCategory =>
                 {
                     var categoryResults = await SearchByCategory(query, searchCategory);
-                    results.AddRange(categoryResults);
-                    resultsByType[searchCategory] = categoryResults.Count;
+                    return new { Category = searchCategory, Results = categoryResults };
+                }).ToArray();
+
+                var searchResults = await Task.WhenAll(searchTasks);
+                
+                foreach (var searchResult in searchResults)
+                {
+                    results.AddRange(searchResult.Results);
+                    resultsByType[searchResult.Category] = searchResult.Results.Count;
                 }
 
                 // Sort by relevance and apply pagination
@@ -95,38 +102,22 @@ namespace PortfolioBackend.Controllers
             {
                 var suggestions = new HashSet<string>();
 
-                // Get suggestions from different entities
-                var productTitles = await _context.Products
-                    .Where(p => p.Title.Contains(query))
-                    .Select(p => p.Title)
-                    .Take(5)
-                    .ToListAsync();
+                // Get suggestions from different entities in parallel for better performance
+                var suggestionTasks = new[]
+                {
+                    _context.Products.Where(p => p.Title.Contains(query)).Select(p => p.Title).Take(5).ToListAsync(),
+                    _context.Solutions.Where(s => s.IsActive && s.Title.Contains(query)).Select(s => s.Title).Take(5).ToListAsync(),
+                    _context.Publications.Where(p => p.IsPublished && p.Title.Contains(query)).Select(p => p.Title).Take(5).ToListAsync(),
+                    _context.Repositories.Where(r => r.IsActive && r.Title.Contains(query)).Select(r => r.Title).Take(5).ToListAsync(),
+                    _context.Products.Where(p => p.Domain.Contains(query)).Select(p => p.Domain).Distinct().Take(3).ToListAsync()
+                };
 
-                var solutionTitles = await _context.Solutions
-                    .Where(s => s.IsActive && s.Title.Contains(query))
-                    .Select(s => s.Title)
-                    .Take(5)
-                    .ToListAsync();
-
-                var publicationTitles = await _context.Publications
-                    .Where(p => p.IsPublished && p.Title.Contains(query))
-                    .Select(p => p.Title)
-                    .Take(5)
-                    .ToListAsync();
-
-                var repositoryTitles = await _context.Repositories
-                    .Where(r => r.IsActive && r.Title.Contains(query))
-                    .Select(r => r.Title)
-                    .Take(5)
-                    .ToListAsync();
-
-                // Add domain suggestions
-                var domains = await _context.Products
-                    .Where(p => p.Domain.Contains(query))
-                    .Select(p => p.Domain)
-                    .Distinct()
-                    .Take(3)
-                    .ToListAsync();
+                var suggestionResults = await Task.WhenAll(suggestionTasks);
+                var productTitles = suggestionResults[0];
+                var solutionTitles = suggestionResults[1];
+                var publicationTitles = suggestionResults[2];
+                var repositoryTitles = suggestionResults[3];
+                var domains = suggestionResults[4];
 
                 suggestions.UnionWith(productTitles);
                 suggestions.UnionWith(solutionTitles);
@@ -171,11 +162,12 @@ namespace PortfolioBackend.Controllers
 
         private async Task<List<GlobalSearchResultDto>> SearchProducts(string query)
         {
-            var products = await _context.Products
+            return await _context.Products
                 .Where(p => p.Title.Contains(query) || 
                            p.ShortDescription.Contains(query) || 
                            p.LongDescription.Contains(query) ||
                            p.Domain.Contains(query))
+                .Take(50) // Limit results for performance
                 .Select(p => new GlobalSearchResultDto
                 {
                     Type = "product",
@@ -190,16 +182,15 @@ namespace PortfolioBackend.Controllers
                     CreatedAt = p.CreatedAt
                 })
                 .ToListAsync();
-
-            return products;
         }
 
         private async Task<List<GlobalSearchResultDto>> SearchSolutions(string query)
         {
-            var solutions = await _context.Solutions
+            return await _context.Solutions
                 .Where(s => s.IsActive && (s.Title.Contains(query) || 
                                           s.Summary.Contains(query) ||
                                           s.ProblemArea.Contains(query)))
+                .Take(50) // Limit results for performance
                 .Select(s => new GlobalSearchResultDto
                 {
                     Type = "solution",
@@ -214,18 +205,17 @@ namespace PortfolioBackend.Controllers
                     CreatedAt = s.CreatedAt
                 })
                 .ToListAsync();
-
-            return solutions;
         }
 
         private async Task<List<GlobalSearchResultDto>> SearchPublications(string query)
         {
-            var publications = await _context.Publications
+            return await _context.Publications
                 .Where(p => p.IsPublished && (p.Title.Contains(query) || 
                                              p.Authors.Contains(query) ||
                                              p.Abstract.Contains(query) ||
                                              p.Keywords.Contains(query) ||
                                              p.Domain.Contains(query)))
+                .Take(50) // Limit results for performance
                 .Select(p => new GlobalSearchResultDto
                 {
                     Type = "publication",
@@ -240,18 +230,17 @@ namespace PortfolioBackend.Controllers
                     CreatedAt = p.CreatedAt
                 })
                 .ToListAsync();
-
-            return publications;
         }
 
         private async Task<List<GlobalSearchResultDto>> SearchRepositories(string query)
         {
-            var repositories = await _context.Repositories
+            return await _context.Repositories
                 .Where(r => r.IsActive && (r.Title.Contains(query) || 
                                           r.Description.Contains(query) ||
                                           r.Tags.Contains(query) ||
                                           r.TechnicalStack.Contains(query) ||
                                           r.Category.Contains(query)))
+                .Take(50) // Limit results for performance
                 .Select(r => new GlobalSearchResultDto
                 {
                     Type = "repository",
@@ -266,8 +255,6 @@ namespace PortfolioBackend.Controllers
                     CreatedAt = r.CreatedAt
                 })
                 .ToListAsync();
-
-            return repositories;
         }
 
         private static double CalculateRelevance(string query, string title, string description)
@@ -296,7 +283,7 @@ namespace PortfolioBackend.Controllers
                 score += 10.0;
 
             // Add some randomness to avoid always same order for equal scores
-            score += new Random().NextDouble() * 5;
+            score += _random.NextDouble() * 5;
 
             return score;
         }
