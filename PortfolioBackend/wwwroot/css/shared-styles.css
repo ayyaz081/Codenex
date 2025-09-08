@@ -647,6 +647,30 @@ body {
     white-space: nowrap;
 }
 
+.user-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    padding: 4px 8px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.user-link:hover {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    transform: translateY(-1px);
+    box-shadow: var(--glass-shadow);
+}
+
+.user-link:hover .user-avatar {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
 .user-avatar {
     width: 28px;
     height: 28px;
@@ -659,6 +683,7 @@ body {
     font-weight: 600;
     font-size: 0.75rem;
     flex-shrink: 0;
+    transition: all 0.3s ease;
 }
 
 /* Logged in section styling */

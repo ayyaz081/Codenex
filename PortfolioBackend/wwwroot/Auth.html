@@ -621,6 +621,19 @@
                 <i class="fas fa-check-circle"></i>
                 Verify Email
             </button>
+            
+            <!-- Resend Verification Section -->
+            <div id="resend-section" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 15px; color: var(--text); font-size: 1rem;">Didn't receive the email?</h4>
+                <div class="form-group">
+                    <label class="form-label" for="resend-email">Email Address</label>
+                    <input type="email" id="resend-email" class="form-input" placeholder="Enter your email to resend verification">
+                </div>
+                <button type="button" class="btn btn-secondary" id="resend-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Resend Verification Email
+                </button>
+            </div>
         </form>
 
         <!-- User Profile -->
@@ -640,6 +653,11 @@
                 Sign Out
             </button>
 
+            <button type="button" class="btn btn-success" id="home-btn">
+                <i class="fas fa-home"></i>
+                Go to Home
+            </button>
+
             <button type="button" class="btn btn-primary" id="dashboard-btn">
                 <i class="fas fa-tachometer-alt"></i>
                 Go to Dashboard
@@ -649,9 +667,9 @@
     </div>
 
     <script>
-        // HTTP to HTTPS redirection
+        // HTTP to HTTPS redirection (preserve all URL parameters)
         if (window.location.protocol === 'http:' && window.location.hostname === 'localhost') {
-            const httpsUrl = window.location.href.replace('http:', 'https:');
+            const httpsUrl = window.location.href.replace('http://localhost:7150', 'https://localhost:7151');
             window.location.replace(httpsUrl);
         }
         
@@ -711,11 +729,15 @@
             if (action === 'verify' && userId && token) {
                 switchTab('verify');
                 document.getElementById('verify-token').value = token;
+                // Store userId temporarily for email verification
+                sessionStorage.setItem('verifyUserId', userId);
                 showMessage('Click "Verify Email" to confirm your email address', 'info');
             } else if (action === 'reset' && userId && token) {
                 switchTab('forgot');
                 document.getElementById('reset-section').style.display = 'block';
                 document.getElementById('reset-token').value = token;
+                // Store userId temporarily for password reset
+                sessionStorage.setItem('resetUserId', userId);
                 showMessage('Enter your new password below', 'info');
             } else if (returnUrl && ['download', 'comment', 'rate'].includes(action)) {
                 // Show helpful message for redirected users
@@ -813,6 +835,25 @@
             } else {
                 statusBadge.textContent = 'Email Unverified';
                 statusBadge.className = 'status-badge status-unverified';
+                // Auto-populate resend email field for unverified users
+                const resendEmailField = document.getElementById('resend-email');
+                if (resendEmailField && user.email) {
+                    resendEmailField.value = user.email;
+                }
+            }
+            
+            // Show/hide buttons based on user role
+            const dashboardBtn = document.getElementById('dashboard-btn');
+            const homeBtn = document.getElementById('home-btn');
+            
+            if (user.role === 'Admin') {
+                // Admin users see dashboard button, home button optional
+                dashboardBtn.style.display = 'inline-flex';
+                homeBtn.style.display = 'inline-flex';
+            } else {
+                // Non-admin users only see home button
+                dashboardBtn.style.display = 'none';
+                homeBtn.style.display = 'inline-flex';
             }
         }
 
@@ -835,14 +876,19 @@
             
             // Verify form
             document.getElementById('verify-form').addEventListener('submit', handleEmailVerification);
+            document.getElementById('resend-btn').addEventListener('click', handleResendVerification);
             
             // Profile actions
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('home-btn').addEventListener('click', () => {
+                window.location.href = 'Home.html';
+            });
             document.getElementById('dashboard-btn').addEventListener('click', () => {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
                 if (userInfo.role === 'Admin') {
                     window.location.href = 'Admin.html';
                 } else {
+                    // Non-admin users should not access dashboard - redirect to home
                     window.location.href = 'Home.html';
                 }
             });
@@ -1004,6 +1050,7 @@
             const newPassword = document.getElementById('reset-password').value;
             const confirmPassword = document.getElementById('reset-confirm').value;
             const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            const resetUserId = sessionStorage.getItem('resetUserId'); // Get userId from email link
 
             if (!token || !newPassword || newPassword !== confirmPassword) {
                 showMessage('Please fill all fields and ensure passwords match', 'error');
@@ -1021,7 +1068,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        userId: userInfo.userId || '',
+                        userId: resetUserId || userInfo.userId || '',
                         token,
                         newPassword,
                         confirmPassword
@@ -1033,9 +1080,57 @@
                 if (response.ok) {
                     showMessage('Password reset successfully! You can now log in.', 'success');
                     document.getElementById('reset-section').style.display = 'none';
+                    sessionStorage.removeItem('resetUserId'); // Clean up
                     switchTab('login');
                 } else {
                     showMessage(result.message || 'Failed to reset password', 'error');
+                }
+            } catch (error) {
+                showMessage('An error occurred. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        async function handleResendVerification() {
+            const email = document.getElementById('resend-email').value.trim();
+
+            if (!validateEmail(email)) {
+                showMessage('Please enter a valid email address', 'error');
+                return;
+            }
+
+            // Simple rate limiting - prevent multiple requests within 60 seconds
+            const lastResendTime = localStorage.getItem(`lastResend_${email}`);
+            const now = Date.now();
+            if (lastResendTime && (now - parseInt(lastResendTime)) < 60000) {
+                const remainingTime = Math.ceil((60000 - (now - parseInt(lastResendTime))) / 1000);
+                showMessage(`Please wait ${remainingTime} seconds before requesting another verification email.`, 'error');
+                return;
+            }
+
+            const btn = document.getElementById('resend-btn');
+            const originalContent = btn.innerHTML;
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="loading-spinner"></div> Sending...';
+                
+                const response = await fetch(`${authApiUrl}/resend-verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Verification email sent! Please check your inbox.', 'success');
+                    localStorage.setItem(`lastResend_${email}`, now.toString()); // Store timestamp
+                    document.getElementById('resend-email').value = ''; // Clear the field
+                } else {
+                    showMessage(result.message || 'Failed to resend verification email', 'error');
                 }
             } catch (error) {
                 showMessage('An error occurred. Please try again.', 'error');
@@ -1049,6 +1144,7 @@
             e.preventDefault();
             const token = document.getElementById('verify-token').value.trim();
             const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            const verifyUserId = sessionStorage.getItem('verifyUserId'); // Get userId from email link
 
             if (!token) {
                 showMessage('Please enter the verification token', 'error');
@@ -1062,7 +1158,7 @@
                 btn.disabled = true;
                 btn.innerHTML = '<div class="loading-spinner"></div> Verifying...';
                 
-                const response = await fetch(`${authApiUrl}/verify-email?userId=${userInfo.userId || ''}&token=${encodeURIComponent(token)}`, {
+                const response = await fetch(`${authApiUrl}/verify-email?userId=${verifyUserId || userInfo.userId || ''}&token=${encodeURIComponent(token)}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -1071,8 +1167,9 @@
 
                 if (response.ok) {
                     showMessage('Email verified successfully!', 'success');
+                    sessionStorage.removeItem('verifyUserId'); // Clean up
                     // Update user info
-                    if (userInfo.userId) {
+                    if (userInfo.userId || verifyUserId) {
                         userInfo.emailVerified = true;
                         localStorage.setItem('userInfo', JSON.stringify(userInfo));
                         await loadUserProfile();

@@ -125,8 +125,22 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Configure Email Settings
+builder.Services.Configure<EmailSettings>(options =>
+{
+    builder.Configuration.GetSection("EmailSettings").Bind(options);
+    
+    // Override password from environment variable if available (for production security)
+    var envPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
+    if (!string.IsNullOrEmpty(envPassword))
+    {
+        options.Password = envPassword;
+    }
+});
+
 // Add custom services
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddHealthChecks();
 
