@@ -14,7 +14,7 @@ namespace PortfolioBackend.Models
         public string LastName { get; set; } = string.Empty;
 
         [StringLength(50)]
-        public string Role { get; set; } = "RegisteredUser"; // Admin, Manager, RegisteredUser, Guest
+        public string Role { get; set; } = "User"; // Admin, Manager, User
 
         public bool IsBlocked { get; set; } = false;
 

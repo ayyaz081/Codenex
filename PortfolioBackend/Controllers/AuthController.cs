@@ -16,17 +16,20 @@ namespace PortfolioBackend.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly TokenService _tokenService;
+        private readonly IEmailService _emailService;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             TokenService tokenService,
+            IEmailService emailService,
             ILogger<AuthController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _emailService = emailService;
             _logger = logger;
         }
 
@@ -54,7 +57,7 @@ namespace PortfolioBackend.Controllers
                     Email = registerDto.Email,
                     FirstName = registerDto.FirstName,
                     LastName = registerDto.LastName,
-                    Role = registerDto.Role ?? "RegisteredUser", // Use role from DTO or default
+                    Role = registerDto.Role ?? "User", // Use role from DTO or default
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -69,9 +72,20 @@ namespace PortfolioBackend.Controllers
                 // Generate email confirmation token
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 
-                // In a real application, send email here
-                _logger.LogInformation("User registered successfully: {Email}. Email confirmation token: {Token}", 
-                    user.Email, emailConfirmationToken);
+                // Create verification URL
+                var verificationUrl = $"https://localhost:7151/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
+                
+                // Send verification email
+                var emailSent = await _emailService.SendEmailVerificationAsync(user.Email!, user.FirstName, verificationUrl);
+                
+                if (emailSent)
+                {
+                    _logger.LogInformation("Email verification sent to user: {Email}", user.Email);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to send email verification to user: {Email}", user.Email);
+                }
 
                 // Generate JWT token for immediate login
                 var token = _tokenService.CreateToken(user);
@@ -189,11 +203,19 @@ namespace PortfolioBackend.Controllers
                 var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                 
                 // Construct the reset URL (frontend page with token)
-                var resetUrl = $"http://localhost:5500/Frontend/ResetPassword.html?userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
+                var resetUrl = $"https://localhost:7151/Auth.html?action=reset&userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
                 
-                // In a real application, send email with reset link here
-                _logger.LogInformation("Password reset requested for user: {Email}. Reset URL: {ResetUrl}", 
-                    user.Email, resetUrl);
+                // Send password reset email
+                var emailSent = await _emailService.SendPasswordResetAsync(user.Email!, user.FirstName, resetUrl);
+                
+                if (emailSent)
+                {
+                    _logger.LogInformation("Password reset email sent to user: {Email}", user.Email);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to send password reset email to user: {Email}", user.Email);
+                }
 
                 return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
             }
@@ -361,6 +383,62 @@ namespace PortfolioBackend.Controllers
             }
         }
 
+        [HttpPost("resend-verification")]
+        public async Task<IActionResult> ResendVerificationEmail([FromBody] ResendVerificationDto resendDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var user = await _userManager.FindByEmailAsync(resendDto.Email);
+                if (user == null)
+                {
+                    // Don't reveal that the user doesn't exist - but add delay to prevent enumeration
+                    await Task.Delay(1000);
+                    return Ok(new { message = "If an account with that email exists, a verification email has been sent." });
+                }
+
+                if (user.EmailConfirmed)
+                {
+                    return BadRequest(new { message = "Email is already verified." });
+                }
+
+                // Check if user was created recently (prevent spam for new accounts)
+                if (user.CreatedAt > DateTime.UtcNow.AddMinutes(-2))
+                {
+                    return BadRequest(new { message = "Please wait a moment before requesting another verification email." });
+                }
+
+                // Generate new email confirmation token
+                var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                
+                // Create verification URL
+                var verificationUrl = $"https://localhost:7151/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
+                
+                // Send verification email
+                var emailSent = await _emailService.SendEmailVerificationAsync(user.Email!, user.FirstName, verificationUrl);
+                
+                if (emailSent)
+                {
+                    _logger.LogInformation("Verification email resent to user: {Email}", user.Email);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to resend verification email to user: {Email}", user.Email);
+                }
+
+                return Ok(new { message = "If an account with that email exists, a verification email has been sent." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during resend email verification");
+                return StatusCode(500, new { message = "An error occurred while resending verification email." });
+            }
+        }
+
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string userId, [FromQuery] string token)
         {
@@ -486,7 +564,7 @@ namespace PortfolioBackend.Controllers
         // PUT: api/auth/users/{id} - Update user (Admin only)
         [HttpPut("users/{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateUser(string id, [FromBody] RegisterDto updateDto)
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto updateDto)
         {
             try
             {
@@ -528,6 +606,39 @@ namespace PortfolioBackend.Controllers
             {
                 _logger.LogError(ex, $"Error updating user {id}");
                 return StatusCode(500, new { message = "An error occurred while updating user." });
+            }
+        }
+
+        // POST: api/auth/test-email - Test email functionality (Admin only)
+        [HttpPost("test-email")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> TestEmail([FromBody] TestEmailDto testEmailDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var success = await _emailService.SendEmailAsync(
+                    testEmailDto.Email, 
+                    "Test Email from Portfolio", 
+                    "<h2>Test Email</h2><p>If you receive this, your email service is working correctly!</p>");
+
+                if (success)
+                {
+                    return Ok(new { message = "Test email sent successfully!" });
+                }
+                else
+                {
+                    return BadRequest(new { message = "Failed to send test email." });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending test email");
+                return StatusCode(500, new { message = "An error occurred while sending test email." });
             }
         }
 
