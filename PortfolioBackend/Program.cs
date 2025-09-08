@@ -11,23 +11,31 @@ using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel with SSL certificate if in production
+// Register Certificate Generation Service
+builder.Services.AddSingleton<ICertificateGenerationService, CertificateGenerationService>();
+
+// Configure Kestrel with programmatically generated SSL certificate
 if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
 {
-    builder.WebHost.ConfigureKestrel(serverOptions =>
+    builder.WebHost.ConfigureKestrel((context, serverOptions) =>
     {
-        var certPath = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Path"];
-        var certPassword = builder.Configuration["Kestrel:Endpoints:Https:Certificate:Password"] ?? 
-                          Environment.GetEnvironmentVariable("SSL_CERT_PASSWORD") ?? "";
+        // Create certificate service directly (avoiding BuildServiceProvider warning)
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var logger = loggerFactory.CreateLogger<CertificateGenerationService>();
+        var certificateService = new CertificateGenerationService(logger, context.HostingEnvironment);
+        var certificate = certificateService.GenerateOrLoadCertificate();
         
-        if (!string.IsNullOrEmpty(certPath) && File.Exists(certPath))
+        serverOptions.ConfigureHttpsDefaults(httpsOptions =>
         {
-            var certificate = new X509Certificate2(certPath, certPassword);
-            serverOptions.ConfigureHttpsDefaults(httpsOptions =>
-            {
-                httpsOptions.ServerCertificate = certificate;
-            });
-        }
+            httpsOptions.ServerCertificate = certificate;
+        });
+        
+        // Configure endpoints
+        serverOptions.ListenAnyIP(80); // HTTP
+        serverOptions.ListenAnyIP(443, listenOptions =>
+        {
+            listenOptions.UseHttps(certificate);
+        });
     });
 }
 
