@@ -4843,8 +4843,306 @@ ${contact.message}
         }
 
 
+        // Load dynamic category/domain options for admin forms and filters
+        async function loadDynamicCategoriesForForms() {
+            try {
+                console.log('Loading dynamic categories for admin forms and filters...');
+                
+                // Load products domains (both form and filter)
+                await loadProductDomains();
+                await loadProductDomainFilter();
+                
+                // Load solutions problem areas (both form and filter)
+                await loadSolutionProblemAreas();
+                await loadSolutionAreaFilter();
+                
+                // Load publications domains (both form and filter)
+                await loadPublicationDomains();
+                await loadPublicationDomainFilter();
+                
+                // Load repository categories (both form and filter)
+                await loadRepositoryCategories();
+                await loadRepositoryCategoryFilter();
+                
+                console.log('Dynamic categories loaded successfully');
+            } catch (error) {
+                console.warn('Error loading dynamic categories:', error, '- using hardcoded values');
+            }
+        }
+        
+        // Load product domains from API and populate form dropdown
+        async function loadProductDomains() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Products/domains`);
+                if (response.ok) {
+                    const domainData = await response.json();
+                    // Extract just the domain names from the API response
+                    const domains = domainData.map(item => item.domain);
+                    populateProductDomainSelect(domains);
+                }
+            } catch (error) {
+                console.warn('Could not load product domains from API');
+            }
+        }
+        
+        // Load product domains for filter dropdown
+        async function loadProductDomainFilter() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Products/domains`);
+                if (response.ok) {
+                    const domainData = await response.json();
+                    // Extract just the domain names from the API response
+                    const domains = domainData.map(item => item.domain);
+                    populateProductDomainFilter(domains);
+                }
+            } catch (error) {
+                console.warn('Could not load product domains for filter from API');
+            }
+        }
+        
+        // Load solution problem areas for filter dropdown
+        async function loadSolutionAreaFilter() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Solutions/problem-areas`);
+                if (response.ok) {
+                    const problemAreas = await response.json();
+                    populateSolutionAreaFilter(problemAreas);
+                }
+            } catch (error) {
+                console.warn('Could not load solution problem areas for filter from API');
+            }
+        }
+        
+        // Load publication domains for filter dropdown
+        async function loadPublicationDomainFilter() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Publications/domains`);
+                if (response.ok) {
+                    const domains = await response.json();
+                    populatePublicationDomainFilterDropdown(domains);
+                }
+            } catch (error) {
+                console.warn('Could not load publication domains for filter from API');
+            }
+        }
+        
+        // Load repository categories for filter dropdown
+        async function loadRepositoryCategoryFilter() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Repository/categories`);
+                if (response.ok) {
+                    const categories = await response.json();
+                    populateRepositoryCategoryFilter(categories);
+                }
+            } catch (error) {
+                console.warn('Could not load repository categories for filter from API');
+            }
+        }
+        
+        // Load solution problem areas from API and populate form dropdown
+        async function loadSolutionProblemAreas() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Solutions/problem-areas`);
+                if (response.ok) {
+                    const problemAreas = await response.json();
+                    populateSolutionProblemAreaSelect(problemAreas);
+                }
+            } catch (error) {
+                console.warn('Could not load solution problem areas from API');
+            }
+        }
+        
+        // Load publication domains from API and populate form dropdown
+        async function loadPublicationDomains() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Publications/domains`);
+                if (response.ok) {
+                    const domains = await response.json();
+                    populatePublicationDomainSelect(domains);
+                }
+            } catch (error) {
+                console.warn('Could not load publication domains from API');
+            }
+        }
+        
+        // Load repository categories from API and populate form dropdown
+        async function loadRepositoryCategories() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/Repository/categories`);
+                if (response.ok) {
+                    const categories = await response.json();
+                    populateRepositoryCategorySelect(categories);
+                }
+            } catch (error) {
+                console.warn('Could not load repository categories from API');
+            }
+        }
+        
+        // Populate product domain select with API data
+        function populateProductDomainSelect(domains) {
+            const productDomainSelect = document.getElementById('productDomain');
+            if (productDomainSelect && domains.length > 0) {
+                // Clear existing options except the first "Select Domain" option
+                while (productDomainSelect.children.length > 1) {
+                    productDomainSelect.removeChild(productDomainSelect.lastChild);
+                }
+                
+                // Add domains from API
+                domains.forEach(domain => {
+                    const option = document.createElement('option');
+                    option.value = domain;
+                    option.textContent = domain;
+                    productDomainSelect.appendChild(option);
+                });
+                console.log(`Loaded ${domains.length} product domains for admin forms`);
+            }
+        }
+        
+        // Populate product domain filter with API data
+        function populateProductDomainFilter(domains) {
+            const productDomainFilter = document.getElementById('productDomainFilter');
+            if (productDomainFilter && domains.length > 0) {
+                // Clear existing options except the first "All Domains" option
+                while (productDomainFilter.children.length > 1) {
+                    productDomainFilter.removeChild(productDomainFilter.lastChild);
+                }
+                
+                // Add domains from API
+                domains.forEach(domain => {
+                    const option = document.createElement('option');
+                    option.value = domain;
+                    option.textContent = domain;
+                    productDomainFilter.appendChild(option);
+                });
+                console.log(`Loaded ${domains.length} product domains for filter`);
+            }
+        }
+        
+        // Populate solution problem area select with API data
+        function populateSolutionProblemAreaSelect(problemAreas) {
+            const solutionProblemAreaSelect = document.getElementById('solutionProblemArea');
+            if (solutionProblemAreaSelect && problemAreas.length > 0) {
+                // Clear existing options except the first "Select Problem Area" option
+                while (solutionProblemAreaSelect.children.length > 1) {
+                    solutionProblemAreaSelect.removeChild(solutionProblemAreaSelect.lastChild);
+                }
+                
+                // Add problem areas from API
+                problemAreas.forEach(area => {
+                    const option = document.createElement('option');
+                    option.value = area;
+                    option.textContent = area;
+                    solutionProblemAreaSelect.appendChild(option);
+                });
+                console.log(`Loaded ${problemAreas.length} solution problem areas for admin forms`);
+            }
+        }
+        
+        // Populate publication domain select with API data
+        function populatePublicationDomainSelect(domains) {
+            const publicationDomainSelect = document.querySelector('#publicationForm select[name="domain"]');
+            if (publicationDomainSelect && domains.length > 0) {
+                // Clear existing options except the first "Select Domain" option
+                while (publicationDomainSelect.children.length > 1) {
+                    publicationDomainSelect.removeChild(publicationDomainSelect.lastChild);
+                }
+                
+                // Add domains from API
+                domains.forEach(domain => {
+                    const option = document.createElement('option');
+                    option.value = domain;
+                    option.textContent = domain;
+                    publicationDomainSelect.appendChild(option);
+                });
+                console.log(`Loaded ${domains.length} publication domains for admin forms`);
+            }
+        }
+        
+        // Populate repository category select with API data
+        function populateRepositoryCategorySelect(categories) {
+            const repositoryCategorySelect = document.getElementById('repositoryCategory');
+            if (repositoryCategorySelect && categories.length > 0) {
+                // Clear existing options except the first "Select Category" option
+                while (repositoryCategorySelect.children.length > 1) {
+                    repositoryCategorySelect.removeChild(repositoryCategorySelect.lastChild);
+                }
+                
+                // Add categories from API
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    repositoryCategorySelect.appendChild(option);
+                });
+                console.log(`Loaded ${categories.length} repository categories for admin forms`);
+            }
+        }
+        
+        // Populate solution area filter with API data
+        function populateSolutionAreaFilter(problemAreas) {
+            const solutionAreaFilter = document.getElementById('solutionAreaFilter');
+            if (solutionAreaFilter && problemAreas.length > 0) {
+                // Clear existing options except the first "All Problem Areas" option
+                while (solutionAreaFilter.children.length > 1) {
+                    solutionAreaFilter.removeChild(solutionAreaFilter.lastChild);
+                }
+                
+                // Add problem areas from API
+                problemAreas.forEach(area => {
+                    const option = document.createElement('option');
+                    option.value = area;
+                    option.textContent = area;
+                    solutionAreaFilter.appendChild(option);
+                });
+                console.log(`Loaded ${problemAreas.length} solution areas for filter`);
+            }
+        }
+        
+        // Populate publication domain filter with API data
+        function populatePublicationDomainFilterDropdown(domains) {
+            const publicationDomainFilter = document.getElementById('publicationDomainFilter');
+            if (publicationDomainFilter && domains.length > 0) {
+                // Clear existing options except the first "All Domains" option
+                while (publicationDomainFilter.children.length > 1) {
+                    publicationDomainFilter.removeChild(publicationDomainFilter.lastChild);
+                }
+                
+                // Add domains from API
+                domains.forEach(domain => {
+                    const option = document.createElement('option');
+                    option.value = domain;
+                    option.textContent = domain;
+                    publicationDomainFilter.appendChild(option);
+                });
+                console.log(`Loaded ${domains.length} publication domains for filter`);
+            }
+        }
+        
+        // Populate repository category filter with API data
+        function populateRepositoryCategoryFilter(categories) {
+            const repositoryCategoryFilter = document.getElementById('repositoryCategoryFilter');
+            if (repositoryCategoryFilter && categories.length > 0) {
+                // Clear existing options except the first "All Categories" option
+                while (repositoryCategoryFilter.children.length > 1) {
+                    repositoryCategoryFilter.removeChild(repositoryCategoryFilter.lastChild);
+                }
+                
+                // Add categories from API
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    repositoryCategoryFilter.appendChild(option);
+                });
+                console.log(`Loaded ${categories.length} repository categories for filter`);
+            }
+        }
+        
         // Add event listeners for filters and search
         document.addEventListener('DOMContentLoaded', function() {
+            // Load dynamic categories for admin forms
+            loadDynamicCategoriesForForms();
+            
             // Products filters
             const productDomainFilter = document.getElementById('productDomainFilter');
             const productSearch = document.getElementById('productSearch');

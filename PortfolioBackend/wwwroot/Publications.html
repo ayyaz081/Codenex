@@ -1601,6 +1601,9 @@
                     return;
                 }
                 
+                // Load domains for filter dropdown
+                await loadDomainFilter();
+                
                 filteredPublications = [...allPublications];
                 renderPublications(filteredPublications);
                 handleDeepLink();
@@ -1608,6 +1611,39 @@
                 console.error("Error loading publications:", error);
                 showErrorState();
             }
+        }
+        
+        // Load domains dynamically from the API
+        async function loadDomainFilter() {
+            try {
+                const response = await fetch(`${apiUrl}/domains`);
+                if (response.ok) {
+                    const domains = await response.json();
+                    populateDomainFilter(domains);
+                } else {
+                    console.warn('Could not load domains from API, keeping hardcoded values');
+                }
+            } catch (error) {
+                console.warn('Error loading domains from API:', error, '- keeping hardcoded values');
+            }
+        }
+        
+        // Populate domain filter dropdown with API data
+        function populateDomainFilter(domains) {
+            const domainFilter = document.getElementById('domain-filter');
+            
+            // Clear existing options except "All Domains"
+            while (domainFilter.children.length > 1) {
+                domainFilter.removeChild(domainFilter.lastChild);
+            }
+            
+            // Add domains from API
+            domains.forEach(domain => {
+                const option = document.createElement('option');
+                option.value = domain;
+                option.textContent = domain;
+                domainFilter.appendChild(option);
+            });
         }
 
         async function searchPublications() {

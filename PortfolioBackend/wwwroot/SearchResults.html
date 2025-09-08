@@ -7,280 +7,58 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/shared-styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-            overflow-x: hidden;
-            padding-top: 70px;
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* Navigation Styles */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            border-bottom: 1px solid var(--glass-border);
-            z-index: 1000;
-            padding: 0;
-            transition: all 0.3s ease;
-        }
-
-        .nav-container {
-            max-width: 1440px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 70px;
-            position: relative;
-        }
-
-        /* Left: Company Name and Navigation Links */
-        .nav-left {
-            flex: 1 1 auto;
-            display: flex;
-            align-items: center;
-            gap: 70px;
-        }
-
-        .nav-logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-decoration: none;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        /* Navigation Links moved to left section */
-        .nav-center {
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .nav-links li a {
-            color: var(--text);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            position: relative;
-        }
-
-        .nav-links li a:hover {
-            color: var(--primary);
-        }
-
-        .nav-links li a::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary);
-            transition: width 0.3s ease;
-        }
-
-        .nav-links li a:hover::after {
-            width: 100%;
-        }
-
-        /* Right: Search, Auth, and Controls */
-        .nav-right {
-            flex: 1 1 auto;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 12px;
-            min-width: 0;
-            max-width: 50%;
-            z-index: 2;
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: nowrap;
-            flex-shrink: 0;
-        }
-
-        /* Global Search Bar */
-        .global-search {
-            position: relative;
-            max-width: 240px;
-            width: 100%;
-            flex: 0 1 200px;
-            min-width: 160px;
-        }
-
-        .global-search-input {
-            width: 100%;
-            padding: 10px 16px 10px 40px;
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            background: var(--glass-bg);
-            color: var(--text);
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            outline: none;
-            backdrop-filter: var(--glass-blur);
-        }
-
-        .global-search-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            background: var(--bg-light);
-        }
-
-        .container .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 1rem;
-            z-index: 1;
-        }
-
-        .search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--bg-light);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            box-shadow: var(--glass-shadow);
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1001;
-            margin-top: 4px;
-            display: none;
-        }
-
-        .suggestion-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
-
-        .suggestion-item:hover {
-            background: var(--glass-bg);
-        }
-
-        .theme-toggle {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+        /* Search Results Page Specific Styles */
+        
+        /* Search Results Page Header */
+        .header {
+            background: url('/content/ai.jpg') center/cover;
+            height: 500px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: var(--text);
-        }
-
-        .theme-toggle:hover {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        /* Mobile Navigation */
-        .nav-mobile {
-            display: none;
-        }
-
-        @media (max-width: 1024px) {
-            .nav-center { display: none; }
-            .global-search { flex: 0 1 240px; max-width: 240px; min-width: 180px; }
-        }
-
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .nav-mobile {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-            }
-
-            .nav-actions {
-                gap: 12px;
-            }
-
-            .theme-toggle {
-                width: 36px;
-                height: 36px;
-                font-size: 0.9rem;
-            }
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            padding: 60px 0 40px;
+            position: relative;
+            color: #fff;
             text-align: center;
-            color: white;
             margin-bottom: 40px;
+            border-radius: 0 0 20px 20px;
+            overflow: hidden;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            z-index: 1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 40px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .header-content h1 {
+            font-size: 3rem;
             font-weight: 800;
             margin-bottom: 16px;
         }
 
-        .header p {
-            font-size: 1.1rem;
+        .header-content p {
+            font-size: 1.25rem;
             opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
         }
 
-        /* Search Info */
+        /* Search Results Specific Styles */
         .search-info {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
@@ -306,7 +84,6 @@
             font-size: 0.9rem;
         }
 
-        /* Filters */
         .filters-section {
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
@@ -346,7 +123,6 @@
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
 
-        /* Results Grid */
         .results-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -479,7 +255,6 @@
             color: white;
         }
 
-        /* Loading and Empty States */
         .loading-state, .empty-state, .error-state {
             text-align: center;
             padding: 80px 20px;
@@ -525,7 +300,6 @@
             color: var(--text-light);
         }
 
-        /* Pagination */
         .pagination {
             display: flex;
             justify-content: center;
@@ -563,8 +337,16 @@
         }
 
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
+            .header {
+                height: 350px;
+            }
+
+            .header-content h1 {
+                font-size: 2.4rem;
+            }
+
+            .header-content p {
+                font-size: 1.1rem;
             }
 
             .results-grid {
@@ -582,6 +364,24 @@
                 flex-direction: column;
             }
         }
+
+        @media (max-width: 480px) {
+            .header {
+                height: 300px;
+            }
+
+            .header-content {
+                padding: 20px;
+            }
+
+            .header-content h1 {
+                font-size: 2rem;
+            }
+
+            .header-content p {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -590,7 +390,7 @@
 
     <!-- Header -->
     <header class="header">
-        <div class="container">
+        <div class="header-content">
             <h1>Search Results</h1>
             <p>Discover content across our products, publications, solutions, and repositories</p>
         </div>
@@ -1053,20 +853,7 @@
             });
         }
 
-        // Theme toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        const htmlElement = document.documentElement;
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        htmlElement.setAttribute('data-theme', currentTheme);
-        if (themeToggle) {
-            themeToggle.innerHTML = `<i class="fas fa-${currentTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
-            themeToggle.addEventListener('click', () => {
-                const newTheme = htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-                htmlElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                themeToggle.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
-            });
-        }
+        // Theme toggle is handled by shared components
 
         // Initialize
         document.addEventListener('DOMContentLoaded', initializeFromUrl);

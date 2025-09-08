@@ -233,6 +233,9 @@
             transform: translateY(30px);
             animation: slideInUpStagger 0.8s ease-out forwards;
             box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         @keyframes slideInUpStagger {
@@ -269,6 +272,19 @@
         
         .product-card-inner {
             padding: 32px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .product-content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-spacer {
+            flex-grow: 1;
         }
 
         .product-header {
@@ -1073,29 +1089,33 @@
                     ${imageHtml}
                     
                     <div class="product-card-inner">
-                        <div class="product-header">
-                            <span class="product-category">${product.domain}</span>
-                            <span class="product-status" style="background: var(--success); color: var(--bg-light); font-size: 0.75rem; font-weight: 600; padding: 4px 8px; border-radius: 12px;">
-                                <i class="fas fa-check-circle" style="margin-right: 4px;"></i>Available
-                            </span>
-                        </div>
-                        
-                        <h3 class="product-title">${product.title}</h3>
-                        <p class="product-description">${product.shortDescription}</p>
-                        
-                        ${keyFeatures.length > 0 ? `
-                            <ul class="product-features">
-                                ${keyFeatures.slice(0, 3).map(feature => 
-                                    `<li>${feature}</li>`
-                                ).join('')}
-                            </ul>
-                        ` : `
-                            <div class="product-preview" style="background: var(--glass-bg); padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--glass-border);">
-                                <p style="color: var(--text-light); font-size: 0.9rem; margin: 0; line-height: 1.4;">
-                                    ${product.longDescription.substring(0, 120)}${product.longDescription.length > 120 ? '...' : ''}
-                                </p>
+                        <div class="product-content-area">
+                            <div class="product-header">
+                                <span class="product-category">${product.domain}</span>
+                                <span class="product-status" style="background: var(--success); color: var(--bg-light); font-size: 0.75rem; font-weight: 600; padding: 4px 8px; border-radius: 12px;">
+                                    <i class="fas fa-check-circle" style="margin-right: 4px;"></i>Available
+                                </span>
                             </div>
-                        `}
+                            
+                            <h3 class="product-title">${product.title}</h3>
+                            <p class="product-description">${product.shortDescription}</p>
+                            
+                            ${keyFeatures.length > 0 ? `
+                                <ul class="product-features">
+                                    ${keyFeatures.slice(0, 3).map(feature => 
+                                        `<li>${feature}</li>`
+                                    ).join('')}
+                                </ul>
+                            ` : `
+                                <div class="product-preview" style="background: var(--glass-bg); padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--glass-border);">
+                                    <p style="color: var(--text-light); font-size: 0.9rem; margin: 0; line-height: 1.4;">
+                                        ${product.longDescription.substring(0, 120)}${product.longDescription.length > 120 ? '...' : ''}
+                                    </p>
+                                </div>
+                            `}
+                            
+                            <div class="product-spacer"></div>
+                        </div>
                         
                         <div class="product-meta">
                             <span style="display: flex; align-items: center; gap: 4px;">
