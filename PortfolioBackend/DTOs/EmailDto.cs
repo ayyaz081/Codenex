@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PortfolioBackend.DTOs
 {
-    public class ForgotPasswordDto
+    public class EmailDto
     {
         [Required]
         [EmailAddress]
