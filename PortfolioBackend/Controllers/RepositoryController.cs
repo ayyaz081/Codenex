@@ -348,6 +348,63 @@ namespace PortfolioBackend.Controllers
             }
         }
 
+        // GET: api/repository/categories
+        [HttpGet("categories")]
+        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        public async Task<ActionResult<IEnumerable<string>>> GetCategories()
+        {
+            try
+            {
+                var categories = await _context.Repositories
+                    .Where(r => r.IsActive && !string.IsNullOrEmpty(r.Category))
+                    .Select(r => r.Category)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToListAsync();
+
+                return Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving repository categories");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/repository/categories/detailed
+        [HttpGet("categories/detailed")]
+        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        public async Task<ActionResult<IEnumerable<object>>> GetCategoriesDetailed()
+        {
+            try
+            {
+                var categories = await _context.Repositories
+                    .Where(r => r.IsActive && !string.IsNullOrEmpty(r.Category))
+                    .GroupBy(r => r.Category)
+                    .Select(g => new
+                    {
+                        category = g.Key,
+                        count = g.Count(),
+                        repositories = g.Take(3).Select(r => new
+                        {
+                            id = r.Id,
+                            title = r.Title,
+                            description = r.Description.Length > 100 ? r.Description.Substring(0, 100) + "..." : r.Description,
+                            technicalStack = r.TechnicalStack
+                        })
+                    })
+                    .OrderByDescending(c => c.count)
+                    .ToListAsync();
+
+                return Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving detailed repository categories");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         // DELETE: api/repository/5
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Admin,Manager")]

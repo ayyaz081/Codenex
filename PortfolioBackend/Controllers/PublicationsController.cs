@@ -311,6 +311,63 @@ namespace PortfolioBackend.Controllers
             }
         }
 
+        // GET: api/publications/domains
+        [HttpGet("domains")]
+        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        public async Task<ActionResult<IEnumerable<string>>> GetDomains()
+        {
+            try
+            {
+                var domains = await _context.Publications
+                    .Where(p => p.IsPublished && !string.IsNullOrEmpty(p.Domain))
+                    .Select(p => p.Domain)
+                    .Distinct()
+                    .OrderBy(d => d)
+                    .ToListAsync();
+
+                return Ok(domains);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving publication domains");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/publications/domains/detailed
+        [HttpGet("domains/detailed")]
+        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        public async Task<ActionResult<IEnumerable<object>>> GetDomainsDetailed()
+        {
+            try
+            {
+                var domains = await _context.Publications
+                    .Where(p => p.IsPublished && !string.IsNullOrEmpty(p.Domain))
+                    .GroupBy(p => p.Domain)
+                    .Select(g => new
+                    {
+                        domain = g.Key,
+                        count = g.Count(),
+                        publications = g.Take(3).Select(p => new
+                        {
+                            id = p.Id,
+                            title = p.Title,
+                            authors = p.Authors,
+                            thumbnailUrl = p.ThumbnailUrl
+                        })
+                    })
+                    .OrderByDescending(d => d.count)
+                    .ToListAsync();
+
+                return Ok(domains);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving detailed publication domains");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         // DELETE: api/publications/5
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Admin,Manager")]

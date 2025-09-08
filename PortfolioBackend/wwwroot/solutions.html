@@ -276,10 +276,21 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            height: 100%;
             will-change: transform;
             opacity: 0;
             transform: translateY(30px);
             animation: slideInUpStagger 0.8s ease-out forwards;
+        }
+
+        .solution-content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .solution-spacer {
+            flex-grow: 1;
         }
 
         @keyframes slideInUpStagger {
@@ -440,6 +451,12 @@
             font-size: 0.9rem;
             color: var(--text-muted);
             margin-bottom: 20px;
+        }
+
+        .solution-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .solution-actions {
@@ -1077,13 +1094,12 @@
                     <label class="filter-label">Category</label>
                     <select id="category-filter" class="filter-select">
                         <option value="">All Categories</option>
-                        <option value="Web Development">Web Development</option>
-                        <option value="Mobile Development">Mobile Development</option>
-                        <option value="Enterprise Software">Enterprise Software</option>
-                        <option value="Cloud Solutions">Cloud Solutions</option>
-                        <option value="Data Analytics">Data Analytics</option>
-                        <option value="AI/ML">AI/ML</option>
-                        <option value="DevOps">DevOps</option>
+                        <option value="Automation">Automation</option>
+                        <option value="Security">Security</option>
+                        <option value="Analytics">Analytics</option>
+                        <option value="Integration">Integration</option>
+                        <option value="Performance">Performance</option>
+                        <option value="Scalability">Scalability</option>
                     </select>
                 </div>
 
@@ -1252,7 +1268,10 @@
                 if (response.ok) {
                     solutions = await response.json();
                     filteredSolutions = [...solutions];
-                    populateFilters();
+                    
+                    // Load categories for filter dropdown
+                    await loadCategoryFilter();
+                    
                     updateStats();
                     renderSolutions();
                 } else {
@@ -1263,25 +1282,38 @@
                 showErrorState();
             }
         }
-
-        // Populate filter dropdowns with actual data from API
-        function populateFilters() {
-            // Get unique problem areas (categories) from solutions
-            const categories = [...new Set(solutions.map(solution => solution.problemArea))].filter(Boolean);
-            const categorySelect = document.getElementById('category-filter');
+        
+        // Load problem areas dynamically from the API
+        async function loadCategoryFilter() {
+            try {
+                const response = await fetch(`${solutionsApiUrl}/problem-areas`);
+                if (response.ok) {
+                    const categories = await response.json();
+                    populateCategoryFilter(categories);
+                } else {
+                    console.warn('Could not load categories from API, keeping hardcoded values');
+                }
+            } catch (error) {
+                console.warn('Error loading categories from API:', error, '- keeping hardcoded values');
+            }
+        }
+        
+        // Populate category filter dropdown with API data
+        function populateCategoryFilter(categories) {
+            const categoryFilter = document.getElementById('category-filter');
             
             // Clear existing options except "All Categories"
-            categorySelect.innerHTML = '<option value="">All Categories</option>';
+            while (categoryFilter.children.length > 1) {
+                categoryFilter.removeChild(categoryFilter.lastChild);
+            }
+            
+            // Add categories from API
             categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category;
                 option.textContent = category;
-                categorySelect.appendChild(option);
+                categoryFilter.appendChild(option);
             });
-            
-            // Note: Domain filtering is not applicable for Solutions API as it doesn't have domain field
-            // We'll keep the domain filter but it won't do anything for now
-            console.log('Available categories:', categories);
         }
 
         // Update statistics
@@ -1331,38 +1363,48 @@
                 const fullImageUrl = getFullImageUrl(solution.demoImageUrl);
                 return `
                 <div class="solution-card" id="solution-${solution.id}">
-                    ${fullImageUrl ? 
-                        `<img src="${fullImageUrl}" alt="${solution.title}" class="solution-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
-                        ''
-                    }
-                    ${!fullImageUrl ? 
-                        `<div class="solution-placeholder"><i class="fas fa-lightbulb"></i></div>` : 
-                        `<div class="solution-placeholder" style="display:none;"><i class="fas fa-lightbulb"></i></div>`
-                    }
-                    
-                    <div class="solution-header">
-                        <span class="solution-category">${solution.problemArea || 'Solution'}</span>
-                        <span class="solution-domain ${solution.isActive ? 'active' : 'inactive'}">${solution.isActive ? 'Active' : 'Inactive'}</span>
+                    <div class="solution-content-area">
+                        ${fullImageUrl ? 
+                            `<img src="${fullImageUrl}" alt="${solution.title}" class="solution-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                            ''
+                        }
+                        ${!fullImageUrl ? 
+                            `<div class="solution-placeholder"><i class="fas fa-lightbulb"></i></div>` : 
+                            `<div class="solution-placeholder" style="display:none;"><i class="fas fa-lightbulb"></i></div>`
+                        }
+                        
+                        <div class="solution-header">
+                            <span class="solution-category">${solution.problemArea || 'Solution'}</span>
+                            <span class="solution-domain ${solution.isActive ? 'active' : 'inactive'}">${solution.isActive ? 'Active' : 'Inactive'}</span>
+                        </div>
+                        
+                        <h3 class="solution-title">${solution.title}</h3>
+                        <p class="solution-description">${solution.summary || solution.description || ''}</p>
+                        
+                        <div class="solution-technologies">
+                            ${(solution.technologiesUsed || '').split(',').map(tech => 
+                                tech.trim() ? `<span class="tech-tag">${tech.trim()}</span>` : ''
+                            ).join('')}
+                        </div>
+                        
+                        <ul class="solution-features">
+                            ${(solution.keyFeatures || '').split(',').slice(0, 3).map(feature => 
+                                feature.trim() ? `<li>${feature.trim()}</li>` : ''
+                            ).join('')}
+                        </ul>
+                        
+                        <div class="solution-spacer"></div>
                     </div>
-                    
-                    <h3 class="solution-title">${solution.title}</h3>
-                    <p class="solution-description">${solution.summary || solution.description || ''}</p>
-                    
-                    <div class="solution-technologies">
-                        ${(solution.technologiesUsed || '').split(',').map(tech => 
-                            tech.trim() ? `<span class="tech-tag">${tech.trim()}</span>` : ''
-                        ).join('')}
-                    </div>
-                    
-                    <ul class="solution-features">
-                        ${(solution.keyFeatures || '').split(',').slice(0, 3).map(feature => 
-                            feature.trim() ? `<li>${feature.trim()}</li>` : ''
-                        ).join('')}
-                    </ul>
                     
                     <div class="solution-meta">
-                        <span>Created: ${new Date(solution.createdAt).toLocaleDateString()}</span>
-                        <span>Status: ${solution.isActive ? 'Active' : 'Inactive'}</span>
+                        <span style="display: flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-calendar" style="color: var(--primary); font-size: 0.8rem;"></i>
+                            ${new Date(solution.createdAt).toLocaleDateString()}
+                        </span>
+                        <span style="display: flex; align-items: center; gap: 4px;">
+                            <i class="fas ${solution.isActive ? 'fa-check-circle' : 'fa-pause-circle'}" style="color: ${solution.isActive ? 'var(--success)' : 'var(--warning)'}; font-size: 0.8rem;"></i>
+                            ${solution.isActive ? 'Active' : 'Inactive'}
+                        </span>
                     </div>
                     
                     <div class="solution-actions">
