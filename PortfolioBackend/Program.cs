@@ -2,42 +2,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 using PortfolioBackend.Data;
 using PortfolioBackend.Models;
 using PortfolioBackend.Services;
 using System.Security.Claims;
 using System.Text;
-using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Register Certificate Generation Service
-builder.Services.AddSingleton<ICertificateGenerationService, CertificateGenerationService>();
-
-// Configure Kestrel with programmatically generated SSL certificate
-if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
-{
-    builder.WebHost.ConfigureKestrel((context, serverOptions) =>
-    {
-        // Create certificate service directly (avoiding BuildServiceProvider warning)
-        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        var logger = loggerFactory.CreateLogger<CertificateGenerationService>();
-        var certificateService = new CertificateGenerationService(logger, context.HostingEnvironment);
-        var certificate = certificateService.GenerateOrLoadCertificate();
-        
-        serverOptions.ConfigureHttpsDefaults(httpsOptions =>
-        {
-            httpsOptions.ServerCertificate = certificate;
-        });
-        
-        // Configure endpoints
-        serverOptions.ListenAnyIP(80); // HTTP
-        serverOptions.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps(certificate);
-        });
-    });
-}
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -76,19 +48,15 @@ builder.Services.AddCors(options =>
     }
     else
     {
-        // Production policy - restrict to specific origins
-        var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() 
-                           ?? new[] { "https://localhost:7151" };
-        
+        // Production policy - allow same origin for Azure/cloud deployments
         options.AddPolicy("ProductionCors", policy =>
         {
-            policy.WithOrigins(allowedOrigins)
+            policy.SetIsOriginAllowed(origin => true) // Allow any origin for Azure deployment
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()
                   .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
         });
-        
     }
 });
 
@@ -257,12 +225,29 @@ else
 // Enable response caching middleware
 app.UseResponseCaching();
 
-// Serve files from wwwroot/ (including /Uploads/)
-app.UseDefaultFiles(new DefaultFilesOptions
+// Serve static files from project root directory
+var rootPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, ".."));
+if (Directory.Exists(rootPath))
 {
-    DefaultFileNames = new List<string> { "Home.html" }
-});
-app.UseStaticFiles();
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        DefaultFileNames = new List<string> { "Home.html" },
+        FileProvider = new PhysicalFileProvider(rootPath)
+    });
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(rootPath)
+    });
+}
+else
+{
+    // Fallback to wwwroot if root structure doesn't exist (for backwards compatibility)
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        DefaultFileNames = new List<string> { "Home.html" }
+    });
+    app.UseStaticFiles();
+}
 
 // Authentication and Authorization middleware
 app.UseAuthentication();
