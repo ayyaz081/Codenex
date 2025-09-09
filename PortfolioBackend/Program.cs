@@ -209,7 +209,7 @@ app.UseCors("DefaultCorsPolicy");
 // Enable response caching middleware
 app.UseResponseCaching();
 
-// Configure default files (index.html, Home.html, default.html)
+// Configure default files (index.html, default.html)
 app.UseDefaultFiles();
 
 // Serve static files from wwwroot
