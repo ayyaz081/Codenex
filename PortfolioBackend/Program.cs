@@ -9,7 +9,12 @@ using PortfolioBackend.Services;
 using System.Security.Claims;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+var options = new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = "" // Disable default wwwroot
+};
+var builder = WebApplication.CreateBuilder(options);
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -226,27 +231,32 @@ else
 app.UseResponseCaching();
 
 // Serve static files from project root directory
-var rootPath = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, ".."));
-if (Directory.Exists(rootPath))
+var projectRootPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, ".."));
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+// Log debug information
+logger.LogInformation("Content root path: {ContentRootPath}", app.Environment.ContentRootPath);
+logger.LogInformation("Project root path for static files: {ProjectRootPath}", projectRootPath);
+logger.LogInformation("Home.html exists: {HomeExists}", File.Exists(Path.Combine(projectRootPath, "Home.html")));
+logger.LogInformation("CSS directory exists: {CssExists}", Directory.Exists(Path.Combine(projectRootPath, "css")));
+
+// Configure default files
+app.UseDefaultFiles(new DefaultFilesOptions
 {
-    app.UseDefaultFiles(new DefaultFilesOptions
-    {
-        DefaultFileNames = new List<string> { "Home.html" },
-        FileProvider = new PhysicalFileProvider(rootPath)
-    });
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(rootPath)
-    });
-}
-else
+    DefaultFileNames = new List<string> { "Home.html" },
+    FileProvider = new PhysicalFileProvider(projectRootPath)
+});
+
+// Configure static files
+app.UseStaticFiles(new StaticFileOptions
 {
-    // Fallback to wwwroot if root structure doesn't exist (for backwards compatibility)
-    app.UseDefaultFiles(new DefaultFilesOptions
-    {
-        DefaultFileNames = new List<string> { "Home.html" }
-    });
-    app.UseStaticFiles();
+    FileProvider = new PhysicalFileProvider(projectRootPath)
+});
+
+// Also serve files from the default wwwroot if it exists (fallback)
+if (Directory.Exists(Path.Combine(app.Environment.ContentRootPath, "wwwroot")))
+{
+    app.UseStaticFiles(); // Default static files
 }
 
 // Authentication and Authorization middleware
@@ -257,6 +267,19 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 // Fallback route to serve Home.html for any unmatched routes (SPA support)
-app.MapFallbackToFile("Home.html");
+app.MapFallback(async context =>
+{
+    var homeHtmlPath = Path.Combine(projectRootPath, "Home.html");
+    if (File.Exists(homeHtmlPath))
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.WriteAsync(await File.ReadAllTextAsync(homeHtmlPath));
+    }
+    else
+    {
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Home.html not found");
+    }
+});
 
 app.Run();
