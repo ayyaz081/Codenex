@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenex Solutions - Repository</title>
+    <link rel="icon" type="image/x-icon" href="/components/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/shared-styles.css">
+    <style>
+
+        /* Repository page specific styles only - container handled by shared-styles.css */
+
+        .header {
+            background: url('https://localhost:7151/content/repository-hero.jpg') center/cover;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 0 0 20px 20px;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            z-index: 1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 40px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .header-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .header-content p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .filters-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            will-change: transform;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.8s ease-out forwards;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .filters-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            z-index: -1;
+        }
+
+        .filters-section:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filters-row {
+            display: grid;
+            grid-template-columns: 1fr 200px 200px 150px;
+            gap: 24px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .search-input, .filter-select {
+            width: 100%;
+            height: 100%;
+            padding: 14px 18px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-shadow: var(--glass-shadow);
+        }
+        .search-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), var(--glass-shadow);
+            transform: translateY(-2px);
+        }
+
+        .search-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-group .search-icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            font-size: 1.1rem;
+            z-index: 10;
+        }
+        
+        .search-group .search-input {
+            padding-right: 50px;
+            width: 100%;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stats-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            z-index: -1;
+        }
+
+        .stats-bar:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .stats-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .stats-number {
+            font-weight: 800;
+            font-size: 1.2rem;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .repositories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+            padding: 0;
+        }
+
+        .repository-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            will-change: transform;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideInUpStagger 0.8s ease-out forwards;
+        }
+
+        @keyframes slideInUpStagger {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .repository-card:nth-child(1) { animation-delay: 0.1s; }
+        .repository-card:nth-child(2) { animation-delay: 0.2s; }
+        .repository-card:nth-child(3) { animation-delay: 0.3s; }
+        .repository-card:nth-child(4) { animation-delay: 0.4s; }
+        .repository-card:nth-child(5) { animation-delay: 0.5s; }
+        .repository-card:nth-child(6) { animation-delay: 0.6s; }
+        .repository-card:nth-child(7) { animation-delay: 0.7s; }
+        .repository-card:nth-child(8) { animation-delay: 0.8s; }
+
+        .repository-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            z-index: -1;
+        }
+
+        .repository-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .repository-card.premium {
+            border: 2px solid var(--premium);
+        }
+
+        .repository-card.premium::before {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.05));
+        }
+
+        .repository-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            min-height: 32px;
+        }
+
+        .repository-badges {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .repository-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .premium-badge {
+            background: linear-gradient(135deg, #8B5CF6, #A855F7);
+            color: var(--bg-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+        }
+
+        .free-badge {
+            background: var(--success);
+            color: var(--bg-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .repository-type {
+            background: var(--primary);
+            color: var(--bg-light);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .repository-description {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 4.8em;
+        }
+
+        .repository-meta {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, auto));
+            column-gap: 16px;
+            row-gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            align-items: center;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-light);
+        }
+
+        .meta-icon {
+            width: 16px;
+            text-align: center;
+        }
+
+        .technology-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            align-content: flex-start;
+            min-height: 48px; /* up to two rows of tags */
+            max-height: 48px;
+            overflow: hidden;
+        }
+
+        .tech-tag {
+            background: var(--neutral-light);
+            color: var(--neutral);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        [data-theme="dark"] .tech-tag {
+            background: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        .repository-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.2s ease;
+            text-decoration: none;
+            min-height: 44px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg-light);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: var(--bg-light);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-outline:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #8B5CF6, #A855F7);
+            color: white;
+            border: 2px solid #8B5CF6;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-premium::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0.3), transparent);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .btn-premium:hover {
+            background: linear-gradient(135deg, #7C3AED, #8B5CF6);
+            border-color: #7C3AED;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+        
+        .btn-premium:hover::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .btn-premium:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            animation: spin 2s linear infinite;
+        }
+
+        .empty-state h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--glass-border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            text-align: center;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 24px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .divider {
+            position: relative;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-light), var(--accent));
+            border-radius: 2px;
+            margin: 40px auto;
+            width: 200px;
+            overflow: hidden;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            padding: 10px 14px;
+            min-width: 44px;
+            height: 44px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .pagination-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0.1), transparent);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .pagination-btn:hover:not(.disabled) {
+            background: var(--primary-light);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .pagination-btn:hover:not(.disabled)::before {
+            opacity: 1;
+            transform: rotate(30deg) translate(50%, 50%);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--glass-bg);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                height: 350px;
+            }
+
+            .header-content h1 {
+                font-size: 2.4rem;
+            }
+
+            .header-content p {
+                font-size: 1.1rem;
+            }
+
+            .filters-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .repositories-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .repository-card {
+                padding: 20px;
+            }
+
+            .repository-actions {
+                flex-direction: column;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                height: 300px;
+            }
+
+            .header-content {
+                padding: 20px;
+            }
+
+            .header-content h1 {
+                font-size: 2rem;
+            }
+
+            .header-content p {
+                font-size: 1rem;
+            }
+
+            .repository-card {
+                padding: 16px;
+            }
+
+            .repository-title {
+                font-size: 1.2rem;
+            }
+
+            .repository-meta {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                column-gap: 12px;
+                row-gap: 8px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded by JavaScript -->
+    <div id="header-placeholder"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <h1>Software Repository</h1>
+            <p>Explore our collection of open-source projects, tools, and premium solutions designed to accelerate your development workflow.</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="section-title">Explore Our Repository</h2>
+        
+        <section class="filters-section">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="filter-label">Search Repositories</label>
+                    <div class="search-group">
+                        <input type="text" id="search-input" class="search-input" placeholder="Search by name, description, or technology...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Category</label>
+                    <select id="category-filter" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="Web">Web</option>
+                        <option value="Mobile">Mobile</option>
+                        <option value="API">API</option>
+                        <option value="Blockchain">Blockchain</option>
+                        <option value="Machine Learning">Machine Learning</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Type</label>
+                    <select id="type-filter" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="free">Free</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Sort By</label>
+                    <select id="sort-filter" class="filter-select">
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="name">Name</option>
+                        <option value="stars">Most Stars</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+        
+        <div class="stats-bar" id="stats-bar">
+            <div class="stats-item">
+                <i class="fas fa-code-branch"></i>
+                <span>Total: <span class="stats-number" id="total-count">-</span> repositories</span>
+            </div>
+            <div class="stats-item">
+                <i class="fas fa-star"></i>
+                <span>Free: <span class="stats-number" id="free-count">-</span></span>
+            </div>
+            <div class="stats-item">
+                <i class="fas fa-crown"></i>
+                <span>Premium: <span class="stats-number" id="premium-count">-</span></span>
+            </div>
+            <div class="stats-item">
+                <i class="fas fa-clock"></i>
+                <span>Last updated: <span class="stats-number" id="last-updated">-</span></span>
+            </div>
+        </div>
+
+        <div id="repositories-container">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display: none;">
+            <!-- Pagination will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const backendBaseUrl = "https://localhost:7151";
+        const repositoryApiUrl = `${backendBaseUrl}/api/repositories`;
+
+        let currentPage = 1;
+        let pageSize = 12;
+        let totalItems = 0;
+        let repositories = [];
+        let filteredRepositories = [];
+        let deepLinkHandled = false;
+        let currentUser = null;
+
+        // Authentication Management
+        class InlineAuthManager {
+            constructor() {
+                this.baseUrl = "https://localhost:7151";
+                this.user = null;
+                this.init();
+            }
+
+            init() {
+                this.user = this.getCurrentUser();
+                this.checkTokenExpiration();
+                
+                setInterval(() => this.checkTokenExpiration(), 60000);
+                
+                this.initAuthDisplay();
+            }
+
+            getCurrentUser() {
+                const userInfo = localStorage.getItem('userInfo');
+                const token = localStorage.getItem('authToken');
+                
+                if (userInfo && token) {
+                    try {
+                        const user = JSON.parse(userInfo);
+                        const expiresAt = new Date(user.expiresAt);
+                        
+                        if (expiresAt > new Date()) {
+                            return user;
+                        } else {
+                            this.clearAuthData();
+                            return null;
+                        }
+                    } catch (error) {
+                        console.error('Error parsing user info:', error);
+                        this.clearAuthData();
+                        return null;
+                    }
+                }
+                return null;
+            }
+
+            getAuthHeaders() {
+                const token = localStorage.getItem('authToken');
+                return token ? { 'Authorization': `Bearer ${token}` } : {};
+            }
+
+            isAuthenticated() {
+                return this.user !== null;
+            }
+
+            clearAuthData() {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                this.user = null;
+            }
+
+            checkTokenExpiration() {
+                const userInfo = localStorage.getItem('userInfo');
+                if (userInfo) {
+                    try {
+                        const user = JSON.parse(userInfo);
+                        const expiresAt = new Date(user.expiresAt);
+                        
+                        if (expiresAt <= new Date()) {
+                            console.log('Token expired, clearing auth data');
+                            this.clearAuthData();
+                            this.onTokenExpired();
+                        }
+                    } catch (error) {
+                        console.error('Error checking token expiration:', error);
+                        this.clearAuthData();
+                    }
+                }
+            }
+
+            onTokenExpired() {
+                this.showNotification('Your session has expired. Please log in again.', 'warning');
+                this.initAuthDisplay();
+                setTimeout(() => {
+                    if (window.confirm('Your session has expired. Would you like to go to the login page?')) {
+                        window.location.href = './Auth.html';
+                    }
+                }, 3000);
+            }
+
+            showLoginPrompt() {
+                const message = 'You need to log in to access this feature. Would you like to go to the login page?';
+                if (window.confirm(message)) {
+                    window.location.href = './Auth.html';
+                }
+            }
+
+            async makeAuthenticatedRequest(url, options = {}) {
+                const headers = {
+                    ...this.getAuthHeaders(),
+                    ...(options.headers || {})
+                };
+
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    this.clearAuthData();
+                    this.initAuthDisplay();
+                    
+                    if (response.status === 401) {
+                        this.showNotification('Please log in to access this feature.', 'warning');
+                        this.showLoginPrompt();
+                    } else {
+                        this.showNotification('Access denied. You don\'t have permission to perform this action.', 'error');
+                    }
+                    
+                    throw new Error(`Authentication error: ${response.status}`);
+                }
+
+                return response;
+            }
+
+            initAuthDisplay() {
+                console.log('Auth display handled by navbar');
+            }
+
+            logout() {
+                if (window.confirm('Are you sure you want to logout?')) {
+                    this.clearAuthData();
+                    this.showNotification('You have been logged out successfully.', 'success');
+                    this.initAuthDisplay();
+                    
+                    setTimeout(() => {
+                        if (window.confirm('Would you like to go to the login page?')) {
+                            window.location.href = './Auth.html';
+                        }
+                    }, 1500);
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                if (typeof showNotification === 'function') {
+                    showNotification(message, type);
+                    return;
+                }
+                
+                const icons = {
+                    success: '✅',
+                    error: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
+                };
+                
+                alert(`${icons[type] || icons.info} ${message}`);
+            }
+        }
+
+        const authManager = new InlineAuthManager();
+
+        // HTTP to HTTPS redirection
+        if (window.location.protocol === 'http:' && window.location.hostname === 'localhost') {
+            const httpsUrl = window.location.href.replace('http:', 'https:');
+            window.location.replace(httpsUrl);
+        }
+
+        // Theme handling is managed by shared components
+
+        async function loadRepositories() {
+            try {
+                const response = await fetch(repositoryApiUrl);
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        repositories = await response.json();
+                    } else {
+                        throw new Error('API returned non-JSON response');
+                    }
+                } else {
+                    throw new Error('API request failed');
+                }
+            } catch (error) {
+                console.warn('Failed to load from API, using sample data:', error);
+                // Use sample data if API fails
+                repositories = getSampleRepositories();
+            }
+            
+            // Load categories for filter dropdown
+            await loadCategoryFilter();
+            
+            filteredRepositories = [...repositories];
+            updateStats();
+            renderRepositories();
+            renderPagination();
+        }
+        
+        // Load categories dynamically from the API
+        async function loadCategoryFilter() {
+            try {
+                const response = await fetch(`${repositoryApiUrl}/categories`);
+                if (response.ok) {
+                    const categories = await response.json();
+                    populateCategoryFilter(categories);
+                } else {
+                    console.warn('Could not load categories from API, keeping hardcoded values');
+                }
+            } catch (error) {
+                console.warn('Error loading categories from API:', error, '- keeping hardcoded values');
+            }
+        }
+        
+        // Populate category filter dropdown with API data
+        function populateCategoryFilter(categories) {
+            const categoryFilter = document.getElementById('category-filter');
+            
+            // Clear existing options except "All Categories"
+            while (categoryFilter.children.length > 1) {
+                categoryFilter.removeChild(categoryFilter.lastChild);
+            }
+            
+            // Add categories from API
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+        }
+        
+        function getSampleRepositories() {
+            return [
+                {
+                    id: '1',
+                    title: 'E-Commerce Platform',
+                    description: 'A full-featured e-commerce platform built with React and .NET Core, featuring payment integration, inventory management, and admin dashboard.',
+                    category: 'Web',
+                    isPremium: false,
+                    technicalStack: 'React, .NET Core, PostgreSQL, Redis',
+                    tags: 'ecommerce, react, dotnet, postgresql',
+                    license: 'MIT',
+                    version: '2.1.0',
+                    downloadCount: 1247,
+                    stars: 89,
+                    createdAt: '2024-01-15T00:00:00Z',
+                    updatedAt: '2024-08-10T00:00:00Z',
+                    githubUrl: 'https://github.com/example/ecommerce-platform'
+                },
+                {
+                    id: '2',
+                    title: 'Mobile Chat Application',
+                    description: 'Cross-platform mobile chat application with real-time messaging, file sharing, and group chat functionality.',
+                    category: 'Mobile',
+                    isPremium: true,
+                    technicalStack: 'React Native, Node.js, Socket.IO, MongoDB',
+                    tags: 'mobile, chat, realtime, react-native',
+                    license: 'Commercial',
+                    version: '1.5.2',
+                    downloadCount: 532,
+                    stars: 156,
+                    createdAt: '2023-11-20T00:00:00Z',
+                    updatedAt: '2024-08-15T00:00:00Z'
+                },
+                {
+                    id: '3',
+                    title: 'REST API Boilerplate',
+                    description: 'Production-ready REST API boilerplate with authentication, logging, testing, and documentation. Perfect for rapid development.',
+                    category: 'API',
+                    isPremium: false,
+                    technicalStack: 'Node.js, Express, JWT, Swagger',
+                    tags: 'api, nodejs, express, jwt, swagger',
+                    license: 'MIT',
+                    version: '3.0.1',
+                    downloadCount: 2103,
+                    stars: 234,
+                    createdAt: '2023-08-10T00:00:00Z',
+                    updatedAt: '2024-07-30T00:00:00Z',
+                    githubUrl: 'https://github.com/example/api-boilerplate'
+                },
+                {
+                    id: '4',
+                    title: 'Blockchain Voting System',
+                    description: 'Secure and transparent voting system built on Ethereum blockchain with smart contracts and decentralized verification.',
+                    category: 'Blockchain',
+                    isPremium: true,
+                    technicalStack: 'Solidity, Web3.js, React, Truffle',
+                    tags: 'blockchain, ethereum, voting, smartcontracts',
+                    license: 'GPL-3.0',
+                    version: '1.0.3',
+                    downloadCount: 87,
+                    stars: 67,
+                    createdAt: '2024-02-01T00:00:00Z',
+                    updatedAt: '2024-08-05T00:00:00Z'
+                },
+                {
+                    id: '5',
+                    title: 'ML Image Classifier',
+                    description: 'Machine learning image classification system with pre-trained models, custom training capabilities, and REST API.',
+                    category: 'Machine Learning',
+                    isPremium: false,
+                    technicalStack: 'Python, TensorFlow, Flask, OpenCV',
+                    tags: 'machine-learning, tensorflow, python, image-processing',
+                    license: 'Apache-2.0',
+                    version: '2.3.0',
+                    downloadCount: 756,
+                    stars: 178,
+                    createdAt: '2023-12-05T00:00:00Z',
+                    updatedAt: '2024-08-12T00:00:00Z',
+                    githubUrl: 'https://github.com/example/ml-image-classifier'
+                },
+                {
+                    id: '6',
+                    title: 'Task Management Dashboard',
+                    description: 'Comprehensive task management dashboard with team collaboration, time tracking, and project analytics.',
+                    category: 'Web',
+                    isPremium: true,
+                    technicalStack: 'Vue.js, Laravel, MySQL, Redis',
+                    tags: 'dashboard, task-management, vue, laravel',
+                    license: 'Commercial',
+                    version: '4.2.1',
+                    downloadCount: 423,
+                    stars: 134,
+                    createdAt: '2023-09-15T00:00:00Z',
+                    updatedAt: '2024-08-18T00:00:00Z'
+                }
+            ];
+        }
+
+        function updateStats() {
+            const totalCount = filteredRepositories.length;
+            const freeCount = filteredRepositories.filter(repo => !repo.isPremium).length;
+            const premiumCount = filteredRepositories.filter(repo => repo.isPremium).length;
+            
+            document.getElementById('total-count').textContent = totalCount;
+            document.getElementById('free-count').textContent = freeCount;
+            document.getElementById('premium-count').textContent = premiumCount;
+            
+            const lastUpdate = filteredRepositories.reduce((latest, repo) => {
+                const repoDate = new Date(repo.updatedAt || repo.createdAt);
+                return repoDate > latest ? repoDate : latest;
+            }, new Date(0));
+            
+            if (lastUpdate.getTime() > 0) {
+                document.getElementById('last-updated').textContent = lastUpdate.toLocaleDateString();
+            }
+        }
+
+        function renderRepositories() {
+            const container = document.getElementById('repositories-container');
+            
+            if (filteredRepositories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>No repositories found</h3>
+                        <p>Try adjusting your search criteria or filters.</p>
+                    </div>
+                `;
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const pageItems = filteredRepositories.slice(startIndex, endIndex);
+
+            const repositoriesHtml = pageItems.map(repo => {
+                const actionButtons = generateActionButtons(repo);
+                const techTags = (repo.technicalStack || repo.tags || '').split(',').map(tech => 
+                    tech.trim() ? `<span class="tech-tag">${tech.trim()}</span>` : ''
+                ).join('');
+                
+                return `
+                <div class="repository-card ${repo.isPremium ? 'premium' : ''}" id="repo-${repo.id}">
+                    <div class="repository-header">
+                        <div class="repository-type">${repo.category || 'General'}</div>
+                        <div class="repository-badges">
+                            ${repo.isPremium ? '<span class="premium-badge">Premium</span>' : '<span class="free-badge">Free</span>'}
+                        </div>
+                    </div>
+                    
+                    <h3 class="repository-title">
+                        <i class="fab fa-github"></i>
+                        ${repo.title}
+                    </h3>
+                    
+                    <p class="repository-description">${repo.description}</p>
+                    
+                    <div class="repository-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-download meta-icon"></i>
+                            <span>${repo.downloadCount || 0}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-balance-scale meta-icon"></i>
+                            <span>${repo.license || 'MIT'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-tag meta-icon"></i>
+                            <span>v${repo.version || '1.0.0'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar meta-icon"></i>
+                            <span>${new Date(repo.createdAt).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="technology-tags">
+                        ${techTags}
+                    </div>
+                    
+                    <div class="repository-actions">
+                        ${actionButtons}
+                    </div>
+                </div>
+            `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="repositories-grid">
+                    ${repositoriesHtml}
+                </div>
+            `;
+
+            // Deep link handling: compute page for repo id and scroll
+            if (!deepLinkHandled) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const idParam = urlParams.get('id');
+                if (idParam) {
+                    const targetId = parseInt(idParam, 10);
+                    const idx = filteredRepositories.findIndex(r => (r.id || r.Id) === targetId);
+                    if (idx >= 0) {
+                        currentPage = Math.floor(idx / pageSize) + 1;
+                    }
+                    const el = document.getElementById(`repo-${targetId}`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        deepLinkHandled = true;
+                    }
+                }
+            }
+
+            document.getElementById('pagination').style.display = filteredRepositories.length > pageSize ? 'flex' : 'none';
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredRepositories.length / pageSize);
+            if (totalPages <= 1) {
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            let paginationHtml = '';
+            
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                        onclick="changePage(${currentPage - 1})" 
+                        ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+            `;
+
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            if (startPage > 1) {
+                paginationHtml += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    paginationHtml += `<span class="pagination-btn disabled">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `
+                    <button class="pagination-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">${i}</button>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHtml += `<span class="pagination-btn disabled">...</span>`;
+                }
+                paginationHtml += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                        onclick="changePage(${currentPage + 1})" 
+                        ${currentPage === totalPages ? 'disabled' : ''}>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+
+            document.getElementById('pagination').innerHTML = paginationHtml;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredRepositories.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderRepositories();
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const categoryFilter = document.getElementById('category-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
+            const sortFilter = document.getElementById('sort-filter').value;
+
+            filteredRepositories = repositories.filter(repo => {
+                const matchesSearch = !searchTerm || 
+                    repo.title.toLowerCase().includes(searchTerm) ||
+                    repo.description.toLowerCase().includes(searchTerm) ||
+                    (repo.technicalStack && repo.technicalStack.toLowerCase().includes(searchTerm)) ||
+                    (repo.tags && repo.tags.toLowerCase().includes(searchTerm));
+                
+                const matchesCategory = !categoryFilter || repo.category === categoryFilter;
+                
+                const matchesType = !typeFilter || 
+                    (typeFilter === 'free' && !repo.isPremium) ||
+                    (typeFilter === 'premium' && repo.isPremium);
+
+                return matchesSearch && matchesCategory && matchesType;
+            });
+
+            filteredRepositories.sort((a, b) => {
+                switch (sortFilter) {
+                    case 'newest':
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    case 'oldest':
+                        return new Date(a.createdAt) - new Date(b.createdAt);
+                    case 'name':
+                        return a.title.localeCompare(b.title);
+                    case 'stars':
+                        return (b.stars || 0) - (a.stars || 0);
+                    default:
+                        return 0;
+                }
+            });
+
+            currentPage = 1;
+            updateStats();
+            renderRepositories();
+            renderPagination();
+        }
+
+        function showErrorState() {
+            document.getElementById('repositories-container').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--accent);"></i>
+                    <h3>Failed to load repositories</h3>
+                    <p>Please try again later or contact support if the problem persists.</p>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+        }
+
+        document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
+        document.getElementById('category-filter').addEventListener('change', applyFilters);
+        document.getElementById('type-filter').addEventListener('change', applyFilters);
+        document.getElementById('sort-filter').addEventListener('change', applyFilters);
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function generateActionButtons(repo) {
+            let buttons = [];
+            
+            if (!repo.isPremium) {
+                if (repo.githubUrl) {
+                    buttons.push(`
+                        <a href="${repo.githubUrl}" target="_blank" class="action-btn btn-primary">
+                            <i class="fab fa-github"></i>
+                            Access on GitHub
+                        </a>
+                    `);
+                } else {
+                    buttons.push(`
+                        <button class="action-btn btn-primary" onclick="downloadRepository('${repo.id}')">
+                            <i class="fas fa-download"></i>
+                            Download Free
+                        </button>
+                    `);
+                }
+            } else {
+                buttons.push(`
+                    <button class="action-btn btn-premium" onclick="contactAdmin('${repo.id}', '${repo.title}')">
+                        <i class="fas fa-envelope"></i>
+                        Contact Admin
+                    </button>
+                `);
+            }
+            
+            return buttons.join('');
+        }
+
+        function getAuthHeaders() {
+            return authManager.getAuthHeaders();
+        }
+
+        function getCurrentUser() {
+            return authManager.getCurrentUser();
+        }
+
+        async function downloadRepository(repositoryId) {
+            try {
+                console.log('Starting download for repository:', repositoryId);
+                
+                if (!authManager.isAuthenticated()) {
+                    authManager.showNotification('Please log in to download repositories.', 'warning');
+                    authManager.showLoginPrompt();
+                    return;
+                }
+                
+                const response = await authManager.makeAuthenticatedRequest(`${repositoryApiUrl}/${repositoryId}/download`, {
+                    method: 'GET'
+                });
+                
+                if (response.ok) {
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = `repository-${repositoryId}.zip`;
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename[*]?=[\"']?([^\"'\;]+)[\"']?/);
+                        if (filenameMatch && filenameMatch[1]) {
+                            filename = filenameMatch[1];
+                        }
+                    }
+                    
+                    const blob = await response.blob();
+                    if (blob.size === 0) {
+                        console.error('Empty blob received');
+                        showNotification('Received empty file. Please try again.', 'error');
+                        return;
+                    }
+                    
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = downloadUrl;
+                    downloadLink.download = filename;
+                    downloadLink.style.display = 'none';
+                    
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    
+                    setTimeout(() => {
+                        try {
+                            if (downloadLink.parentNode) {
+                                document.body.removeChild(downloadLink);
+                            }
+                            window.URL.revokeObjectURL(downloadUrl);
+                        } catch (cleanupError) {
+                            console.warn('Cleanup error (non-critical):', cleanupError);
+                        }
+                    }, 200);
+                    
+                    showNotification('Download started successfully!', 'success');
+                } else if (response.status === 401) {
+                    showNotification('Please log in to download this repository.', 'warning');
+                    showLoginPrompt();
+                } else if (response.status === 403) {
+                    showNotification('Premium access required for this repository.', 'warning');
+                } else if (response.status === 404) {
+                    showNotification('Repository file not found.', 'error');
+                } else {
+                    const errorText = await response.text();
+                    showNotification(`Download failed (${response.status}). Please try again.`, 'error');
+                }
+            } catch (networkError) {
+                if (networkError.name === 'TypeError') {
+                    showNotification('Network error: Unable to connect to server.', 'error');
+                } else {
+                    showNotification('Download failed. Please check your connection and try again.', 'error');
+                }
+            }
+        }
+
+        function showLoginPrompt() {
+            const shouldRedirect = confirm('You need to log in to access this feature. Would you like to go to the login page?');
+            if (shouldRedirect) {
+                window.location.href = './Auth.html';
+            }
+        }
+
+        function contactAdmin(repositoryId, repositoryTitle) {
+            const message = `To access the premium repository "${repositoryTitle}", you need to contact our admin team.\n\nRepository: ${repositoryTitle}\nID: ${repositoryId}\n\nWould you like to send an email request?`;
+            
+            if (confirm(message)) {
+                const subject = encodeURIComponent(`Premium Repository Access Request - ${repositoryTitle}`);
+                const body = encodeURIComponent(`Hello Admin,\n\nI would like to request access to the premium repository:\n\nRepository: ${repositoryTitle}\nRepository ID: ${repositoryId}\n\nPlease provide me with access instructions or pricing information.\n\nThank you!\n\nBest regards`);
+                const mailtoLink = `mailto:contact@codenex.solutions?subject=${subject}&body=${body}`;
+                
+                window.open(mailtoLink, '_blank');
+                
+                showNotification('Email client opened. Please send the request to get premium access.', 'info');
+            }
+        }
+
+        function requestPremiumAccess(repositoryId) {
+            const message = `You need premium access to download this repository. Please contact our admin team for access.\n\nRepository ID: ${repositoryId}\n\nWould you like to send an email request?`;
+            
+            if (confirm(message)) {
+                const subject = encodeURIComponent('Premium Repository Access Request');
+                const body = encodeURIComponent(`Hello,\n\nI would like to request premium access to repository ID: ${repositoryId}.\n\nThank you!`);
+                const mailtoLink = `mailto:contact@codenex.solutions?subject=${subject}&body=${body}`;
+                
+                window.open(mailtoLink, '_blank');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${getNotificationIcon(type)}"></i>
+                <span>${message}</span>
+                <button class="notification-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            if (!document.getElementById('notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    .notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: var(--bg-light);
+                        border: 1px solid var(--glass-border);
+                        border-radius: 8px;
+                        padding: 16px 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        box-shadow: var(--glass-shadow);
+                        backdrop-filter: var(--glass-blur);
+                        z-index: 9999;
+                        min-width: 300px;
+                        animation: slideInRight 0.3s ease;
+                    }
+                    .notification-success { border-color: var(--success); color: var(--success); }
+                    .notification-error { border-color: var(--accent); color: var(--accent); }
+                    .notification-warning { border-color: var(--warning); color: var(--warning); }
+                    .notification-info { border-color: var(--info); color: var(--info); }
+                    .notification-close {
+                        background: none;
+                        border: none;
+                        color: var(--text-muted);
+                        cursor: pointer;
+                        padding: 4px;
+                        margin-left: auto;
+                    }
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'success': return 'check-circle';
+                case 'error': return 'exclamation-circle';
+                case 'warning': return 'exclamation-triangle';
+                case 'info': 
+                default: return 'info-circle';
+            }
+        }
+
+        // Global search is handled by shared components
+        // Removed duplicate GlobalSearch class
+
+        // Navbar auth is handled by shared components
+        function initNavbarAuth() {
+            // Wait for shared components to load, then sync auth state
+            setTimeout(() => {
+                const currentUser = authManager.getCurrentUser();
+                console.log('Auth state synced with shared components:', currentUser ? 'logged in' : 'logged out');
+            }, 500);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            currentUser = getCurrentUser();
+            loadRepositories();
+            
+            // Global search is handled by shared components
+            // new GlobalSearch();
+            
+            initNavbarAuth();
+        });
+    </script>
+
+    <!-- Footer will be loaded by JavaScript -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Include shared components JavaScript -->
+    <script src="/js/shared-components.js"></script>
+</body>
+</html>
