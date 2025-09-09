@@ -27,5 +27,21 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
   
+  <ItemGroup>
+    <!-- Include database files for deployment but exclude from build/static assets -->
+    <Content Include="wwwroot\App_Data\*.sqlite" Condition="'$(PublishProtocol)' != ''">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\App_Data\*.db" Condition="'$(PublishProtocol)' != ''">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    
+    <!-- Exclude database files from static web assets processing during build -->
+    <Content Remove="wwwroot\App_Data\*.sqlite" Condition="'$(PublishProtocol)' == ''" />
+    <Content Remove="wwwroot\App_Data\*.db" Condition="'$(PublishProtocol)' == ''" />
+    <Content Remove="wwwroot\App_Data\*.db-*" />
+  </ItemGroup>
 
 </Project>
