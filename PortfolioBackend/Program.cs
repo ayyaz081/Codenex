@@ -9,12 +9,7 @@ using PortfolioBackend.Services;
 using System.Security.Claims;
 using System.Text;
 
-var options = new WebApplicationOptions
-{
-    Args = args,
-    WebRootPath = "" // Disable default wwwroot
-};
-var builder = WebApplication.CreateBuilder(options);
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -28,41 +23,32 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connectionString)
 );
 
-// Configure CORS based on environment
+// Configure CORS for cloud deployment
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new string[0];
+
 builder.Services.AddCors(options =>
 {
-    if (builder.Environment.IsDevelopment())
+    options.AddPolicy("DefaultCorsPolicy", policy =>
     {
-        // Development policy - allow any origin for testing
-        options.AddPolicy("AllowAnyOrigin", policy =>
+        if (builder.Environment.IsDevelopment() || allowedOrigins.Length == 0)
         {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
-        });
-        
-        options.AddPolicy("DevelopmentCors", policy =>
-        {
-            policy.SetIsOriginAllowed(origin => true)
+            // Development or no specific origins configured - allow any origin
+            policy.SetIsOriginAllowed(_ => true)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()
                   .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
-        });
-    }
-    else
-    {
-        // Production policy - allow same origin for Azure/cloud deployments
-        options.AddPolicy("ProductionCors", policy =>
+        }
+        else
         {
-            policy.SetIsOriginAllowed(origin => true) // Allow any origin for Azure deployment
+            // Production with specified allowed origins
+            policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()
                   .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
-        });
-    }
+        }
+    });
 });
 
 // Add Swagger and health checks
@@ -217,47 +203,17 @@ if (useHttpsRedirection && (requireHttps || !app.Environment.IsDevelopment()))
     app.UseHttpsRedirection();
 }
 
-// Configure CORS based on environment
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors("AllowAnyOrigin");
-}
-else
-{
-    app.UseCors("ProductionCors");
-}
+// Enable CORS
+app.UseCors("DefaultCorsPolicy");
 
 // Enable response caching middleware
 app.UseResponseCaching();
 
-// Serve static files from project root directory
-var projectRootPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, ".."));
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
+// Configure default files (index.html, Home.html, default.html)
+app.UseDefaultFiles();
 
-// Log debug information
-logger.LogInformation("Content root path: {ContentRootPath}", app.Environment.ContentRootPath);
-logger.LogInformation("Project root path for static files: {ProjectRootPath}", projectRootPath);
-logger.LogInformation("Home.html exists: {HomeExists}", File.Exists(Path.Combine(projectRootPath, "Home.html")));
-logger.LogInformation("CSS directory exists: {CssExists}", Directory.Exists(Path.Combine(projectRootPath, "css")));
-
-// Configure default files
-app.UseDefaultFiles(new DefaultFilesOptions
-{
-    DefaultFileNames = new List<string> { "Home.html" },
-    FileProvider = new PhysicalFileProvider(projectRootPath)
-});
-
-// Configure static files
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(projectRootPath)
-});
-
-// Also serve files from the default wwwroot if it exists (fallback)
-if (Directory.Exists(Path.Combine(app.Environment.ContentRootPath, "wwwroot")))
-{
-    app.UseStaticFiles(); // Default static files
-}
+// Serve static files from wwwroot
+app.UseStaticFiles();
 
 // Authentication and Authorization middleware
 app.UseAuthentication();
@@ -266,19 +222,19 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 
-// Fallback route to serve Home.html for any unmatched routes (SPA support)
+// Fallback route to serve index.html for any unmatched routes (SPA support)
 app.MapFallback(async context =>
 {
-    var homeHtmlPath = Path.Combine(projectRootPath, "Home.html");
-    if (File.Exists(homeHtmlPath))
+    var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+    if (File.Exists(indexPath))
     {
         context.Response.ContentType = "text/html";
-        await context.Response.WriteAsync(await File.ReadAllTextAsync(homeHtmlPath));
+        await context.Response.WriteAsync(await File.ReadAllTextAsync(indexPath));
     }
     else
     {
         context.Response.StatusCode = 404;
-        await context.Response.WriteAsync("Home.html not found");
+        await context.Response.WriteAsync("Page not found");
     }
 });
 
