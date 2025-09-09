@@ -1211,9 +1211,20 @@
     <script>
         // Get backend base URL with proper protocol detection
         const getBackendBaseUrl = () => {
+            // Check if PortfolioConfig is loaded
+            if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
+                return PortfolioConfig.api.getBaseUrl();
+            }
+            
+            // Check for API_BASE_URL from environment
+            if (window.API_BASE_URL) {
+                return window.API_BASE_URL;
+            }
+            
             if (window.WordPressConfig) {
                 return window.WordPressConfig.getApiUrl().replace('/api', '');
             }
+            
             // For localhost development, use correct port based on protocol
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 if (window.location.protocol === 'https:') {
@@ -1222,12 +1233,9 @@
                     return 'http://localhost:7150';   // HTTP backend port
                 }
             }
-            // For production, use same protocol as page with default HTTPS port
-            if (window.location.protocol === 'https:') {
-                return 'https://localhost:7151';
-            } else {
-                return 'http://localhost:7150';
-            }
+            
+            // For production, use same protocol and hostname
+            return `${window.location.protocol}//${window.location.hostname}`;
         };
         const backendBaseUrl = getBackendBaseUrl();
         const solutionsApiUrl = `${backendBaseUrl}/api/solutions`;
