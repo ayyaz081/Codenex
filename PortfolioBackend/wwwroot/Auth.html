@@ -679,13 +679,39 @@
     </div>
 
     <script>
-        // HTTP to HTTPS redirection (preserve all URL parameters)
-        if (window.location.protocol === 'http:' && window.location.hostname === 'localhost') {
-            const httpsUrl = window.location.href.replace('http://localhost:7150', 'https://localhost:7151');
-            window.location.replace(httpsUrl);
+        // Use dynamic backend URL configuration
+        function getBackendBaseUrl() {
+            // Check if PortfolioConfig is loaded
+            if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
+                return PortfolioConfig.api.getBaseUrl();
+            }
+            
+            // Check for API_BASE_URL from environment
+            if (window.API_BASE_URL) {
+                return window.API_BASE_URL;
+            }
+            
+            // Fallback to dynamic detection
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                if (window.location.protocol === 'https:') {
+                    return 'https://localhost:7151';
+                } else {
+                    return 'http://localhost:7150';
+                }
+            }
+            
+            // Production: use same protocol and hostname
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            
+            if (port && port !== '80' && port !== '443') {
+                return `${window.location.protocol}//${hostname}:${port}`;
+            } else {
+                return `${window.location.protocol}//${hostname}`;
+            }
         }
         
-        const backendBaseUrl = "https://localhost:7151";
+        const backendBaseUrl = getBackendBaseUrl();
         const authApiUrl = `${backendBaseUrl}/api/auth`;
 
         // Theme toggle

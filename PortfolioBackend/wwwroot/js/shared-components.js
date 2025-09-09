@@ -13,12 +13,24 @@ class SharedComponents {
     }
 
     /**
-     * Get backend base URL with proper protocol handling for localhost
+     * Get backend base URL with proper protocol handling
      */
     getBackendBaseUrl() {
+        // First check if PortfolioConfig is available and use its API base URL
+        if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
+            return PortfolioConfig.api.getBaseUrl();
+        }
+        
+        // Check for API_BASE_URL override from Azure environment variables
+        if (window.API_BASE_URL) {
+            return window.API_BASE_URL;
+        }
+        
+        // Fallback logic for when PortfolioConfig is not available
         if (window.WordPressConfig) {
             return window.WordPressConfig.getApiUrl().replace('/api', '');
         }
+        
         // For localhost development, use correct port based on protocol
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             if (window.location.protocol === 'https:') {
@@ -27,11 +39,15 @@ class SharedComponents {
                 return 'http://localhost:7150';   // HTTP backend port
             }
         }
-        // For production, use same protocol as page with default HTTPS port
-        if (window.location.protocol === 'https:') {
-            return 'https://localhost:7151';
+        
+        // For production, use same protocol and hostname as the current page
+        const hostname = window.location.hostname;
+        const port = window.location.port;
+        
+        if (port && port !== '80' && port !== '443') {
+            return `${window.location.protocol}//${hostname}:${port}`;
         } else {
-            return 'http://localhost:7150';
+            return `${window.location.protocol}//${hostname}`;
         }
     }
 
