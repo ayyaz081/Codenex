@@ -23,46 +23,92 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connectionString)
 );
 
-// Configure CORS for cloud deployment
-// First try to get from environment variable, then fall back to configuration
+// Configure CORS for cloud deployment - fully dynamic and flexible
+// Priority: Environment variable > Configuration file > Allow all (secure fallback)
 var corsOriginsEnv = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS");
 var allowedOrigins = new string[0];
+var allowAnyOrigin = false;
+var allowCredentials = true;
 
 if (!string.IsNullOrEmpty(corsOriginsEnv))
 {
-    // Environment variable format: "https://app1.azurewebsites.net,https://app2.azurewebsites.net"
-    allowedOrigins = corsOriginsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                   .Select(o => o.Trim())
-                                   .ToArray();
+    // Environment variable format: "https://app1.azurewebsites.net,https://app2.azurewebsites.net" or "*" for any
+    if (corsOriginsEnv.Trim() == "*")
+    {
+        allowAnyOrigin = true;
+        allowCredentials = false; // Cannot use credentials with AllowAnyOrigin
+    }
+    else
+    {
+        allowedOrigins = corsOriginsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                       .Select(o => o.Trim())
+                                       .ToArray();
+    }
 }
 else
 {
     // Fall back to configuration file
-    allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? 
-                     builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? 
-                     new string[0];
+    var configOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? 
+                        builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? 
+                        new string[0];
+    
+    // Check if configuration specifies "*" (allow any origin)
+    var corsAllowAnyOrigin = builder.Configuration.GetValue<bool>("CORS:AllowAnyOrigin", false);
+    
+    if (corsAllowAnyOrigin || (configOrigins.Length == 1 && configOrigins[0] == "*"))
+    {
+        allowAnyOrigin = true;
+        allowCredentials = builder.Configuration.GetValue<bool>("CORS:AllowCredentials", false);
+    }
+    else
+    {
+        allowedOrigins = configOrigins;
+        allowCredentials = builder.Configuration.GetValue<bool>("CORS:AllowCredentials", true);
+    }
 }
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultCorsPolicy", policy =>
     {
-        if (builder.Environment.IsDevelopment() || allowedOrigins.Length == 0)
+        if (builder.Environment.IsDevelopment())
         {
-            // Development or no specific origins configured - allow any origin
+            // Development - allow any origin with credentials for easier development
             policy.SetIsOriginAllowed(_ => true)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()
                   .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
         }
-        else
+        else if (allowAnyOrigin)
         {
-            // Production with specified allowed origins
+            // Production - allow any origin (for public APIs or when explicitly configured)
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
+            
+            // Note: Cannot use AllowCredentials() with AllowAnyOrigin()
+        }
+        else if (allowedOrigins.Length > 0)
+        {
+            // Production with specific allowed origins
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials()
+                  .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
+            
+            if (allowCredentials)
+            {
+                policy.AllowCredentials();
+            }
+        }
+        else
+        {
+            // Fallback - allow any origin (most permissive for unknown deployment scenarios)
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
                   .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
         }
     });

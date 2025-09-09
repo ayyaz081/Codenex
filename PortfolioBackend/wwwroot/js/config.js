@@ -4,20 +4,49 @@
  */
 
 window.PortfolioConfig = {
-    // Environment detection
-    environment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'development' : 'production',
+    // Enhanced environment detection - works with any deployment scenario
+    environment: (function() {
+        // Check for explicit environment override
+        if (window.PORTFOLIO_ENV) {
+            return window.PORTFOLIO_ENV;
+        }
+        
+        // Auto-detect based on hostname patterns
+        const hostname = window.location.hostname;
+        
+        // Development indicators
+        if (hostname === 'localhost' || 
+            hostname === '127.0.0.1' || 
+            hostname.endsWith('.local') ||
+            hostname.startsWith('192.168.') ||
+            hostname.startsWith('10.') ||
+            hostname.includes('dev') ||
+            window.location.port && ['3000', '8080', '8000', '7150', '7151'].includes(window.location.port)) {
+            return 'development';
+        }
+        
+        // Everything else is production
+        return 'production';
+    })(),
     
     // API Configuration
     api: {
-        // Auto-detect backend URL or use override from meta tag
+        // Auto-detect backend URL with multiple fallback strategies
         getBaseUrl: function() {
-            // Check for API_BASE_URL override from Azure environment variables
+            // Priority 1: Explicit API_BASE_URL override from environment/injection
             if (window.API_BASE_URL) {
-                console.log('🔧 Using API Base URL from Azure environment:', window.API_BASE_URL);
-                return window.API_BASE_URL;
+                console.log('🔧 Using API Base URL from environment override:', window.API_BASE_URL);
+                return window.API_BASE_URL.replace(/\/$/, ''); // Remove trailing slash
             }
             
-            // Fallback to auto-detection based on environment
+            // Priority 2: Check for API_URL in meta tags (alternative injection method)
+            const metaApiUrl = document.querySelector('meta[name="api-base-url"]');
+            if (metaApiUrl && metaApiUrl.content) {
+                console.log('🔧 Using API Base URL from meta tag:', metaApiUrl.content);
+                return metaApiUrl.content.replace(/\/$/, '');
+            }
+            
+            // Priority 3: Environment-based auto-detection
             if (PortfolioConfig.environment === 'development') {
                 // Development: Support both HTTP and HTTPS
                 if (window.location.protocol === 'https:') {
@@ -26,15 +55,21 @@ window.PortfolioConfig = {
                     return 'http://localhost:7150';   // HTTP development port
                 }
             } else {
-                // Production: Always use HTTPS with current hostname
+                // Production: Intelligent URL construction
+                const protocol = window.location.protocol; // Use current protocol
                 const hostname = window.location.hostname;
                 const port = window.location.port;
                 
+                // For Azure Web Apps and most cloud platforms, API is served from same origin
+                let baseUrl;
                 if (port && port !== '80' && port !== '443') {
-                    return `https://${hostname}:${port}`;
+                    baseUrl = `${protocol}//${hostname}:${port}`;
                 } else {
-                    return `https://${hostname}`;
+                    baseUrl = `${protocol}//${hostname}`;
                 }
+                
+                console.log('🔧 Auto-detected production API base URL:', baseUrl);
+                return baseUrl;
             }
         },
         
@@ -50,28 +85,45 @@ window.PortfolioConfig = {
             health: '/health'
         }
     },
+    },
     
-    // SSL/Security Configuration
+    // SSL/Security Configuration - adaptive to deployment environment
     ssl: {
-        // Force HTTPS in production
-        enforceHttps: true,
+        // Dynamically determine if HTTPS should be enforced
+        shouldEnforceHttps: function() {
+            // Don't enforce HTTPS in development or for localhost
+            if (PortfolioConfig.environment === 'development') {
+                return false;
+            }
+            
+            // Check for explicit override
+            if (typeof window.FORCE_HTTPS !== 'undefined') {
+                return window.FORCE_HTTPS;
+            }
+            
+            // Default: enforce HTTPS in production unless explicitly disabled
+            return true;
+        },
         
-        // Redirect HTTP to HTTPS
+        // Redirect HTTP to HTTPS if needed
         redirectHttpToHttps: function() {
-            if (this.enforceHttps && 
+            if (this.shouldEnforceHttps() && 
                 window.location.protocol === 'http:' && 
                 PortfolioConfig.environment === 'production') {
+                console.log('🔒 Redirecting to HTTPS for security...');
                 window.location.href = window.location.href.replace('http:', 'https:');
                 return true;
             }
             return false;
         },
         
-        // Check if connection is secure
+        // Check if connection is secure or acceptable
         isSecureConnection: function() {
             return window.location.protocol === 'https:' || 
+                   PortfolioConfig.environment === 'development' ||
                    window.location.hostname === 'localhost' || 
-                   window.location.hostname === '127.0.0.1';
+                   window.location.hostname === '127.0.0.1' ||
+                   window.location.hostname.endsWith('.local');
         }
     },
     
@@ -119,9 +171,19 @@ window.PortfolioConfig = {
             return; // Page will redirect, don't continue initialization
         }
         
-        // Warn about insecure connections in production
+        // Warn about insecure connections when they might be a problem
         if (this.environment === 'production' && !this.ssl.isSecureConnection()) {
             console.warn('⚠️ Insecure connection detected in production environment!');
+            console.warn('🔒 Consider using HTTPS for better security');
+        }
+        
+        // Log SSL configuration
+        if (this.environment === 'development') {
+            console.log('🔒 SSL Configuration:', {
+                enforceHttps: this.ssl.shouldEnforceHttps(),
+                isSecure: this.ssl.isSecureConnection(),
+                protocol: window.location.protocol
+            });
         }
         
         // Set up global error handling for API requests
@@ -221,9 +283,18 @@ window.PortfolioConfig = {
         
         // Check if current environment supports HTTPS
         supportsHttps: function() {
-            return window.location.protocol === 'https:' || 
-                   (PortfolioConfig.environment === 'development' && 
-                    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
+            return PortfolioConfig.ssl.isSecureConnection();
+        },
+        
+        // Get the appropriate protocol for API requests
+        getApiProtocol: function() {
+            // In production, always try to use HTTPS first
+            if (PortfolioConfig.environment === 'production') {
+                return 'https:';
+            }
+            
+            // In development, use the current page protocol
+            return window.location.protocol;
         }
     }
 };
