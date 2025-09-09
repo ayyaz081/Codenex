@@ -247,6 +247,18 @@
             color: white;
         }
 
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+            color: white;
+        }
+
         .message {
             padding: 12px 16px;
             border-radius: 8px;
@@ -464,12 +476,12 @@
         <div class="nav-container">
             <!-- Left: Company Name -->
             <div class="nav-left">
-                <a href="Home.html" class="nav-logo">Codenex Solutions</a>
+                <a href="index.html" class="nav-logo">Codenex Solutions</a>
             </div>
             
             <!-- Right: Back to Home and Theme Toggle -->
             <div class="nav-right">
-                <a href="Home.html" class="back-btn">
+                <a href="index.html" class="back-btn">
                     <i class="fas fa-home"></i>
                     Back to Home
                 </a>
@@ -653,10 +665,10 @@
                 Sign Out
             </button>
 
-            <button type="button" class="btn btn-success" id="home-btn">
+            <a href="index.html" class="btn btn-success" id="home-btn">
                 <i class="fas fa-home"></i>
                 Go to Home
-            </button>
+            </a>
 
             <button type="button" class="btn btn-primary" id="dashboard-btn">
                 <i class="fas fa-tachometer-alt"></i>
@@ -880,16 +892,14 @@
             
             // Profile actions
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
-            document.getElementById('home-btn').addEventListener('click', () => {
-                window.location.href = 'Home.html';
-            });
+            // Home button now uses direct href - no event listener needed
             document.getElementById('dashboard-btn').addEventListener('click', () => {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
                 if (userInfo.role === 'Admin') {
                     window.location.href = 'Admin.html';
                 } else {
                     // Non-admin users should not access dashboard - redirect to home
-                    window.location.href = 'Home.html';
+                    window.location.href = 'index.html';
                 }
             });
         }

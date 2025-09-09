@@ -723,7 +723,7 @@ class SharedComponents {
      */
     setActiveNavigation() {
         // Get current page filename
-        const currentPage = window.location.pathname.split('/').pop() || 'Home.html';
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
         
         // Remove active class from all nav links
         const navLinks = document.querySelectorAll('.nav-links a');
@@ -736,8 +736,8 @@ class SharedComponents {
             
             // Match exact filename or handle index/home page
             if (linkPage === currentPage || 
-                (currentPage === '' && linkPage === 'Home.html') ||
-                (currentPage === 'index.html' && linkPage === 'Home.html')) {
+                (currentPage === '' && linkPage === 'index.html') ||
+                (currentPage === 'index.html' && linkPage === 'index.html')) {
                 link.classList.add('active');
             }
         });
