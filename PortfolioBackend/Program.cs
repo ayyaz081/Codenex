@@ -24,7 +24,24 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // Configure CORS for cloud deployment
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new string[0];
+// First try to get from environment variable, then fall back to configuration
+var corsOriginsEnv = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS");
+var allowedOrigins = new string[0];
+
+if (!string.IsNullOrEmpty(corsOriginsEnv))
+{
+    // Environment variable format: "https://app1.azurewebsites.net,https://app2.azurewebsites.net"
+    allowedOrigins = corsOriginsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                   .Select(o => o.Trim())
+                                   .ToArray();
+}
+else
+{
+    // Fall back to configuration file
+    allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? 
+                     builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? 
+                     new string[0];
+}
 
 builder.Services.AddCors(options =>
 {
@@ -232,8 +249,9 @@ app.MapFallback(async context =>
         context.Response.ContentType = "text/html";
         var htmlContent = await File.ReadAllTextAsync(indexPath);
         
-        // Inject API_BASE_URL from environment variables if available
-        var apiBaseUrl = builder.Configuration["API_BASE_URL"];
+        // Inject API_BASE_URL from environment variables or configuration
+        var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
+                         builder.Configuration["API_BASE_URL"];
         if (!string.IsNullOrEmpty(apiBaseUrl))
         {
             var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
