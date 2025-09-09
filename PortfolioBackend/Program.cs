@@ -238,4 +238,44 @@ app.MapFallback(async context =>
     }
 });
 
+// Ensure database directory and database are created
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    
+    try
+    {
+        logger.LogInformation("Ensuring database directory and database are created...");
+        
+        // Get the connection string and extract the database path
+        var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (!string.IsNullOrEmpty(dbConnectionString) && dbConnectionString.Contains("Data Source="))
+        {
+            var dataSourceStart = dbConnectionString.IndexOf("Data Source=") + "Data Source=".Length;
+            var dataSourceEnd = dbConnectionString.IndexOf(';', dataSourceStart);
+            if (dataSourceEnd == -1) dataSourceEnd = dbConnectionString.Length;
+            
+            var dbPath = dbConnectionString.Substring(dataSourceStart, dataSourceEnd - dataSourceStart).Trim();
+            var dbDirectory = Path.GetDirectoryName(dbPath);
+            
+            // Create directory if it doesn't exist
+            if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+            {
+                Directory.CreateDirectory(dbDirectory);
+                logger.LogInformation("Created database directory: {DatabaseDirectory}", dbDirectory);
+            }
+        }
+        
+        // Ensure database is created
+        context.Database.EnsureCreated();
+        logger.LogInformation("Database initialization completed successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while ensuring the database was created.");
+        // Don't throw - let the app start and show meaningful error messages
+    }
+}
+
 app.Run();

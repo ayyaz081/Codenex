@@ -1,0 +1,2 @@
+# This file ensures the App_Data directory is tracked in git
+# Database files (*.sqlite, *.db) should be ignored via .gitignore
