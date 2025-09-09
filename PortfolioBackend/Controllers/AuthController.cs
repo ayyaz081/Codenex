@@ -73,7 +73,8 @@ namespace PortfolioBackend.Controllers
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 
                 // Create verification URL
-                var verificationUrl = $"https://localhost:7151/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                var verificationUrl = $"{baseUrl}/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
                 
                 // Send verification email
                 var emailSent = await _emailService.SendEmailVerificationAsync(user.Email!, user.FirstName, verificationUrl);
@@ -203,7 +204,8 @@ namespace PortfolioBackend.Controllers
                 var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                 
                 // Construct the reset URL (frontend page with token)
-                var resetUrl = $"https://localhost:7151/Auth.html?action=reset&userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                var resetUrl = $"{baseUrl}/Auth.html?action=reset&userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
                 
                 // Send password reset email
                 var emailSent = await _emailService.SendPasswordResetAsync(user.Email!, user.FirstName, resetUrl);
@@ -416,7 +418,8 @@ namespace PortfolioBackend.Controllers
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 
                 // Create verification URL
-                var verificationUrl = $"https://localhost:7151/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                var verificationUrl = $"{baseUrl}/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
                 
                 // Send verification email
                 var emailSent = await _emailService.SendEmailVerificationAsync(user.Email!, user.FirstName, verificationUrl);
