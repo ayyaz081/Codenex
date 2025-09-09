@@ -230,7 +230,18 @@ app.MapFallback(async context =>
     if (File.Exists(indexPath))
     {
         context.Response.ContentType = "text/html";
-        await context.Response.WriteAsync(await File.ReadAllTextAsync(indexPath));
+        var htmlContent = await File.ReadAllTextAsync(indexPath);
+        
+        // Inject API_BASE_URL from environment variables if available
+        var apiBaseUrl = builder.Configuration["API_BASE_URL"];
+        if (!string.IsNullOrEmpty(apiBaseUrl))
+        {
+            var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
+            // Inject before closing head tag
+            htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
+        }
+        
+        await context.Response.WriteAsync(htmlContent);
     }
     else
     {

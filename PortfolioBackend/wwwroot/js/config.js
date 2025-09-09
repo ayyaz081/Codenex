@@ -9,15 +9,16 @@ window.PortfolioConfig = {
     
     // API Configuration
     api: {
-        // Auto-detect backend URL based on current protocol and environment
+        // Auto-detect backend URL or use override from meta tag
         getBaseUrl: function() {
-            // Check for WordPress environment first
-            if (window.WordPressConfig) {
-                return window.WordPressConfig.getApiUrl().replace('/api', '');
+            // Check for API_BASE_URL override from Azure environment variables
+            if (window.API_BASE_URL) {
+                console.log('🔧 Using API Base URL from Azure environment:', window.API_BASE_URL);
+                return window.API_BASE_URL;
             }
             
-            // Environment-specific configuration
-            if (this.parent.environment === 'development') {
+            // Fallback to auto-detection based on environment
+            if (PortfolioConfig.environment === 'development') {
                 // Development: Support both HTTP and HTTPS
                 if (window.location.protocol === 'https:') {
                     return 'https://localhost:7151';  // HTTPS development port
@@ -25,7 +26,7 @@ window.PortfolioConfig = {
                     return 'http://localhost:7150';   // HTTP development port
                 }
             } else {
-                // Production: Always use HTTPS
+                // Production: Always use HTTPS with current hostname
                 const hostname = window.location.hostname;
                 const port = window.location.port;
                 
@@ -93,14 +94,19 @@ window.PortfolioConfig = {
     // Initialize configuration
     init: function() {
         // Set up environment-specific settings
+        console.log('🌍 Environment Detection:');
+        console.log('  - Hostname:', window.location.hostname);
+        console.log('  - Environment:', this.environment);
+        console.log('  - API Base URL:', this.api.getBaseUrl());
+        
         if (this.environment === 'production') {
             // Production settings
-            console.log('Portfolio running in production mode');
+            console.log('✅ Portfolio running in production mode');
             
-            // Hide debug information
-            if (!this.features.enableDebugMode()) {
-                console.log = function() {}; // Disable console.log in production
-            }
+            // Don't disable console.log in production for now (for debugging)
+            // if (!this.features.enableDebugMode()) {
+            //     console.log = function() {}; // Disable console.log in production
+            // }
         } else {
             // Development settings
             console.log('Portfolio running in development mode');
