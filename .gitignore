@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Database files (SQLite)
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# But keep App_Data folder structure
+!**/App_Data/.gitkeep
