@@ -45,7 +45,11 @@ Portfolio/
    dotnet run
    ```
 
-4. Access the application at `http://localhost:5000`
+4. The application will open automatically in your browser, or access it at:
+   - `http://localhost:7150` (HTTP)
+   - `https://localhost:7151` (HTTPS)
+
+5. The frontend files are served from the project root directory
 
 ## Azure Deployment
 
@@ -86,6 +90,17 @@ This application is configured for Azure App Service deployment:
 - HTTPS redirection is handled by Azure App Service
 
 ## Troubleshooting
+
+### Local Development Issues
+
+If the application doesn't load locally:
+
+1. **Static files not loading**: Ensure all HTML, CSS, JS files are in the project root (not in PortfolioBackend folder)
+2. **Build errors**: Run `dotnet clean` then `dotnet build` in the PortfolioBackend directory
+3. **Port conflicts**: The app uses ports 7150 (HTTP) and 7151 (HTTPS) by default
+4. **Database issues**: Delete `PortfolioDB.sqlite` file and restart to recreate the database
+
+### Azure Deployment Issues
 
 If you encounter issues with Azure deployment:
 
