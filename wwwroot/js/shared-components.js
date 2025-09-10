@@ -36,14 +36,19 @@ class SharedComponents {
             return 'http://localhost:7150';
         }
         
-        // For production, use same protocol and hostname as the current page
+        // For production, force HTTPS for non-localhost domains
         const hostname = window.location.hostname;
         const port = window.location.port;
         
+        // Force HTTPS for production domains (non-localhost)
+        const protocol = hostname === 'localhost' || hostname === '127.0.0.1' 
+                        ? window.location.protocol 
+                        : 'https:';
+        
         if (port && port !== '80' && port !== '443') {
-            return `${window.location.protocol}//${hostname}:${port}`;
+            return `${protocol}//${hostname}:${port}`;
         } else {
-            return `${window.location.protocol}//${hostname}`;
+            return `${protocol}//${hostname}`;
         }
     }
 

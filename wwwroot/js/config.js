@@ -52,9 +52,13 @@ window.PortfolioConfig = {
                 return 'http://localhost:7150';
             } else {
                 // Production: Intelligent URL construction
-                const protocol = window.location.protocol; // Use current protocol
                 const hostname = window.location.hostname;
                 const port = window.location.port;
+                
+                // Force HTTPS for production domains (non-localhost)
+                const protocol = hostname === 'localhost' || hostname === '127.0.0.1' 
+                                ? window.location.protocol 
+                                : 'https:';
                 
                 // For Azure Web Apps and most cloud platforms, API is served from same origin
                 let baseUrl;
