@@ -350,7 +350,80 @@ app.MapGet("/health/admin", async (UserManager<User> userManager) =>
     }
 });
 
-// Fallback route to serve index.html for any unmatched routes (SPA support)
+// Clean URL mapping for HTML pages
+var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+{
+    { "/About", "About.html" },
+    { "/Admin", "Admin.html" },
+    { "/Auth", "Auth.html" },
+    { "/Contact", "Contact.html" },
+    { "/Products", "Products.html" },
+    { "/Publications", "Publications.html" },
+    { "/Repository", "Repository.html" },
+    { "/SearchResults", "SearchResults.html" },
+    { "/solutions", "solutions.html" },
+    { "/debug-api", "debug-api.html" },
+    { "/debug-backend", "debug-backend.html" },
+    { "/EmailVerified", "EmailVerified.html" }
+};
+
+// URL rewriting middleware for clean URLs
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? "/";
+    
+    // Handle root path - serve index.html directly
+    if (path == "/")
+    {
+        var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+        if (File.Exists(indexPath))
+        {
+            context.Response.ContentType = "text/html";
+            var htmlContent = await File.ReadAllTextAsync(indexPath);
+            
+            // Inject API_BASE_URL from environment variables or configuration
+            var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
+                             builder.Configuration["API_BASE_URL"];
+            if (!string.IsNullOrEmpty(apiBaseUrl))
+            {
+                var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
+                // Inject before closing head tag
+                htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
+            }
+            
+            await context.Response.WriteAsync(htmlContent);
+            return;
+        }
+    }
+    
+    // Check if this is a clean URL that maps to an HTML file
+    if (cleanUrlMappings.TryGetValue(path, out var htmlFile))
+    {
+        var htmlPath = Path.Combine(app.Environment.WebRootPath, htmlFile);
+        if (File.Exists(htmlPath))
+        {
+            context.Response.ContentType = "text/html";
+            var htmlContent = await File.ReadAllTextAsync(htmlPath);
+            
+            // Inject API_BASE_URL from environment variables or configuration
+            var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
+                             builder.Configuration["API_BASE_URL"];
+            if (!string.IsNullOrEmpty(apiBaseUrl))
+            {
+                var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
+                // Inject before closing head tag
+                htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
+            }
+            
+            await context.Response.WriteAsync(htmlContent);
+            return;
+        }
+    }
+    
+    await next();
+});
+
+// Fallback route to serve index.html for any other unmatched routes (SPA support)
 app.MapFallback(async context =>
 {
     var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");

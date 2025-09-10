@@ -917,14 +917,14 @@
                     <h1 id="pageTitle">Dashboard Overview</h1>
                 </div>
                 <div class="admin-info">
-                    <a href="Auth.html" class="admin-user-link" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 4px 8px; border-radius: 8px; transition: all 0.3s ease;">
+                    <a href="/Auth" class="admin-user-link" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 4px 8px; border-radius: 8px; transition: all 0.3s ease;">
                         <span>Welcome, <strong id="adminUserDisplay">Admin</strong></span>
                         <div class="admin-avatar">A</div>
                     </a>
                     <button class="theme-toggle" id="themeToggle">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <a href="/index.html" id="backToWebsiteBtn" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;" title="Go back to main website" onmouseover="this.style.backgroundColor='#5a6268'; this.style.borderColor='#545b62';" onmouseout="this.style.backgroundColor='#6c757d'; this.style.borderColor='#6c757d';">
+                    <a href="/" id="backToWebsiteBtn" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;" title="Go back to main website" onmouseover="this.style.backgroundColor='#5a6268'; this.style.borderColor='#545b62';" onmouseout="this.style.backgroundColor='#6c757d'; this.style.borderColor='#6c757d';">
                         <i class="fas fa-home"></i> Back to Website
                     </a>
                     <button class="btn btn-danger" style="padding: 8px 12px; font-size: 0.9rem;" onclick="logout()">
@@ -2548,7 +2548,7 @@
                 updateAdminDisplay();
             } else {
                 // User not logged in or not admin, redirect to auth page
-                window.location.href = 'Auth.html?returnUrl=' + encodeURIComponent(window.location.href);
+                window.location.href = '/Auth?returnUrl=' + encodeURIComponent(window.location.href);
             }
         }
 
@@ -2744,7 +2744,7 @@
                 // Redirect to auth page
                 showNotification('Logged out successfully', 'success');
                 setTimeout(() => {
-                    window.location.href = 'Auth.html';
+                    window.location.href = '/Auth';
                 }, 500);
             }
         }
