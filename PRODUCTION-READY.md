@@ -1,4 +1,4 @@
-# Portfolio Project - Production Ready ✅
+# CodeNex Solutions - Production Ready ✅
 
 ## ✅ Production Readiness Checklist
 
@@ -7,7 +7,7 @@
 - **Provider**: SQL Server (SQLite completely removed)
 - **Connection**: Fully configured with retry policies and timeouts
 - **Migrations**: Automatically applied on startup
-- **Admin User**: Auto-created on first run (admin@portfolio.com / Admin123!@#)
+- **Admin User**: Auto-created on first run (admin@codenex.com / Admin123!@#)
 
 ### Environment Consistency ✅
 - **Development**: Works identically to production
@@ -50,7 +50,7 @@ dotnet run --configuration Release
 $env:ASPNETCORE_ENVIRONMENT="Production"
 
 # Navigate to project
-cd C:\Users\Az\source\repos\ayyaz081\Portfolio\PortfolioBackend
+cd C:\Users\Az\source\repos\ayyaz081\Codenex
 
 # Clean and build
 dotnet clean
@@ -65,7 +65,7 @@ dotnet run --configuration Release
 ### Frontend URLs
 - **Home**: http://localhost:7150/
 - **About**: http://localhost:7150/About.html
-- **Products**: http://localhost:7150/Products.html
+- **Solutions**: http://localhost:7150/Solutions.html
 - **Publications**: http://localhost:7150/Publications.html
 - **Repository**: http://localhost:7150/Repository.html
 - **Contact**: http://localhost:7150/Contact.html
@@ -82,7 +82,7 @@ dotnet run --configuration Release
 ### API Controllers
 - **Auth**: `/api/Auth/*` (login, register, verify, etc.)
 - **Users**: `/api/Users/*` (user management)
-- **Products**: `/api/Products/*` (product CRUD)
+- **Solutions**: `/api/Solutions/*` (solution CRUD)
 - **Publications**: `/api/Publications/*` (publication CRUD)
 - **Repositories**: `/api/Repositories/*` (repository CRUD)
 - **Contact**: `/api/Contact/*` (contact form)
@@ -98,7 +98,7 @@ dotnet run --configuration Release
 ### Tables
 - **AspNetUsers**: User accounts and profiles
 - **AspNetRoles**: User roles (Admin, User)
-- **Products**: Product/project information
+- **Solutions**: Solution/service information
 - **Publications**: Research publications and papers
 - **Repositories**: Code repositories and projects
 - **Contact**: Contact form submissions
