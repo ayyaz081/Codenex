@@ -17,7 +17,6 @@
       "applicationUrl": "http://localhost:7150",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DATABASE_PROVIDER": "sqlserver",
         "FRONTEND_BASE_URL": "http://localhost:3000"
       }
     },
@@ -29,7 +28,6 @@
       "applicationUrl": "http://localhost:7150",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DATABASE_PROVIDER": "sqlserver",
         "FRONTEND_BASE_URL": "http://localhost:3000"
       }
     },
@@ -38,8 +36,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DATABASE_PROVIDER": "sqlserver"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }

@@ -24,33 +24,17 @@ var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") ?
                       builder.Configuration.GetConnectionString("DefaultConnection") ??
                       throw new InvalidOperationException("Database connection string must be provided");
 
-var databaseProvider = Environment.GetEnvironmentVariable("DATABASE_PROVIDER") ?? "sqlite";
-
+// Use SQL Server as the only supported database provider
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    switch (databaseProvider.ToLowerInvariant())
+    options.UseSqlServer(connectionString, sqlOptions =>
     {
-        case "sqlite":
-            options.UseSqlite(connectionString, sqliteOptions =>
-            {
-                sqliteOptions.CommandTimeout(30);
-            });
-            break;
-        case "sqlserver":
-            // For Azure SQL Database or SQL Server
-            options.UseSqlServer(connectionString, sqlOptions =>
-            {
-                sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(10),
-                    errorNumbersToAdd: null);
-                sqlOptions.CommandTimeout(30);
-            });
-            break;
-        default:
-            options.UseSqlite(connectionString);
-            break;
-    }
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null);
+        sqlOptions.CommandTimeout(30);
+    });
     
     // Configure performance and logging
     if (builder.Environment.IsDevelopment())
@@ -230,10 +214,13 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+// Enable Swagger in all environments for easier debugging
+app.UseSwagger();
+app.UseSwaggerUI();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Development-only configurations
 }
 else
 {
@@ -265,8 +252,7 @@ else
         
         context.Response.Headers["Content-Security-Policy"] = cspDirectives;
         context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()";
-        context.Response.Headers["Cross-Origin-Embedder-Policy"] = "require-corp";
-        context.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin";
+        // Less restrictive CORS policies for better compatibility
         context.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
         return next();
     });
@@ -393,44 +379,18 @@ using (var scope = app.Services.CreateScope())
     {
         logger.LogInformation("Ensuring database directory and database are created...");
         
-        // Get the connection string and extract the database path
-        var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        if (!string.IsNullOrEmpty(dbConnectionString) && dbConnectionString.Contains("Data Source="))
-        {
-            var dataSourceStart = dbConnectionString.IndexOf("Data Source=") + "Data Source=".Length;
-            var dataSourceEnd = dbConnectionString.IndexOf(';', dataSourceStart);
-            if (dataSourceEnd == -1) dataSourceEnd = dbConnectionString.Length;
-            
-            var dbPath = dbConnectionString.Substring(dataSourceStart, dataSourceEnd - dataSourceStart).Trim();
-            var dbDirectory = Path.GetDirectoryName(dbPath);
-            
-            // Create directory if it doesn't exist
-            if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
-            {
-                Directory.CreateDirectory(dbDirectory);
-                logger.LogInformation("Created database directory: {DatabaseDirectory}", dbDirectory);
-            }
-        }
+        // SQL Server database - no need to create directories
         
-        // Ensure or migrate database based on provider
+        // Apply SQL Server migrations
         try
         {
-            var providerName = context.Database.ProviderName ?? string.Empty;
-            if (providerName.Contains("SqlServer", StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogInformation("Applying migrations for SQL Server provider...");
-                context.Database.Migrate();
-            }
-            else
-            {
-                logger.LogInformation("Ensuring database is created for provider: {Provider}", providerName);
-                context.Database.EnsureCreated();
-            }
-            logger.LogInformation("Database initialization completed successfully.");
+            logger.LogInformation("Applying SQL Server database migrations...");
+            context.Database.Migrate();
+            logger.LogInformation("Database migrations completed successfully.");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while initializing the database.");
+            logger.LogError(ex, "An error occurred while applying database migrations.");
         }
         
         // Create default admin user if it doesn't exist
