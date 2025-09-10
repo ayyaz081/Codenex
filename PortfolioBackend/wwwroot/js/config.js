@@ -21,7 +21,7 @@ window.PortfolioConfig = {
             hostname.startsWith('192.168.') ||
             hostname.startsWith('10.') ||
             hostname.includes('dev') ||
-            window.location.port && ['3000', '8080', '8000', '7150', '7151'].includes(window.location.port)) {
+            window.location.port && ['3000', '8080', '8000', '7150'].includes(window.location.port))
             return 'development';
         }
         
@@ -48,12 +48,8 @@ window.PortfolioConfig = {
             
             // Priority 3: Environment-based auto-detection
             if (PortfolioConfig.environment === 'development') {
-                // Development: Support both HTTP and HTTPS
-                if (window.location.protocol === 'https:') {
-                    return 'https://localhost:7151';  // HTTPS development port
-                } else {
-                    return 'http://localhost:7150';   // HTTP development port
-                }
+                // Development: Always use HTTP on port 7150
+                return 'http://localhost:7150';
             } else {
                 // Production: Intelligent URL construction
                 const protocol = window.location.protocol; // Use current protocol
@@ -91,29 +87,12 @@ window.PortfolioConfig = {
     ssl: {
         // Dynamically determine if HTTPS should be enforced
         shouldEnforceHttps: function() {
-            // Don't enforce HTTPS in development or for localhost
-            if (PortfolioConfig.environment === 'development') {
-                return false;
-            }
-            
-            // Check for explicit override
-            if (typeof window.FORCE_HTTPS !== 'undefined') {
-                return window.FORCE_HTTPS;
-            }
-            
-            // Default: enforce HTTPS in production unless explicitly disabled
-            return true;
+            // Never enforce HTTPS - use HTTP for localhost, let deployment handle redirects
+            return false;
         },
         
-        // Redirect HTTP to HTTPS if needed
+        // No HTTP to HTTPS redirect - deployment will handle this
         redirectHttpToHttps: function() {
-            if (this.shouldEnforceHttps() && 
-                window.location.protocol === 'http:' && 
-                PortfolioConfig.environment === 'production') {
-                console.log('🔒 Redirecting to HTTPS for security...');
-                window.location.href = window.location.href.replace('http:', 'https:');
-                return true;
-            }
             return false;
         },
         

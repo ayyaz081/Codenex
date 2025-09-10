@@ -903,16 +903,16 @@
     </div>
 
     <script>
-        // Backend URL configuration - the backend API runs on HTTPS port 7151
-        // Both frontend and backend now use HTTPS to avoid mixed content issues
-        const backendBaseUrl = `https://${window.location.hostname}:7151`;
+        // Backend URL configuration - use HTTP on localhost:7150
+        const getBackendBaseUrl = () => {
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return 'http://localhost:7150';
+            }
+            // For production, use same protocol and hostname
+            return `${window.location.protocol}//${window.location.hostname}`;
+        };
+        const backendBaseUrl = getBackendBaseUrl();
         const productsApiUrl = `${backendBaseUrl}/api/products`;
-        
-        // HTTP to HTTPS redirection
-        if (window.location.protocol === 'http:' && window.location.hostname === 'localhost') {
-            const httpsUrl = window.location.href.replace('http:', 'https:');
-            window.location.replace(httpsUrl);
-        }
 
         let currentPage = 1;
         let pageSize = 12;

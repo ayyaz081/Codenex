@@ -63,49 +63,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.EnableSensitiveDataLogging(false);
 });
 
-// Configure CORS for cloud deployment - fully dynamic and flexible
-// Priority: Environment variable > Configuration file > Allow all (secure fallback)
-var corsOriginsEnv = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS");
-var allowedOrigins = new string[0];
-var allowAnyOrigin = false;
-var allowCredentials = true;
-
-if (!string.IsNullOrEmpty(corsOriginsEnv))
-{
-    // Environment variable format: "https://app1.azurewebsites.net,https://app2.azurewebsites.net" or "*" for any
-    if (corsOriginsEnv.Trim() == "*")
-    {
-        allowAnyOrigin = true;
-        allowCredentials = false; // Cannot use credentials with AllowAnyOrigin
-    }
-    else
-    {
-        allowedOrigins = corsOriginsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                       .Select(o => o.Trim())
-                                       .ToArray();
-    }
-}
-else
-{
-    // Fall back to configuration file
-    var configOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? 
-                        builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? 
-                        new string[0];
-    
-    // Check if configuration specifies "*" (allow any origin)
-    var corsAllowAnyOrigin = builder.Configuration.GetValue<bool>("CORS:AllowAnyOrigin", false);
-    
-    if (corsAllowAnyOrigin || (configOrigins.Length == 1 && configOrigins[0] == "*"))
-    {
-        allowAnyOrigin = true;
-        allowCredentials = builder.Configuration.GetValue<bool>("CORS:AllowCredentials", false);
-    }
-    else
-    {
-        allowedOrigins = configOrigins;
-        allowCredentials = builder.Configuration.GetValue<bool>("CORS:AllowCredentials", true);
-    }
-}
+// Configure CORS - simplified, allow any origin for easier deployment
+var allowAnyOrigin = true;
+var allowCredentials = false; // Cannot use credentials with AllowAnyOrigin
 
 builder.Services.AddCors(options =>
 {
@@ -120,32 +80,9 @@ builder.Services.AddCors(options =>
                   .AllowCredentials()
                   .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
         }
-        else if (allowAnyOrigin)
-        {
-            // Production - allow any origin (for public APIs or when explicitly configured)
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
-            
-            // Note: Cannot use AllowCredentials() with AllowAnyOrigin()
-        }
-        else if (allowedOrigins.Length > 0)
-        {
-            // Production with specific allowed origins
-            policy.WithOrigins(allowedOrigins)
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
-            
-            if (allowCredentials)
-            {
-                policy.AllowCredentials();
-            }
-        }
         else
         {
-            // Fallback - allow any origin (most permissive for unknown deployment scenarios)
+            // Production - allow any origin for easier deployment
             policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod()
@@ -187,32 +124,12 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure JWT Authentication
-var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
-             builder.Configuration["Jwt:Key"];
-
-// For development, provide a default key if none is configured
-if (string.IsNullOrEmpty(jwtKey))
-{
-    if (builder.Environment.IsDevelopment())
-    {
-        // Use a default development key (NOT for production!)
-        jwtKey = "development-jwt-secret-key-that-is-at-least-256-bits-long-for-local-development-only-do-not-use-in-production";
-        var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger("Program");
-        logger.LogWarning("Using default development JWT key. Set JWT_KEY environment variable for production!");
-    }
-    else
-    {
-        throw new InvalidOperationException("JWT Key must be provided via JWT_KEY environment variable or Jwt:Key configuration in production");
-    }
-}
-
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
-                builder.Configuration["Jwt:Issuer"] ?? "PortfolioAPI";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
-                  builder.Configuration["Jwt:Audience"] ?? "PortfolioAPI";
-var jwtExpiryHours = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?? 
-                              builder.Configuration["Jwt:ExpiryHours"] ?? "24");
+// Configure JWT Authentication - simplified
+var jwtKey = builder.Configuration["Jwt:Key"] ?? 
+             "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "PortfolioAPI";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "PortfolioAPI";
+var jwtExpiryHours = int.Parse(builder.Configuration["Jwt:ExpiryHours"] ?? "24");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -253,58 +170,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure Email Settings
+// Configure Email Settings - simplified, no environment variable overrides
 builder.Services.Configure<EmailSettings>(options =>
 {
     builder.Configuration.GetSection("EmailSettings").Bind(options);
-    
-    // Override with environment variables for production security
-    var envHost = Environment.GetEnvironmentVariable("EMAIL_HOST");
-    var envPort = Environment.GetEnvironmentVariable("EMAIL_PORT");
-    var envFrom = Environment.GetEnvironmentVariable("EMAIL_FROM");
-    var envFromName = Environment.GetEnvironmentVariable("EMAIL_FROM_NAME");
-    var envUsername = Environment.GetEnvironmentVariable("EMAIL_USERNAME");
-    var envPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
-    var envEnableSsl = Environment.GetEnvironmentVariable("EMAIL_ENABLE_SSL");
-    
-    if (!string.IsNullOrEmpty(envHost)) options.Host = envHost;
-    if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out var port)) options.Port = port;
-    if (!string.IsNullOrEmpty(envFrom)) options.FromEmail = envFrom;
-    if (!string.IsNullOrEmpty(envFromName)) options.FromName = envFromName;
-    if (!string.IsNullOrEmpty(envUsername)) options.Username = envUsername;
-    if (!string.IsNullOrEmpty(envPassword)) options.Password = envPassword;
-    if (!string.IsNullOrEmpty(envEnableSsl) && bool.TryParse(envEnableSsl, out var enableSsl)) options.EnableSsl = enableSsl;
 });
 
-// Configure external service settings
-builder.Services.Configure<YouTubeSettings>(options =>
-{
-    var apiKey = Environment.GetEnvironmentVariable("YOUTUBE_API_KEY") ?? builder.Configuration["YouTube:ApiKey"];
-    var channelId = Environment.GetEnvironmentVariable("YOUTUBE_CHANNEL_ID") ?? builder.Configuration["YouTube:ChannelId"];
-    
-    options.ApiKey = apiKey ?? string.Empty;
-    options.ChannelId = channelId ?? string.Empty;
-});
 
 // Add custom services
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddHttpClient("youtube", client =>
-{
-    client.BaseAddress = new Uri("https://www.googleapis.com/youtube/v3/");
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
 
-// Add HSTS and security headers for production
-if (builder.Environment.IsProduction())
-{
-    builder.Services.AddHsts(options =>
-    {
-        options.Preload = true;
-        options.IncludeSubDomains = true;
-        options.MaxAge = TimeSpan.FromDays(365);
-    });
-}
+// Security headers will be added in middleware, but no HSTS configuration
 
 // Add comprehensive health checks
 builder.Services.AddHealthChecks()
@@ -363,8 +240,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    // Production security headers
-    app.UseHsts();
+    // Production security headers (but no HSTS)
     
     // Custom security headers
     app.Use((context, next) =>
@@ -399,14 +275,8 @@ else
     });
 }
 
-// Configure HTTPS redirection based on environment and configuration
-var useHttpsRedirection = builder.Configuration.GetValue<bool>("Security:UseHttpsRedirection", true);
-var requireHttps = builder.Configuration.GetValue<bool>("Security:RequireHttps", !app.Environment.IsDevelopment());
-
-if (useHttpsRedirection && (requireHttps || !app.Environment.IsDevelopment()))
-{
-    app.UseHttpsRedirection();
-}
+// Disable HTTPS redirection - let deployment/reverse proxy handle HTTPS
+// No HTTPS redirection in application
 
 // Enable CORS
 app.UseCors("DefaultCorsPolicy");
@@ -576,18 +446,13 @@ static async Task CreateDefaultAdminUserAsync(IServiceProvider serviceProvider, 
             return;
         }
         
-        // Get admin user details from environment variables
-        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
-        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
-        var adminFirstName = Environment.GetEnvironmentVariable("ADMIN_FIRST_NAME") ?? "Admin";
-        var adminLastName = Environment.GetEnvironmentVariable("ADMIN_LAST_NAME") ?? "User";
+        // Use hardcoded admin user details for reliable deployment
+        var adminEmail = "admin@portfolio.com";
+        var adminPassword = "Admin123!@#";
+        var adminFirstName = "Admin";
+        var adminLastName = "User";
         
-        // Only create admin if both email and password are provided
-        if (string.IsNullOrEmpty(adminEmail) || string.IsNullOrEmpty(adminPassword))
-        {
-            logger.LogWarning("Admin user creation skipped. Set ADMIN_EMAIL and ADMIN_PASSWORD environment variables to create default admin.");
-            return;
-        }
+        logger.LogInformation("Creating default admin user with email: {Email}", adminEmail);
         
         // Validate email format
         if (!IsValidEmail(adminEmail))

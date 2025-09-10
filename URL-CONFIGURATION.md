@@ -200,7 +200,7 @@ curl https://your-api-domain.com/health/admin
 | Setting | Development | Production |
 |---------|-------------|------------|
 | `FRONTEND_BASE_URL` | `http://localhost:3000` | `https://yourapp.com` |
-| `API_BASE_URL` | `https://localhost:7151` | `https://api.yourapp.com` |
+| `API_BASE_URL` | `http://localhost:7150` | `https://api.yourapp.com` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | `https://yourapp.com` |
 | `EMAIL_VERIFICATION_PATH` | `/auth/verify` | `/auth/verify` |
 | `PASSWORD_RESET_PATH` | `/auth/reset` | `/auth/reset` |

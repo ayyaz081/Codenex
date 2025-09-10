@@ -31,13 +31,9 @@ class SharedComponents {
             return window.WordPressConfig.getApiUrl().replace('/api', '');
         }
         
-        // For localhost development, use correct port based on protocol
+        // For localhost development, always use HTTP on port 7150
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            if (window.location.protocol === 'https:') {
-                return 'https://localhost:7151';  // HTTPS backend port
-            } else {
-                return 'http://localhost:7150';   // HTTP backend port
-            }
+            return 'http://localhost:7150';
         }
         
         // For production, use same protocol and hostname as the current page

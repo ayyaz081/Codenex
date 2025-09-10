@@ -1225,13 +1225,9 @@
                 return window.WordPressConfig.getApiUrl().replace('/api', '');
             }
             
-            // For localhost development, use correct port based on protocol
+            // For localhost development, always use HTTP on port 7150
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                if (window.location.protocol === 'https:') {
-                    return 'https://localhost:7151';  // HTTPS backend port
-                } else {
-                    return 'http://localhost:7150';   // HTTP backend port
-                }
+                return 'http://localhost:7150';
             }
             
             // For production, use same protocol and hostname
@@ -1256,13 +1252,6 @@
             // If URL starts with http/https, return as is
             if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
                 return imageUrl;
-            }
-            // For localhost development with HTTPS page but HTTP backend,
-            // don't try to load images that will cause mixed content issues
-            if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-                window.location.protocol === 'https:' && backendBaseUrl.startsWith('http:')) {
-                console.warn('Skipping image load to avoid mixed content warning:', imageUrl);
-                return null; // Don't try to load the image
             }
             // Otherwise, prepend the backend base URL
             return `${backendBaseUrl}${imageUrl}`;

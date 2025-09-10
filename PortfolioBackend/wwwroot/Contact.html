@@ -644,11 +644,7 @@
     </div>
 
     <script>
-        // HTTP to HTTPS redirection
-        if (window.location.protocol === 'http:' && window.location.hostname === 'localhost') {
-            const httpsUrl = window.location.href.replace('http:', 'https:');
-            window.location.replace(httpsUrl);
-        }
+        // No HTTP to HTTPS redirection - using HTTP on localhost:7150
         
         // Backend API Configuration
         function getBackendBaseUrl() {
@@ -664,11 +660,7 @@
             
             // Fallback to dynamic detection
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                if (window.location.protocol === 'https:') {
-                    return 'https://localhost:7151';
-                } else {
-                    return 'http://localhost:7150';
-                }
+                return 'http://localhost:7150';
             }
             
             // Production: use same protocol and hostname
