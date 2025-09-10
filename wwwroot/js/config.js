@@ -280,5 +280,14 @@ window.PortfolioConfig = {
     }
 };
 
+// Global error handler for external scripts
+window.addEventListener('error', (event) => {
+    // Suppress errors from external CDN scripts (numbered files like 6.js, 5.js)
+    if (event.filename && /\d+\.js/.test(event.filename)) {
+        event.preventDefault();
+        return false;
+    }
+});
+
 // Initialize configuration when script loads
 PortfolioConfig.init();
