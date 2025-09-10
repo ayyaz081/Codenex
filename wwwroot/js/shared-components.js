@@ -588,10 +588,12 @@ class SharedComponents {
         const suggestions = document.querySelectorAll('.suggestion-item');
         
         suggestions.forEach((suggestion, index) => {
-            if (index === this.selectedSuggestionIndex) {
-                suggestion.classList.add('selected');
-            } else {
-                suggestion.classList.remove('selected');
+            if (suggestion && suggestion.classList) {
+                if (index === this.selectedSuggestionIndex) {
+                    suggestion.classList.add('selected');
+                } else {
+                    suggestion.classList.remove('selected');
+                }
             }
         });
     }
@@ -739,18 +741,24 @@ class SharedComponents {
         
         // Remove active class from all nav links
         const navLinks = document.querySelectorAll('.nav-links a');
-        navLinks.forEach(link => link.classList.remove('active'));
+        navLinks.forEach(link => {
+            if (link && link.classList) {
+                link.classList.remove('active');
+            }
+        });
         
         // Add active class to current page link
         navLinks.forEach(link => {
-            const href = link.getAttribute('href');
-            const linkPage = href ? href.split('/').pop() : '';
-            
-            // Match exact filename or handle index/home page
-            if (linkPage === currentPage || 
-                (currentPage === '' && linkPage === 'index.html') ||
-                (currentPage === 'index.html' && linkPage === 'index.html')) {
-                link.classList.add('active');
+            if (link && link.getAttribute && link.classList) {
+                const href = link.getAttribute('href');
+                const linkPage = href ? href.split('/').pop() : '';
+                
+                // Match exact filename or handle index/home page
+                if (linkPage === currentPage || 
+                    (currentPage === '' && linkPage === 'index.html') ||
+                    (currentPage === 'index.html' && linkPage === 'index.html')) {
+                    link.classList.add('active');
+                }
             }
         });
     }
