@@ -391,9 +391,21 @@ static async Task ServeHtmlWithApiInjection(HttpContext context, string htmlPath
     context.Response.ContentType = "text/html";
     var htmlContent = await File.ReadAllTextAsync(htmlPath);
     
-    // Inject API_BASE_URL from environment variables or configuration
+    // Inject API_BASE_URL - smart production detection
     var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
                      configuration["API_BASE_URL"];
+    
+    // Override localhost URLs in production with current origin
+    if (!string.IsNullOrEmpty(apiBaseUrl) && 
+        apiBaseUrl.Contains("localhost") && 
+        !context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+    {
+        // We're in production but API_BASE_URL is set to localhost - use current origin instead
+        var scheme = context.Request.Scheme;
+        var host = context.Request.Host;
+        apiBaseUrl = $"{scheme}://{host}";
+    }
+    
     if (!string.IsNullOrEmpty(apiBaseUrl))
     {
         var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";

@@ -35,14 +35,12 @@ window.PortfolioConfig = {
         getBaseUrl: function() {
             // Priority 1: Explicit API_BASE_URL override from environment/injection
             if (window.API_BASE_URL) {
-                console.log('🔧 Using API Base URL from environment override:', window.API_BASE_URL);
                 return window.API_BASE_URL.replace(/\/$/, ''); // Remove trailing slash
             }
             
             // Priority 2: Check for API_URL in meta tags (alternative injection method)
             const metaApiUrl = document.querySelector('meta[name="api-base-url"]');
             if (metaApiUrl && metaApiUrl.content) {
-                console.log('🔧 Using API Base URL from meta tag:', metaApiUrl.content);
                 return metaApiUrl.content.replace(/\/$/, '');
             }
             
@@ -66,7 +64,6 @@ window.PortfolioConfig = {
                     baseUrl = `${protocol}//${hostname}`;
                 }
                 
-                console.log('🔧 Auto-detected production API base URL:', baseUrl);
                 return baseUrl;
             }
         },
@@ -169,8 +166,8 @@ window.PortfolioConfig = {
         // Set up global error handling for API requests
         this.setupGlobalErrorHandling();
         
-        // Initialize service worker if enabled
-        if (this.features.enableServiceWorker && 'serviceWorker' in navigator) {
+        // Initialize service worker if enabled (disabled in production to avoid CSP issues)
+        if (this.features.enableServiceWorker && 'serviceWorker' in navigator && this.environment !== 'production') {
             this.initServiceWorker();
         }
     },
