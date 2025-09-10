@@ -1,0 +1,86 @@
+name: Build and deploy ASP.Net Core app to Azure Web App - codenex
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release --no-restore
+
+      - name: dotnet publish
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+
+      - name: Verify web.config DLL reference
+        run: |
+          if grep -q "PortfolioBackend.dll" "${{env.DOTNET_ROOT}}/myapp/web.config"; then
+            echo "Error: web.config still references PortfolioBackend.dll"
+            sed -i 's/PortfolioBackend.dll/CodeNex.dll/g' "${{env.DOTNET_ROOT}}/myapp/web.config"
+          fi
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4753BE0CB5A1400D8B4FE132A5D370C1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C534A2546E3E42D7B527C23FF4474E81 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BABF6053619446F5934F6AF17C44940F }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'codenex'
+          slot-name: 'Production'
+          package: .
+          
+      - name: Verify deployment health
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 30
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://codenex.azurewebsites.net/health)
+          if [ $HTTP_STATUS -eq 200 ]; then
+            echo "✅ Application health check passed!"
+          else
+            echo "⚠️ Application health check returned status $HTTP_STATUS"
+            echo "Check Azure logs for more details"
+          fi
