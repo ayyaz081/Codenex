@@ -19,10 +19,11 @@ builder.Services.AddControllers();
 // Enable response caching
 builder.Services.AddResponseCaching();
 
-// Configure DbContext - support multiple database providers
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") ?? 
+// Configure DbContext - get connection string from environment first
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? 
+                      Environment.GetEnvironmentVariable("CONNECTION_STRING") ??
                       builder.Configuration.GetConnectionString("DefaultConnection") ??
-                      throw new InvalidOperationException("Database connection string must be provided");
+                      throw new InvalidOperationException("Database connection string must be provided via DATABASE_CONNECTION_STRING environment variable or appsettings");
 
 // Use SQL Server as the only supported database provider
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -105,12 +106,16 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure JWT Authentication - simplified
-var jwtKey = builder.Configuration["Jwt:Key"] ?? 
+// Configure JWT Authentication - read from environment first
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
+             builder.Configuration["Jwt:Key"] ?? 
              "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "PortfolioAPI";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "PortfolioAPI";
-var jwtExpiryHours = int.Parse(builder.Configuration["Jwt:ExpiryHours"] ?? "24");
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
+                builder.Configuration["Jwt:Issuer"] ?? "PortfolioAPI";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
+                  builder.Configuration["Jwt:Audience"] ?? "PortfolioAPI";
+var jwtExpiryHours = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?? 
+                              builder.Configuration["Jwt:ExpiryHours"] ?? "24");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -421,9 +426,9 @@ static async Task CreateDefaultAdminUserAsync(IServiceProvider serviceProvider, 
             return;
         }
         
-        // Use hardcoded admin user details for reliable deployment
-        var adminEmail = "admin@portfolio.com";
-        var adminPassword = "Admin123!@#";
+// Read admin user from environment if provided; otherwise fall back to defaults
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "admin@portfolio.com";
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "Admin123!@#";
         var adminFirstName = "Admin";
         var adminLastName = "User";
         
