@@ -111,9 +111,9 @@ var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ??
              builder.Configuration["Jwt:Key"] ?? 
              "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
-                builder.Configuration["Jwt:Issuer"] ?? "PortfolioAPI";
+                builder.Configuration["Jwt:Issuer"] ?? "CodeNexAPI";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
-                  builder.Configuration["Jwt:Audience"] ?? "PortfolioAPI";
+                  builder.Configuration["Jwt:Audience"] ?? "CodeNexAPI";
 var jwtExpiryHours = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?? 
                               builder.Configuration["Jwt:ExpiryHours"] ?? "24");
 
