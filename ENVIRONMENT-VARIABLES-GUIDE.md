@@ -51,8 +51,8 @@ JWT_ISSUER=https://yoursite.com
 JWT_AUDIENCE=https://yoursite.com
 
 # For local development
-JWT_ISSUER=https://localhost:7151
-JWT_AUDIENCE=https://localhost:7151
+JWT_ISSUER=http://localhost:7150
+JWT_AUDIENCE=http://localhost:7150
 ```
 
 ---
@@ -92,7 +92,7 @@ API_BASE_URL=https://johnsmith-api.herokuapp.com        # Heroku
 API_BASE_URL=https://1234567890.execute-api.us-east-1.amazonaws.com  # AWS API Gateway
 
 # For local development
-API_BASE_URL=https://localhost:7151               # Your local backend
+API_BASE_URL=http://localhost:7150               # Your local backend
 ```
 
 ---

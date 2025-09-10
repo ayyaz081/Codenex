@@ -1333,12 +1333,13 @@
     </div>
 
     <script>
-        // Dynamic backend URL detection to avoid mixed content issues
+        // Backend URL configuration - use HTTP on localhost:7150
         const getBackendBaseUrl = () => {
-            const currentProtocol = window.location.protocol;
-            const isHttps = currentProtocol === 'https:';
-            const port = isHttps ? '7151' : '7150';
-            return `${currentProtocol}//localhost:${port}`;
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return 'http://localhost:7150';
+            }
+            // For production, use same protocol and hostname
+            return `${window.location.protocol}//${window.location.hostname}`;
         };
         
         const backendBaseUrl = getBackendBaseUrl();

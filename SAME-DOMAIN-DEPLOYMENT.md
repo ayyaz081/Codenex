@@ -260,16 +260,16 @@ cd ../PortfolioBackend
 dotnet run  # Everything on https://localhost:7151
 
 # Use these environment variables:
-FRONTEND_BASE_URL=https://localhost:7151
-API_BASE_URL=https://localhost:7151/api
-CORS_ALLOWED_ORIGINS=https://localhost:7151
+FRONTEND_BASE_URL=http://localhost:7150
+API_BASE_URL=http://localhost:7150/api
+CORS_ALLOWED_ORIGINS=http://localhost:7150
 ```
 
 ## ✅ **Quick Setup Checklist**
 
 ### **For Local Development:**
 1. Copy `.env.same-domain` to `.env`
-2. Change `yoursite.com` to `localhost:7151` 
+2. Change `yoursite.com` to `localhost:7150`
 3. Set your `ADMIN_EMAIL` and `ADMIN_PASSWORD`
 4. Run: `dotnet run`
 
