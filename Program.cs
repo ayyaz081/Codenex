@@ -10,6 +10,10 @@ using CodeNex.Models;
 using CodeNex.Services;
 using System.Security.Claims;
 using System.Text;
+using DotNetEnv;
+
+// Load .env file automatically at startup
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
