@@ -72,9 +72,11 @@ namespace PortfolioBackend.Controllers
                 // Generate email confirmation token
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 
-                // Create verification URL
-                var baseUrl = $"{Request.Scheme}://{Request.Host}";
-                var verificationUrl = $"{baseUrl}/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
+                // Create verification URL - configurable for different frontend deployments
+                var baseUrl = Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? 
+                             $"{Request.Scheme}://{Request.Host}";
+                var verificationPath = Environment.GetEnvironmentVariable("EMAIL_VERIFICATION_PATH") ?? "/auth/verify";
+                var verificationUrl = $"{baseUrl.TrimEnd('/')}{verificationPath}?userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
                 
                 // Send verification email
                 var emailSent = await _emailService.SendEmailVerificationAsync(user.Email!, user.FirstName, verificationUrl);
@@ -203,9 +205,11 @@ namespace PortfolioBackend.Controllers
 
                 var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                 
-                // Construct the reset URL (frontend page with token)
-                var baseUrl = $"{Request.Scheme}://{Request.Host}";
-                var resetUrl = $"{baseUrl}/Auth.html?action=reset&userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
+                // Construct the reset URL (frontend page with token) - configurable
+                var baseUrl = Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? 
+                             $"{Request.Scheme}://{Request.Host}";
+                var resetPath = Environment.GetEnvironmentVariable("PASSWORD_RESET_PATH") ?? "/auth/reset";
+                var resetUrl = $"{baseUrl.TrimEnd('/')}{resetPath}?userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
                 
                 // Send password reset email
                 var emailSent = await _emailService.SendPasswordResetAsync(user.Email!, user.FirstName, resetUrl);
@@ -417,9 +421,11 @@ namespace PortfolioBackend.Controllers
                 // Generate new email confirmation token
                 var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 
-                // Create verification URL
-                var baseUrl = $"{Request.Scheme}://{Request.Host}";
-                var verificationUrl = $"{baseUrl}/Auth.html?action=verify&userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
+                // Create verification URL - configurable for different frontend deployments
+                var baseUrl = Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? 
+                             $"{Request.Scheme}://{Request.Host}";
+                var verificationPath = Environment.GetEnvironmentVariable("EMAIL_VERIFICATION_PATH") ?? "/auth/verify";
+                var verificationUrl = $"{baseUrl.TrimEnd('/')}{verificationPath}?userId={user.Id}&token={Uri.EscapeDataString(emailConfirmationToken)}";
                 
                 // Send verification email
                 var emailSent = await _emailService.SendEmailVerificationAsync(user.Email!, user.FirstName, verificationUrl);

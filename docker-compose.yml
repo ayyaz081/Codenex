@@ -28,6 +28,9 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ADMIN_FIRST_NAME=${ADMIN_FIRST_NAME:-Admin}
       - ADMIN_LAST_NAME=${ADMIN_LAST_NAME:-User}
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://localhost:3000}
+      - EMAIL_VERIFICATION_PATH=${EMAIL_VERIFICATION_PATH:-/auth/verify}
+      - PASSWORD_RESET_PATH=${PASSWORD_RESET_PATH:-/auth/reset}
     volumes:
       - portfolio_data:/app/data
       - portfolio_logs:/app/logs
