@@ -21,7 +21,7 @@ window.PortfolioConfig = {
             hostname.startsWith('192.168.') ||
             hostname.startsWith('10.') ||
             hostname.includes('dev') ||
-            window.location.port && ['3000', '8080', '8000', '7150'].includes(window.location.port))
+            window.location.port && ['3000', '5000', '8080', '8000', '7150'].includes(window.location.port))
             return 'development';
         }
         
@@ -47,7 +47,9 @@ window.PortfolioConfig = {
             }
             
             // Priority 3: Environment-based auto-detection
-            if (PortfolioConfig.environment === 'development') {
+            if (PortfolioConfig.environment === 'development' || 
+                window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1') {
                 // Development: Always use HTTP on port 7150
                 return 'http://localhost:7150';
             } else {
