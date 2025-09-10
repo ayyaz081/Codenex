@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  portfolio-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - CONNECTION_STRING=Data Source=/app/data/PortfolioDB.sqlite
+      - JWT_KEY=${JWT_KEY:-your-ultra-secure-jwt-secret-key-with-at-least-256-bits-length}
+      - JWT_ISSUER=${JWT_ISSUER:-https://localhost:8080}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-https://localhost:8080}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,https://localhost:3000}
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-Portfolio}
+      - EMAIL_USERNAME=${EMAIL_USERNAME}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_ENABLE_SSL=${EMAIL_ENABLE_SSL:-true}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - YOUTUBE_CHANNEL_ID=${YOUTUBE_CHANNEL_ID}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@localhost}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_FIRST_NAME=${ADMIN_FIRST_NAME:-Admin}
+      - ADMIN_LAST_NAME=${ADMIN_LAST_NAME:-User}
+    volumes:
+      - portfolio_data:/app/data
+      - portfolio_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - portfolio_network
+
+  # Optional: Add a reverse proxy for production-like setup
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - portfolio-backend
+    networks:
+      - portfolio_network
+    restart: unless-stopped
+
+volumes:
+  portfolio_data:
+    driver: local
+  portfolio_logs:
+    driver: local
+
+networks:
+  portfolio_network:
+    driver: bridge
