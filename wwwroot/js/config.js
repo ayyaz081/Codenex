@@ -24,7 +24,6 @@ window.PortfolioConfig = {
             (window.location.port && ['3000', '5000', '8080', '8000', '7150'].includes(window.location.port))) {
             return 'development';
         }
-        }
         
         // Everything else is production
         return 'production';
