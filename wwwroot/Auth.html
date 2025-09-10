@@ -719,14 +719,6 @@
         
         const backendBaseUrl = getBackendBaseUrl();
         const authApiUrl = `${backendBaseUrl}/api/auth`;
-        
-        // Temporary debug logging for production troubleshooting
-        console.log('Auth Page Debug Info:');
-        console.log('- Window hostname:', window.location.hostname);
-        console.log('- Window protocol:', window.location.protocol);
-        console.log('- PortfolioConfig available:', typeof PortfolioConfig !== 'undefined');
-        console.log('- Backend base URL:', backendBaseUrl);
-        console.log('- Auth API URL:', authApiUrl);
 
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
