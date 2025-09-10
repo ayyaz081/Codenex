@@ -729,15 +729,25 @@
         const authForms = document.querySelectorAll('.auth-form');
 
         tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetTab = btn.dataset.tab;
-                switchTab(targetTab);
-            });
+            if (btn && btn.dataset && btn.dataset.tab) {
+                btn.addEventListener('click', () => {
+                    const targetTab = btn.dataset.tab;
+                    switchTab(targetTab);
+                });
+            }
         });
 
         function switchTab(tabName) {
-            tabBtns.forEach(btn => btn.classList.remove('active'));
-            authForms.forEach(form => form.classList.remove('active'));
+            tabBtns.forEach(btn => {
+                if (btn && btn.classList) {
+                    btn.classList.remove('active');
+                }
+            });
+            authForms.forEach(form => {
+                if (form && form.classList) {
+                    form.classList.remove('active');
+                }
+            });
             
             const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
             const targetForm = document.getElementById(`${tabName}-form`) || document.getElementById(`${tabName}-section`);
@@ -814,20 +824,24 @@
 
         function showAuthenticatedTabs() {
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (['login', 'register'].includes(btn.dataset.tab)) {
-                    btn.style.display = 'none';
-                } else if (btn.dataset.tab === 'profile') {
-                    btn.style.display = 'block';
+                if (btn && btn.dataset && btn.dataset.tab) {
+                    if (['login', 'register'].includes(btn.dataset.tab)) {
+                        btn.style.display = 'none';
+                    } else if (btn.dataset.tab === 'profile') {
+                        btn.style.display = 'block';
+                    }
                 }
             });
         }
 
         function showUnauthenticatedTabs() {
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (['login', 'register', 'forgot', 'verify'].includes(btn.dataset.tab)) {
-                    btn.style.display = 'block';
-                } else if (btn.dataset.tab === 'profile') {
-                    btn.style.display = 'none';
+                if (btn && btn.dataset && btn.dataset.tab) {
+                    if (['login', 'register', 'forgot', 'verify'].includes(btn.dataset.tab)) {
+                        btn.style.display = 'block';
+                    } else if (btn.dataset.tab === 'profile') {
+                        btn.style.display = 'none';
+                    }
                 }
             });
         }
