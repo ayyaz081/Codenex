@@ -7,9 +7,6 @@
     <link rel="icon" type="image/x-icon" href="/components/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/shared-styles.css">
-    <!-- Load scripts early to avoid loading timing issues -->
-    <script src="/js/config.js"></script>
-    <script src="/js/shared-components.js"></script>
     <style>
         body {
             background: var(--bg);
@@ -681,6 +678,8 @@
         </div>
     </div>
 
+    <!-- Load configuration before Auth logic -->
+    <script src="/js/config.js"></script>
     <script>
         // Use dynamic backend URL configuration
         function getBackendBaseUrl() {
@@ -720,6 +719,14 @@
         
         const backendBaseUrl = getBackendBaseUrl();
         const authApiUrl = `${backendBaseUrl}/api/auth`;
+        
+        // Temporary debug logging for production troubleshooting
+        console.log('Auth Page Debug Info:');
+        console.log('- Window hostname:', window.location.hostname);
+        console.log('- Window protocol:', window.location.protocol);
+        console.log('- PortfolioConfig available:', typeof PortfolioConfig !== 'undefined');
+        console.log('- Backend base URL:', backendBaseUrl);
+        console.log('- Auth API URL:', authApiUrl);
 
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
@@ -1340,9 +1347,6 @@
 
     <!-- Footer will be loaded by JavaScript -->
     <div id="footer-placeholder"></div>
-
-    <!-- Include shared components JavaScript -->
-    <script src="/js/shared-components.js"></script>
 
 </body>
 </html>

@@ -21,8 +21,9 @@ window.PortfolioConfig = {
             hostname.startsWith('192.168.') ||
             hostname.startsWith('10.') ||
             hostname.includes('dev') ||
-            window.location.port && ['3000', '5000', '8080', '8000', '7150'].includes(window.location.port))
+            (window.location.port && ['3000', '5000', '8080', '8000', '7150'].includes(window.location.port))) {
             return 'development';
+        }
         }
         
         // Everything else is production
