@@ -696,14 +696,22 @@
                 return 'http://localhost:7150';
             }
             
-            // Production: use same protocol and hostname
+            // Production: use same origin (protocol + hostname + port if non-standard)
             const hostname = window.location.hostname;
             const port = window.location.port;
+            const protocol = window.location.protocol;
             
+            // For production domains like codenex.live, use the same origin
+            if (hostname === 'codenex.live' || hostname.includes('codenex')) {
+                // Always use HTTPS for production domains
+                return `https://${hostname}`;
+            }
+            
+            // General fallback: use current origin
             if (port && port !== '80' && port !== '443') {
-                return `${window.location.protocol}//${hostname}:${port}`;
+                return `${protocol}//${hostname}:${port}`;
             } else {
-                return `${window.location.protocol}//${hostname}`;
+                return `${protocol}//${hostname}`;
             }
         }
         
