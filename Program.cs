@@ -160,10 +160,27 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure Email Settings - simplified, no environment variable overrides
+// Configure Email Settings - read from environment variables first, then configuration
 builder.Services.Configure<EmailSettings>(options =>
 {
+    // Bind from configuration first
     builder.Configuration.GetSection("EmailSettings").Bind(options);
+    
+    // Override with environment variables if available
+    options.Host = Environment.GetEnvironmentVariable("EmailSettings__Host") ?? 
+                   builder.Configuration["EmailSettings:Host"] ?? options.Host;
+    options.Port = int.TryParse(Environment.GetEnvironmentVariable("EmailSettings__Port"), out var port) ? port : 
+                   builder.Configuration.GetValue<int>("EmailSettings:Port", options.Port);
+    options.FromEmail = Environment.GetEnvironmentVariable("EmailSettings__FromEmail") ?? 
+                        builder.Configuration["EmailSettings:FromEmail"] ?? options.FromEmail;
+    options.FromName = Environment.GetEnvironmentVariable("EmailSettings__FromName") ?? 
+                       builder.Configuration["EmailSettings:FromName"] ?? options.FromName;
+    options.Username = Environment.GetEnvironmentVariable("EmailSettings__Username") ?? 
+                       builder.Configuration["EmailSettings:Username"] ?? options.Username;
+    options.Password = Environment.GetEnvironmentVariable("EmailSettings__Password") ?? 
+                       builder.Configuration["EmailSettings:Password"] ?? options.Password;
+    options.EnableSsl = bool.TryParse(Environment.GetEnvironmentVariable("EmailSettings__EnableSsl"), out var enableSsl) ? enableSsl : 
+                        builder.Configuration.GetValue<bool>("EmailSettings:EnableSsl", options.EnableSsl);
 });
 
 
@@ -350,6 +367,7 @@ app.MapGet("/health/admin", async (UserManager<User> userManager) =>
     }
 });
 
+
 // Clean URL mapping for HTML pages
 var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 {
@@ -367,82 +385,62 @@ var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgno
     { "/EmailVerified", "EmailVerified.html" }
 };
 
-// URL rewriting middleware for clean URLs
-app.Use(async (context, next) =>
+// Helper function to inject API URL and serve HTML
+static async Task ServeHtmlWithApiInjection(HttpContext context, string htmlPath, IConfiguration configuration)
+{
+    context.Response.ContentType = "text/html";
+    var htmlContent = await File.ReadAllTextAsync(htmlPath);
+    
+    // Inject API_BASE_URL from environment variables or configuration
+    var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
+                     configuration["API_BASE_URL"];
+    if (!string.IsNullOrEmpty(apiBaseUrl))
+    {
+        var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
+        // Inject before closing head tag
+        htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
+    }
+    
+    await context.Response.WriteAsync(htmlContent);
+}
+
+// Map specific clean URLs
+foreach (var mapping in cleanUrlMappings)
+{
+    app.Map(mapping.Key, async context =>
+    {
+        var htmlPath = Path.Combine(app.Environment.WebRootPath, mapping.Value);
+        if (File.Exists(htmlPath))
+        {
+            await ServeHtmlWithApiInjection(context, htmlPath, builder.Configuration);
+        }
+        else
+        {
+            context.Response.StatusCode = 404;
+            await context.Response.WriteAsync("Page not found");
+        }
+    });
+}
+
+// Fallback route for SPA support (only for unmatched routes)
+app.MapFallback(async context =>
 {
     var path = context.Request.Path.Value ?? "/";
     
-    // Handle root path - serve index.html directly
-    if (path == "/")
+    // Don't handle API routes or other known routes
+    if (path.StartsWith("/api", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/health", StringComparison.OrdinalIgnoreCase))
     {
-        var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
-        if (File.Exists(indexPath))
-        {
-            context.Response.ContentType = "text/html";
-            var htmlContent = await File.ReadAllTextAsync(indexPath);
-            
-            // Inject API_BASE_URL from environment variables or configuration
-            var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
-                             builder.Configuration["API_BASE_URL"];
-            if (!string.IsNullOrEmpty(apiBaseUrl))
-            {
-                var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
-                // Inject before closing head tag
-                htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
-            }
-            
-            await context.Response.WriteAsync(htmlContent);
-            return;
-        }
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Not Found");
+        return;
     }
     
-    // Check if this is a clean URL that maps to an HTML file
-    if (cleanUrlMappings.TryGetValue(path, out var htmlFile))
+    // Default fallback to index.html (SPA support)
+    var fallbackIndexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+    if (File.Exists(fallbackIndexPath))
     {
-        var htmlPath = Path.Combine(app.Environment.WebRootPath, htmlFile);
-        if (File.Exists(htmlPath))
-        {
-            context.Response.ContentType = "text/html";
-            var htmlContent = await File.ReadAllTextAsync(htmlPath);
-            
-            // Inject API_BASE_URL from environment variables or configuration
-            var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
-                             builder.Configuration["API_BASE_URL"];
-            if (!string.IsNullOrEmpty(apiBaseUrl))
-            {
-                var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
-                // Inject before closing head tag
-                htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
-            }
-            
-            await context.Response.WriteAsync(htmlContent);
-            return;
-        }
-    }
-    
-    await next();
-});
-
-// Fallback route to serve index.html for any other unmatched routes (SPA support)
-app.MapFallback(async context =>
-{
-    var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
-    if (File.Exists(indexPath))
-    {
-        context.Response.ContentType = "text/html";
-        var htmlContent = await File.ReadAllTextAsync(indexPath);
-        
-        // Inject API_BASE_URL from environment variables or configuration
-        var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
-                         builder.Configuration["API_BASE_URL"];
-        if (!string.IsNullOrEmpty(apiBaseUrl))
-        {
-            var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
-            // Inject before closing head tag
-            htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
-        }
-        
-        await context.Response.WriteAsync(htmlContent);
+        await ServeHtmlWithApiInjection(context, fallbackIndexPath, builder.Configuration);
     }
     else
     {

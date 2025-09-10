@@ -19,9 +19,13 @@ namespace CodeNex.Services
 
         public string CreateToken(User user)
         {
-            var jwtKey = _configuration["Jwt:Key"] ?? "your-very-secure-secret-key-that-is-at-least-256-bits-long";
-            var jwtIssuer = _configuration["Jwt:Issuer"] ?? "CodenexSolutions";
-            var jwtAudience = _configuration["Jwt:Audience"] ?? "CodenexSolutions";
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
+                         _configuration["Jwt:Key"] ?? 
+                         "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
+            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
+                            _configuration["Jwt:Issuer"] ?? "CodeNexAPI";
+            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
+                              _configuration["Jwt:Audience"] ?? "CodeNexAPI";
             
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -56,7 +60,9 @@ namespace CodeNex.Services
         {
             try
             {
-                var jwtKey = _configuration["Jwt:Key"] ?? "your-very-secure-secret-key-that-is-at-least-256-bits-long";
+                var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
+                             _configuration["Jwt:Key"] ?? 
+                             "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -65,9 +71,11 @@ namespace CodeNex.Services
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = key,
                     ValidateIssuer = true,
-                    ValidIssuer = _configuration["Jwt:Issuer"] ?? "CodenexSolutions",
+                    ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
+                                  _configuration["Jwt:Issuer"] ?? "CodeNexAPI",
                     ValidateAudience = true,
-                    ValidAudience = _configuration["Jwt:Audience"] ?? "CodenexSolutions",
+                    ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
+                                    _configuration["Jwt:Audience"] ?? "CodeNexAPI",
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
