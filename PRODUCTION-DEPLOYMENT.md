@@ -39,6 +39,9 @@ This guide provides comprehensive instructions for deploying the Portfolio Backe
 | `ADMIN_PASSWORD` | **Default admin user password** | `YourSecurePassword123!` |
 | `ADMIN_FIRST_NAME` | Default admin first name (optional) | `Admin` |
 | `ADMIN_LAST_NAME` | Default admin last name (optional) | `User` |
+| `FRONTEND_BASE_URL` | **Frontend domain for email links** | `https://yourfrontend.com` |
+| `EMAIL_VERIFICATION_PATH` | Email verification page path | `/auth/verify` |
+| `PASSWORD_RESET_PATH` | Password reset page path | `/auth/reset` |
 
 ### Database Configuration
 
