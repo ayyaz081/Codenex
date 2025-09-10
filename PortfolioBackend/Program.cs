@@ -64,9 +64,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 // Configure CORS - simplified, allow any origin for easier deployment
-var allowAnyOrigin = true;
-var allowCredentials = false; // Cannot use credentials with AllowAnyOrigin
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultCorsPolicy", policy =>
@@ -415,12 +412,30 @@ using (var scope = app.Services.CreateScope())
             }
         }
         
-        // Ensure database is created
-        context.Database.EnsureCreated();
-        logger.LogInformation("Database initialization completed successfully.");
+        // Ensure or migrate database based on provider
+        try
+        {
+            var providerName = context.Database.ProviderName ?? string.Empty;
+            if (providerName.Contains("SqlServer", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInformation("Applying migrations for SQL Server provider...");
+                context.Database.Migrate();
+            }
+            else
+            {
+                logger.LogInformation("Ensuring database is created for provider: {Provider}", providerName);
+                context.Database.EnsureCreated();
+            }
+            logger.LogInformation("Database initialization completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while initializing the database.");
+        }
         
         // Create default admin user if it doesn't exist
         await CreateDefaultAdminUserAsync(scope.ServiceProvider, logger);
+
     }
     catch (Exception ex)
     {

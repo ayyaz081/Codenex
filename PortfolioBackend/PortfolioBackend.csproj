@@ -29,10 +29,5 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <!-- Exclude database temp files from static web assets processing -->
-    <Content Remove="wwwroot\App_Data\*.db-*" />
-  </ItemGroup>
 
 </Project>
