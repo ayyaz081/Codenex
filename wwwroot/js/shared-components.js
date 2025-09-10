@@ -413,25 +413,25 @@ class SharedComponents {
                 type: 'page',
                 title: 'Publications',
                 description: 'Research papers and publications',
-                url: 'Publications.html'
+                url: '/Publications'
             },
             {
                 type: 'page',
                 title: 'Products',
                 description: 'Our product offerings',
-                url: 'Products.html'
+                url: '/Products'
             },
             {
                 type: 'page',
                 title: 'Solutions',
                 description: 'Our solution catalog',
-                url: 'Solutions.html'
+                url: '/solutions'
             },
             {
                 type: 'page',
                 title: 'Repository',
                 description: 'Code repositories and resources',
-                url: 'Repository.html'
+                url: '/Repository'
             }
         ].filter(item => 
             item.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -506,17 +506,17 @@ class SharedComponents {
             startsWith(url, '/repositories/')) {
             switch (typeLower) {
                 case 'product':
-                    url = id != null ? `Products.html?id=${id}` : 'Products.html';
+                    url = id != null ? `/Products?id=${id}` : '/Products';
                     break;
                 case 'solution':
                     // File is lowercase on disk
-                    url = id != null ? `solutions.html?id=${id}` : 'solutions.html';
+                    url = id != null ? `/solutions?id=${id}` : '/solutions';
                     break;
                 case 'publication':
-                    url = id != null ? `Publications.html?id=${id}` : 'Publications.html';
+                    url = id != null ? `/Publications?id=${id}` : '/Publications';
                     break;
                 case 'repository':
-                    url = id != null ? `Repository.html?id=${id}` : 'Repository.html';
+                    url = id != null ? `/Repository?id=${id}` : '/Repository';
                     break;
                 default:
                     // Default to search results if we only have a title/description
@@ -549,31 +549,31 @@ class SharedComponents {
         }
 
         // If already on the destination page and a modal open function exists, open it directly
-        const currentFile = (window.location.pathname.split('/').pop() || '').toLowerCase();
+        const currentPath = window.location.pathname.toLowerCase();
         if (id) {
-            if (type === 'publication' && currentFile === 'publications.html' && typeof window.viewPublication === 'function') {
+            if (type === 'publication' && (currentPath === '/publications' || currentPath === '/publications.html') && typeof window.viewPublication === 'function') {
                 try { window.viewPublication(parseInt(id, 10)); return; } catch {}
             }
-            if (type === 'product' && currentFile === 'products.html' && typeof window.viewProduct === 'function') {
+            if (type === 'product' && (currentPath === '/products' || currentPath === '/products.html') && typeof window.viewProduct === 'function') {
                 try { window.viewProduct(parseInt(id, 10)); return; } catch {}
             }
-            if (type === 'solution' && currentFile === 'solutions.html' && typeof window.viewSolution === 'function') {
+            if (type === 'solution' && (currentPath === '/solutions' || currentPath === '/solutions.html') && typeof window.viewSolution === 'function') {
                 try { window.viewSolution(parseInt(id, 10)); return; } catch {}
             }
         }
 
         switch (type) {
             case 'product':
-                window.location.href = id ? `Products.html?id=${id}` : 'Products.html';
+                window.location.href = id ? `/Products?id=${id}` : '/Products';
                 break;
             case 'publication':
-                window.location.href = id ? `Publications.html?id=${id}` : 'Publications.html';
+                window.location.href = id ? `/Publications?id=${id}` : '/Publications';
                 break;
             case 'solution':
-                window.location.href = id ? `solutions.html?id=${id}` : 'solutions.html';
+                window.location.href = id ? `/solutions?id=${id}` : '/solutions';
                 break;
             case 'repository':
-                window.location.href = id ? `Repository.html?id=${id}` : 'Repository.html';
+                window.location.href = id ? `/Repository?id=${id}` : '/Repository';
                 break;
             default:
                 const query = document.getElementById('global-search-input')?.value.trim() || '';
@@ -628,7 +628,7 @@ class SharedComponents {
     navigateToSearchResults(query) {
         const params = new URLSearchParams();
         params.append('q', query);
-        window.location.href = `SearchResults.html?${params.toString()}`;
+        window.location.href = `/SearchResults?${params.toString()}`;
     }
 
     /**

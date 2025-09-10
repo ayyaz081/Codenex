@@ -249,8 +249,8 @@ window.PortfolioConfig = {
                     localStorage.removeItem('userInfo');
                     
                     // Redirect to auth page if not already there
-                    if (!window.location.pathname.includes('Auth.html')) {
-                        window.location.href = 'Auth.html';
+                    if (!window.location.pathname.includes('/Auth')) {
+                        window.location.href = '/Auth';
                         return;
                     }
                 }

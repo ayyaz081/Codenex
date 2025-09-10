@@ -1433,7 +1433,7 @@
                 this.initAuthDisplay(); // Refresh display
                 setTimeout(() => {
                     if (window.confirm('Your session has expired. Would you like to go to the login page?')) {
-                        window.location.href = './Auth.html';
+                        window.location.href = '/Auth';
                     }
                 }, 3000);
             }
@@ -1441,7 +1441,7 @@
             showLoginPrompt() {
                 const message = 'You need to log in to access this feature. Would you like to go to the login page?';
                 if (window.confirm(message)) {
-                    window.location.href = './Auth.html';
+                    window.location.href = '/Auth';
                 }
             }
 
@@ -1486,7 +1486,7 @@
                     
                     setTimeout(() => {
                         if (window.confirm('Would you like to go to the login page?')) {
-                            window.location.href = './Auth.html';
+                            window.location.href = '/Auth';
                         }
                     }, 1500);
                 }
@@ -2077,7 +2077,7 @@
                     }));
                 }
                 
-                window.location.href = `./Auth.html?returnUrl=${returnUrl}&action=${action}&publicationId=${currentPubId || ''}`;
+                window.location.href = `/Auth?returnUrl=${returnUrl}&action=${action}&publicationId=${currentPubId || ''}`;
             }
         }
 
