@@ -1,14 +1,14 @@
-# Portfolio Production Deployment Script
+# CodeNex Solutions Production Deployment Script
 # Ensures identical behavior between development and production
 
-Write-Host "Starting Portfolio Production Deployment..." -ForegroundColor Green
+Write-Host "Starting CodeNex Solutions Production Deployment..." -ForegroundColor Green
 
 # Set production environment
 $env:ASPNETCORE_ENVIRONMENT = "Production"
 $env:DOTNET_ENVIRONMENT = "Production"
 
 # Navigate to project directory
-$projectPath = "C:\Users\Az\source\repos\ayyaz081\Portfolio\PortfolioBackend"
+$projectPath = "C:\Users\Az\source\repos\ayyaz081\Codenex"
 Set-Location $projectPath
 
 Write-Host "Working directory: $(Get-Location)" -ForegroundColor Cyan

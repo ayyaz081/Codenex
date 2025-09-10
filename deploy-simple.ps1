@@ -1,5 +1,5 @@
-# Portfolio Production Deployment Script
-Write-Host "Starting Portfolio Production Deployment..." -ForegroundColor Green
+# CodeNex Solutions Production Deployment Script
+Write-Host "Starting CodeNex Solutions Production Deployment..." -ForegroundColor Green
 
 # Set production environment
 $env:ASPNETCORE_ENVIRONMENT = "Production"

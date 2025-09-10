@@ -1,6 +1,6 @@
-# Portfolio Backend
+# CodeNex Solutions
 
-.NET 8 Web API for the Portfolio application with JWT authentication, email services, and admin management.
+.NET 8 Web API for CodeNex Solutions platform with JWT authentication, email services, and admin management.
 
 ## Environment Setup
 
@@ -21,8 +21,8 @@ DATABASE_CONNECTION_STRING=Server=your_server;Database=your_database;User Id=you
 **Supported Databases:**
 - SQL Server (Azure SQL Database, SQL Server Express, LocalDB)
 - Connection string examples:
-  - SQL Server: `Server=localhost;Database=Portfolio;Integrated Security=true;TrustServerCertificate=true;`
-  - Azure SQL: `Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=yourdb;User ID=username;Password=password;Encrypt=True;`
+  - SQL Server: `Server=localhost;Database=CodeNex;Integrated Security=true;TrustServerCertificate=true;`
+  - Azure SQL: `Server=tcp:codenex.database.windows.net,1433;Initial Catalog=codenex;User ID=username;Password=password;Encrypt=True;`
 
 ### 2. Admin User Configuration
 
@@ -43,7 +43,7 @@ For email functionality (user verification, password reset), configure SMTP:
 EmailSettings__Host=smtp.gmail.com
 EmailSettings__Port=587
 EmailSettings__FromEmail=your_email@gmail.com
-EmailSettings__FromName=Portfolio - Your Name
+EmailSettings__FromName=CodeNex Solutions - Your Name
 EmailSettings__Username=your_email@gmail.com
 EmailSettings__Password=your_gmail_app_password
 EmailSettings__EnableSsl=true
