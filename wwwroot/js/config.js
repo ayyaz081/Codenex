@@ -83,7 +83,6 @@ window.PortfolioConfig = {
             health: '/health'
         }
     },
-    },
     
     // SSL/Security Configuration - adaptive to deployment environment
     ssl: {
