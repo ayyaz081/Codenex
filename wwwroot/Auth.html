@@ -701,15 +701,13 @@
             // Production: use same origin (protocol + hostname + port if non-standard)
             const hostname = window.location.hostname;
             const port = window.location.port;
-            const protocol = window.location.protocol;
             
-            // For production domains like codenex.live, use the same origin
-            if (hostname === 'codenex.live' || hostname.includes('codenex')) {
-                // Always use HTTPS for production domains
-                return `https://${hostname}`;
-            }
+            // Force HTTPS for production domains (non-localhost)
+            const protocol = hostname === 'localhost' || hostname === '127.0.0.1' 
+                            ? window.location.protocol 
+                            : 'https:';
             
-            // General fallback: use current origin
+            // General fallback: use current origin with forced HTTPS in production
             if (port && port !== '80' && port !== '443') {
                 return `${protocol}//${hostname}:${port}`;
             } else {

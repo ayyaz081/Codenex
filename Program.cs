@@ -401,7 +401,10 @@ static async Task ServeHtmlWithApiInjection(HttpContext context, string htmlPath
         !context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
     {
         // We're in production but API_BASE_URL is set to localhost - use current origin instead
-        var scheme = context.Request.Scheme;
+        // Force HTTPS in production for security and CSP compliance
+        var scheme = context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) 
+                     ? context.Request.Scheme 
+                     : "https";
         var host = context.Request.Host;
         apiBaseUrl = $"{scheme}://{host}";
     }
