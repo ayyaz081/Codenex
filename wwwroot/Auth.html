@@ -905,12 +905,12 @@
             const dashboardBtn = document.getElementById('dashboard-btn');
             const homeBtn = document.getElementById('home-btn');
             
-            if (user.role === 'Admin') {
-                // Admin users see dashboard button, home button optional
+            if (user.role === 'Admin' || user.role === 'Manager') {
+                // Admin and Manager users see dashboard button, home button optional
                 dashboardBtn.style.display = 'inline-flex';
                 homeBtn.style.display = 'inline-flex';
             } else {
-                // Non-admin users only see home button
+                // Other users only see home button
                 dashboardBtn.style.display = 'none';
                 homeBtn.style.display = 'inline-flex';
             }
@@ -940,14 +940,14 @@
             // Profile actions
             document.getElementById('logout-btn').addEventListener('click', handleLogout);
             // Home button now uses direct href - no event listener needed
-            document.getElementById('dashboard-btn').addEventListener('click', () => {
-                const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-                if (userInfo.role === 'Admin') {
-                    window.location.href = '/Admin';
-                } else {
-                    // Non-admin users should not access dashboard - redirect to home
-                    window.location.href = '/';
-                }
+                    document.getElementById('dashboard-btn').addEventListener('click', () => {
+                        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                        if (userInfo.role === 'Admin' || userInfo.role === 'Manager') {
+                            window.location.href = '/Admin';
+                        } else {
+                            // Non-admin/manager users should not access dashboard - redirect to home
+                            window.location.href = '/';
+                        }
             });
         }
 

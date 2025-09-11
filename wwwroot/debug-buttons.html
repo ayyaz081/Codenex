@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Buttons Debug - Codenex Solutions</title>
+    <link rel="icon" type="image/x-icon" href="/components/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="/css/shared-styles.css">
+    <style>
+        body {
+            padding-top: 80px;
+        }
+        
+        .debug-info {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 300px;
+            z-index: 2000;
+            font-family: monospace;
+            font-size: 12px;
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .debug-info h3 {
+            margin: 0 0 12px 0;
+            color: var(--primary);
+            font-size: 14px;
+        }
+        
+        .debug-info ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .debug-info li {
+            margin: 4px 0;
+            padding: 2px 0;
+        }
+        
+        .status-ok {
+            color: #22c55e;
+        }
+        
+        .status-error {
+            color: #ef4444;
+        }
+        
+        .test-section {
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .test-button {
+            display: inline-block;
+            margin: 8px;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .test-button:hover {
+            background: var(--primary-dark);
+        }
+        
+        .log-output {
+            background: #000;
+            color: #0f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded by SharedComponents -->
+    <div id="header-placeholder"></div>
+    
+    <div class="debug-info">
+        <h3>Button Status</h3>
+        <ul id="button-status">
+            <li>Loading...</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h1>Header Button Debug Test</h1>
+        <p>This page tests all header button functionality on both mobile and desktop views.</p>
+        
+        <div>
+            <button class="test-button" onclick="testThemeToggle()">Test Theme Toggle</button>
+            <button class="test-button" onclick="testMobileMenu()">Test Mobile Menu</button>
+            <button class="test-button" onclick="testSearch()">Test Search</button>
+            <button class="test-button" onclick="testAuth()">Test Auth</button>
+            <button class="test-button" onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <div class="log-output" id="debug-log"></div>
+    </div>
+
+    <!-- Include scripts -->
+    <script src="/js/config.js"></script>
+    <script src="/js/shared-components.js"></script>
+    <script>
+        let debugLog = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLog.push(logEntry);
+            
+            const logOutput = document.getElementById('debug-log');
+            if (logOutput) {
+                logOutput.textContent = debugLog.join('\n');
+                logOutput.scrollTop = logOutput.scrollHeight;
+            }
+            
+            console.log(logEntry);
+        }
+        
+        function clearLog() {
+            debugLog = [];
+            const logOutput = document.getElementById('debug-log');
+            if (logOutput) {
+                logOutput.textContent = '';
+            }
+        }
+        
+        function updateButtonStatus() {
+            const statusList = document.getElementById('button-status');
+            if (!statusList) return;
+            
+            const buttons = [
+                { id: 'theme-toggle', name: 'Theme Toggle' },
+                { id: 'nav-toggle', name: 'Mobile Menu' },
+                { id: 'search-icon-container', name: 'Search Icon' },
+                { id: 'logout-btn', name: 'Logout' },
+                { id: 'global-search-input', name: 'Search Input' }
+            ];
+            
+            const status = buttons.map(button => {
+                const element = document.getElementById(button.id);
+                const exists = !!element;
+                const hasClickHandler = exists && (
+                    element.onclick || 
+                    element.addEventListener || 
+                    element.getAttribute('onclick')
+                );
+                
+                const statusClass = exists ? 'status-ok' : 'status-error';
+                return `<li><span class="${statusClass}">${button.name}: ${exists ? '✓' : '✗'}</span></li>`;
+            }).join('');
+            
+            statusList.innerHTML = status;
+        }
+        
+        function testThemeToggle() {
+            log('Testing theme toggle...');
+            const themeBtn = document.getElementById('theme-toggle');
+            
+            if (!themeBtn) {
+                log('ERROR: Theme toggle button not found', 'error');
+                return;
+            }
+            
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            log(`Current theme: ${currentTheme}`);
+            
+            // Simulate click
+            themeBtn.click();
+            
+            setTimeout(() => {
+                const newTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                log(`New theme after click: ${newTheme}`);
+                
+                if (newTheme !== currentTheme) {
+                    log('✓ Theme toggle working correctly');
+                } else {
+                    log('✗ Theme toggle not working');
+                }
+            }, 100);
+        }
+        
+        function testMobileMenu() {
+            log('Testing mobile menu...');
+            const menuBtn = document.getElementById('nav-toggle');
+            
+            if (!menuBtn) {
+                log('ERROR: Mobile menu button not found', 'error');
+                return;
+            }
+            
+            log(`Screen width: ${window.innerWidth}px`);
+            log(`Mobile menu button visible: ${window.getComputedStyle(menuBtn.parentElement).display !== 'none'}`);
+            
+            // Simulate click
+            menuBtn.click();
+            
+            setTimeout(() => {
+                const mobileMenu = document.querySelector('.mobile-menu');
+                const isVisible = mobileMenu && mobileMenu.classList.contains('show');
+                log(`Mobile menu visible after click: ${isVisible}`);
+                
+                if (isVisible) {
+                    log('✓ Mobile menu toggle working correctly');
+                    // Close it
+                    menuBtn.click();
+                } else {
+                    log('✗ Mobile menu toggle not working');
+                }
+            }, 100);
+        }
+        
+        function testSearch() {
+            log('Testing search functionality...');
+            const searchBtn = document.getElementById('search-icon-container');
+            const searchContainer = document.getElementById('global-search');
+            
+            if (!searchBtn) {
+                log('ERROR: Search button not found', 'error');
+                return;
+            }
+            
+            if (!searchContainer) {
+                log('ERROR: Search container not found', 'error');
+                return;
+            }
+            
+            const isExpanded = searchContainer.classList.contains('expanded');
+            log(`Search initially expanded: ${isExpanded}`);
+            
+            // Simulate click
+            searchBtn.click();
+            
+            setTimeout(() => {
+                const isExpandedAfter = searchContainer.classList.contains('expanded');
+                log(`Search expanded after click: ${isExpandedAfter}`);
+                
+                if (isExpandedAfter !== isExpanded) {
+                    log('✓ Search toggle working correctly');
+                } else {
+                    log('✗ Search toggle not working');
+                }
+            }, 500); // Wait for animation
+        }
+        
+        function testAuth() {
+            log('Testing auth functionality...');
+            
+            const loggedOutSection = document.getElementById('logged-out-section');
+            const loggedInSection = document.getElementById('logged-in-section');
+            const loginBtn = loggedOutSection?.querySelector('.login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            log(`Logged out section: ${loggedOutSection ? 'found' : 'not found'}`);
+            log(`Logged in section: ${loggedInSection ? 'found' : 'not found'}`);
+            log(`Login button: ${loginBtn ? 'found' : 'not found'}`);
+            log(`Logout button: ${logoutBtn ? 'found' : 'not found'}`);
+            
+            const currentlyLoggedIn = loggedInSection && 
+                window.getComputedStyle(loggedInSection).display !== 'none';
+            log(`Currently logged in: ${currentlyLoggedIn}`);
+            
+            if (currentlyLoggedIn && logoutBtn) {
+                log('Testing logout...');
+                // Don't actually logout in test, just check if handler exists
+                const hasHandler = logoutBtn.onclick || logoutBtn.getAttribute('onclick');
+                log(`Logout handler exists: ${!!hasHandler}`);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Debug page loaded, initializing...');
+            
+            // Wait for shared components to initialize
+            setTimeout(() => {
+                updateButtonStatus();
+                log('✅ Initial button status checked');
+                
+                // Check if SharedComponents initialized
+                if (window.sharedComponents) {
+                    log('✅ SharedComponents instance found');
+                } else {
+                    log('✗ SharedComponents instance not found');
+                }
+                
+                // Set up periodic status updates
+                setInterval(updateButtonStatus, 2000);
+                
+            }, 1000);
+            
+            // Test responsiveness
+            window.addEventListener('resize', () => {
+                log(`Screen resized to: ${window.innerWidth}x${window.innerHeight}`);
+                updateButtonStatus();
+            });
+        });
+    </script>
+</body>
+</html>

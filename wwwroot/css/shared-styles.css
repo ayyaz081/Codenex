@@ -59,6 +59,8 @@ body {
     padding: 70px 0 0 0;
     line-height: 1.6;
     overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
 }
 
 .container {
@@ -106,32 +108,31 @@ body {
     z-index: 1000;
     padding: 0;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .nav-container {
-    max-width: none;
-    margin: 0;
-    padding: 0;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 70px;
     position: relative;
-    gap: clamp(16px, 3vw, 32px);
     min-height: 70px;
     width: 100%;
+    gap: 16px;
+    overflow: hidden; /* Prevent content from overflowing */
 }
 
-/* Left: Company Name and Navigation Links */
+/* Left: Company Name Only */
 .nav-left {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     display: flex;
     align-items: center;
-    gap: clamp(20px, 3vw, 40px);
     min-width: 0;
-    overflow: hidden;
-    margin-right: clamp(16px, 3vw, 32px);
-    padding-left: clamp(12px, 3vw, 24px);
+    max-width: 300px; /* Prevent taking too much space */
 }
 
 .nav-logo {
@@ -162,21 +163,25 @@ body {
     background-clip: text;
     color: transparent;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 1;
 }
 
 .nav-center {
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     align-items: center;
     justify-content: center;
     min-width: 0;
-    overflow: visible;
+    margin: 0 16px;
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: clamp(8px, 1.2vw, 12px);
+    gap: 4px;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -187,30 +192,33 @@ body {
 /* Prevent nav link shadows from overlapping adjacent links */
 .nav-links li {
     position: relative;
+    z-index: 1;
 }
 
 /* Use a clipping context that doesn't cut content but limits visual overflow */
 .nav-links li a {
     isolation: isolate; /* confine box-shadow painting to this element's stacking context */
+    position: relative;
+    z-index: 2;
 }
 
 .nav-links li a {
     color: var(--text);
     text-decoration: none;
     font-weight: 600;
-    padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 18px);
-    border-radius: 16px;
+    padding: 6px 10px;
+    border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     background: transparent;
     border: none;
     display: flex;
     align-items: center;
-    gap: clamp(4px, 1vw, 8px);
+    gap: 4px;
     overflow: hidden;
     backdrop-filter: blur(0px);
     white-space: nowrap;
-    font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+    font-size: 0.8rem;
     flex-shrink: 0;
 }
 
@@ -300,7 +308,7 @@ body {
 
 /* Icon styling for navigation links */
 .nav-links li a i {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     transition: transform 0.3s ease;
 }
 
@@ -313,40 +321,40 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: clamp(12px, 2vw, 20px);
+    gap: 12px;
     min-width: 0;
     flex-shrink: 0;
-    margin-left: auto;
-    padding-right: clamp(12px, 3vw, 24px);
+    max-width: 400px; /* Prevent taking too much space on desktop */
 }
 
 .nav-actions {
     display: flex;
     align-items: center;
-    gap: clamp(12px, 2vw, 20px);
+    gap: 12px;
     flex-wrap: nowrap;
     flex-shrink: 0;
+    min-width: 0;
 }
 
 .global-search {
     position: relative;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
     z-index: 100;
 }
 
 .global-search.expanded {
-    width: clamp(140px, 17.5vw, 200px);
+    width: 160px;
 }
 
 .search-icon-container {
     position: absolute;
     left: 0;
     top: 0;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
@@ -390,20 +398,20 @@ body {
 }
 
 .global-search.expanded .search-icon-container {
-    border-radius: 22px 0 0 22px;
+    border-radius: 20px 0 0 20px;
     border-right: none;
 }
 
 .search-input-container {
     position: absolute;
-    left: 44px;
+    left: 40px;
     top: 0;
-    height: 44px;
+    height: 40px;
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-left: none;
-    border-radius: 0 22px 22px 0;
+    border-radius: 0 20px 20px 0;
     display: flex;
     align-items: center;
     opacity: 0;
@@ -415,11 +423,11 @@ body {
 
 .global-search.expanded .search-input-container {
     opacity: 1;
-    width: calc(100% - 44px);
+    width: calc(100% - 40px);
 }
 
 .search-icon {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
 }
 
@@ -530,8 +538,8 @@ body {
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: 50%;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -541,6 +549,7 @@ body {
     color: var(--text);
     position: relative;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .theme-toggle::before {
@@ -571,20 +580,24 @@ body {
 }
 
 .auth-btn {
-    padding: 8px 16px;
-    border-radius: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
     position: relative;
     overflow: hidden;
     box-shadow: var(--glass-shadow);
+    flex-shrink: 0;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
 }
 
 .auth-btn::before {
@@ -601,7 +614,7 @@ body {
 }
 
 .login-btn {
-    background: transparent;
+    background: var(--glass-bg);
     color: var(--primary);
     border: 1px solid var(--primary);
 }
@@ -640,23 +653,17 @@ body {
 .user-info {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: var(--text);
-    font-size: 0.85rem;
     flex-shrink: 0;
-    white-space: nowrap;
 }
 
 .user-link {
     display: flex;
     align-items: center;
-    gap: 8px;
     text-decoration: none;
     color: inherit;
-    padding: 4px 8px;
-    border-radius: 12px;
     transition: all 0.3s ease;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .user-link:hover {
@@ -672,8 +679,8 @@ body {
 }
 
 .user-avatar {
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--accent));
     display: flex;
@@ -681,9 +688,10 @@ body {
     justify-content: center;
     color: white;
     font-weight: 600;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     flex-shrink: 0;
     transition: all 0.3s ease;
+    box-shadow: var(--glass-shadow);
 }
 
 /* Logged in section styling */
@@ -694,9 +702,47 @@ body {
     flex-shrink: 0;
 }
 
-/* Mobile Navigation */
+/* Mobile Navigation - Hidden by default (desktop) */
 .nav-mobile {
-    display: none;
+    display: none !important;
+}
+
+/* Ensure no mobile menus are visible by default */
+.mobile-menu {
+    display: none !important;
+}
+
+.mobile-menu-overlay {
+    display: none !important;
+}
+
+/* Enhanced button interaction styles */
+.theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.3) !important;
+    tap-highlight-color: rgba(59, 130, 246, 0.3) !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+    outline: none !important;
+}
+
+/* Ensure buttons are always clickable */
+.theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
+    pointer-events: auto !important;
+    z-index: 100 !important;
+    position: relative !important;
+}
+
+/* Focus states for accessibility */
+.theme-toggle:focus-visible, .nav-toggle:focus-visible, .auth-btn:focus-visible, .search-icon-container:focus-visible {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
 }
 
 /* Mobile Menu Overlay */
@@ -734,9 +780,12 @@ body {
     z-index: 1001;
     max-height: calc(100vh - 70px);
     overflow-y: auto;
+    border: 1px solid var(--glass-border);
+    display: none;
 }
 
 .mobile-menu.show {
+    display: block;
     transform: translateY(0);
 }
 
@@ -907,9 +956,9 @@ body.mobile-menu-open {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
-    border-radius: 8px;
+    border-radius: 50%;
     color: var(--text);
-    font-size: 1.2rem;
+    font-size: 0.9rem;
     cursor: pointer;
     width: 40px;
     height: 40px;
@@ -918,6 +967,7 @@ body.mobile-menu-open {
     justify-content: center;
     transition: all 0.3s ease;
     box-shadow: var(--glass-shadow);
+    flex-shrink: 0;
 }
 
 .nav-toggle:hover {
@@ -1062,60 +1112,149 @@ body.mobile-menu-open {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+    .nav-container {
+        padding: 0 12px;
+        gap: 12px;
+    }
+    
     .nav-left {
-        gap: clamp(16px, 3vw, 40px);
+        max-width: 260px;
     }
     
     .nav-links {
-        gap: clamp(4px, 1vw, 8px);
+        gap: 2px;
     }
     
     .nav-links li a {
-        padding: clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 12px);
-        font-size: clamp(0.75rem, 1vw, 0.85rem);
+        padding: 5px 8px;
+        font-size: 0.75rem;
+    }
+    
+    .nav-center {
+        margin: 0 8px;
+    }
+    
+    .nav-right {
+        max-width: 340px;
+        gap: 10px;
+    }
+    
+    .nav-actions {
+        gap: 10px;
+    }
+    
+    .global-search.expanded {
+        width: 140px;
     }
 }
 
 @media (max-width: 1024px) {
+    /* Tablet and mobile styles */
+    .nav-container {
+        gap: 10px;
+    }
+    
     .nav-center { 
         display: none; 
     }
     
     .nav-left {
-        gap: clamp(12px, 2vw, 24px);
-        flex: 1;
+        flex: 1 1 auto;
         min-width: 0;
+        max-width: none; /* Remove max-width constraint */
+    }
+    
+    .nav-logo-text {
+        display: none;
     }
     
     .nav-right {
         flex: 0 0 auto;
+        max-width: none; /* Remove max-width constraint */
+        gap: 10px;
     }
     
     .global-search { 
-        max-width: 240px;
-        min-width: 160px;
+        max-width: 200px;
+        min-width: 140px;
+    }
+    
+    .global-search.expanded {
+        width: 180px;
     }
     
     .nav-actions {
-        gap: clamp(10px, 2vw, 16px);
+        gap: 10px;
+    }
+    
+    .nav-mobile {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Allow mobile menu to be shown on tablets/mobile */
+    .mobile-menu {
+        display: none;
+    }
+    
+    .mobile-menu.show {
+        display: block !important;
+    }
+    
+    .mobile-menu-overlay {
+        display: none;
+    }
+    
+    .mobile-menu-overlay.show {
+        display: block !important;
     }
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 60px 0 0 0;
+    }
+    
+    /* Enhanced mobile button support */
+    .theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
+        min-width: 44px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+        z-index: 1001 !important;
+    }
+    
+    /* Increase touch target area */
+    .theme-toggle::after, .nav-toggle::after, .auth-btn::after, .search-icon-container::after {
+        content: '' !important;
+        position: absolute !important;
+        top: -12px !important;
+        left: -12px !important;
+        right: -12px !important;
+        bottom: -12px !important;
+        z-index: -1 !important;
+    }
+    
     .nav-container {
-        padding: 0;
-        gap: clamp(8px, 2vw, 12px);
+        padding: 0 12px;
+        height: 60px;
+        min-height: 60px;
+        gap: 8px;
     }
     
     .nav-left {
-        padding-left: 16px;
-        flex: 1;
+        flex: 1 1 auto;
         min-width: 0;
+        max-width: none;
     }
     
     .nav-right {
-        padding-right: 16px;
         flex: 0 0 auto;
+        max-width: none;
+        gap: 8px;
     }
     
     .nav-center {
@@ -1127,14 +1266,33 @@ body.mobile-menu-open {
     }
 
     .nav-mobile {
-        display: flex;
+        display: flex !important;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
+    }
+    
+    /* Allow mobile menu to be shown on mobile */
+    .mobile-menu {
+        display: none;
+    }
+    
+    .mobile-menu.show {
+        display: block !important;
+    }
+    
+    .mobile-menu-overlay {
+        display: none;
+    }
+    
+    .mobile-menu-overlay.show {
+        display: block !important;
     }
 
     .nav-actions {
-        gap: clamp(6px, 1.5vw, 10px);
+        gap: 8px;
         align-items: center;
+        flex-wrap: nowrap;
+        flex-shrink: 0;
     }
     
     /* Hide desktop search on mobile */
@@ -1143,21 +1301,32 @@ body.mobile-menu-open {
     }
 
     .auth-btn {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-        gap: 4px;
-        white-space: nowrap;
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
     }
 
     .theme-toggle {
         width: 36px;
         height: 36px;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
         flex-shrink: 0;
     }
     
     .nav-logo-text {
-        font-size: clamp(1rem, 3vw, 1.2rem);
+        font-size: 1.1rem;
+    }
+    
+    .nav-logo-img {
+        height: 40px;
     }
 
     .footer-content {
@@ -1173,56 +1342,90 @@ body.mobile-menu-open {
     .contact-info {
         align-items: center;
     }
+    
+    /* Ensure mobile menu is properly positioned */
+    .mobile-menu {
+        top: 60px;
+        max-height: calc(100vh - 60px);
+    }
 }
 
 @media (max-width: 480px) {
+    body {
+        padding: 55px 0 0 0;
+    }
+    
     .nav-container {
-        padding: 0;
-        gap: clamp(6px, 2vw, 8px);
-        height: 60px;
+        padding: 0 10px;
+        height: 55px;
+        min-height: 55px;
+        gap: 6px;
     }
     
     .nav-left {
-        padding-left: 12px;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
     }
     
     .nav-right {
-        padding-right: 12px;
+        flex: 0 0 auto;
+        gap: 6px;
     }
     
     .nav-actions {
-        gap: clamp(4px, 1.5vw, 8px);
+        gap: 6px;
+        flex-shrink: 0;
     }
     
     .nav-logo-text {
-        font-size: clamp(0.75rem, 4vw, 1rem);
+        font-size: 0.9rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 120px;
+        max-width: 120px; /* Increased from 100px for better readability */
+    }
+    
+    .nav-logo-img {
+        height: 32px;
     }
     
     .auth-btn {
-        padding: 4px 8px;
-        font-size: 0.7rem;
-        gap: 2px;
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    
+    /* Keep auth button visible but optimize for small screens */
+    #auth-section {
+        flex-shrink: 0;
     }
     
     .theme-toggle {
         width: 32px;
         height: 32px;
         font-size: 0.8rem;
+        flex-shrink: 0;
     }
     
     .nav-toggle {
         width: 32px;
         height: 32px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+        flex-shrink: 0;
     }
     
     .mobile-menu {
-        top: 60px;
-        max-height: calc(100vh - 60px);
+        top: 55px;
+        max-height: calc(100vh - 55px);
     }
     
     .mobile-menu-content {
@@ -1243,31 +1446,45 @@ body.mobile-menu-open {
 /* Extra small screens */
 @media (max-width: 360px) {
     .nav-container {
-        height: 55px;
+        height: 50px;
         gap: 4px;
+        padding: 0 8px;
+    }
+    
+    body {
+        padding: 50px 0 0 0;
     }
     
     .nav-left {
-        padding-left: 8px;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
     }
     
     .nav-right {
-        padding-right: 8px;
+        flex: 0 0 auto;
+        gap: 4px;
     }
     
     .nav-logo-text {
-        max-width: 100px;
-        font-size: 0.7rem;
+        max-width: 90px; /* Increased from 80px */
+        font-size: 0.75rem; /* Increased from 0.7rem for readability */
+    }
+    
+    .nav-logo-img {
+        height: 30px;
     }
     
     .nav-actions {
         gap: 4px;
+        flex-shrink: 0;
     }
     
     .auth-btn {
-        padding: 3px 6px;
-        font-size: 0.65rem;
-        border-radius: 14px;
+        width: 28px;
+        height: 28px;
+        font-size: 0.7rem;
+        flex-shrink: 0;
     }
     
     .theme-toggle,
@@ -1275,10 +1492,28 @@ body.mobile-menu-open {
         width: 28px;
         height: 28px;
         font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+    
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.7rem;
+        flex-shrink: 0;
     }
     
     .mobile-menu {
-        top: 55px;
-        max-height: calc(100vh - 55px);
+        top: 50px;
+        max-height: calc(100vh - 50px);
+    }
+    
+    /* Keep auth section visible but prioritize essential buttons */
+    #auth-section {
+        flex-shrink: 0;
+    }
+    
+    /* If space is really critical, only hide theme toggle on ultra-small screens */
+    .theme-toggle {
+        display: none; /* Hide theme toggle to save space */
     }
 }
