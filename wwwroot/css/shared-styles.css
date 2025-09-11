@@ -349,27 +349,44 @@ body {
     width: 160px;
 }
 
+/* Search icon container inherits consistent button styling */
 .search-icon-container {
     position: absolute;
     left: 0;
     top: 0;
     width: 40px;
     height: 40px;
+    
+    /* Consistent with other header buttons */
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: 50%;
+    color: var(--text);
+    
+    /* Layout consistent with other buttons */
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    
+    /* Interaction consistent with other buttons */
     cursor: pointer;
+    outline: none;
+    
+    /* Visual effects consistent with other buttons */
     box-shadow: var(--glass-shadow);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--text);
-    z-index: 101;
+    position: relative;
     overflow: hidden;
+    z-index: 101;
+    
+    /* Typography consistent with other buttons */
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
+/* Consistent pseudo-element for shine effect */
 .search-icon-container::before {
     content: '';
     position: absolute;
@@ -381,8 +398,10 @@ body {
     transform: rotate(30deg);
     transition: all 0.5s;
     opacity: 0;
+    z-index: -1;
 }
 
+/* Consistent hover effects */
 .search-icon-container:hover {
     background: var(--primary);
     color: var(--bg-light);
@@ -429,6 +448,19 @@ body {
 .search-icon {
     font-size: 0.9rem;
     transition: all 0.3s ease;
+}
+
+/* Ensure search icon is properly sized on mobile */
+@media (max-width: 768px) {
+    .search-icon {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-icon {
+        font-size: 0.75rem;
+    }
 }
 
 .global-search-input {
@@ -533,26 +565,61 @@ body {
     opacity: 0.8;
 }
 
-.theme-toggle {
+/*
+ * CONSISTENT HEADER BUTTON SYSTEM
+ * ===============================
+ * All header buttons (theme-toggle, nav-toggle, auth-btn, search-icon-container)
+ * share consistent styling, sizing, and behavior:
+ * 
+ * - Desktop: 40px × 40px
+ * - Mobile (≤768px): 44px × 44px  
+ * - Small mobile (≤480px): 36px × 36px
+ * 
+ * All buttons have:
+ * - Glass morphism styling with backdrop blur
+ * - Consistent hover effects with scale and glow
+ * - Touch-friendly interaction for mobile
+ * - Accessibility support (focus states, keyboard navigation)
+ * - Uniform spacing and visual feedback
+ */
+
+/* Base header button styles - applied to all header buttons */
+.theme-toggle, .nav-toggle, .auth-btn {
+    /* Consistent sizing */
+    width: 40px;
+    height: 40px;
+    
+    /* Consistent styling */
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    color: var(--text);
+    
+    /* Layout */
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    
+    /* Interaction */
     cursor: pointer;
+    outline: none;
+    
+    /* Visual effects */
     box-shadow: var(--glass-shadow);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--text);
     position: relative;
     overflow: hidden;
-    flex-shrink: 0;
+    
+    /* Typography */
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
 }
 
-.theme-toggle::before {
+/* Consistent pseudo-element for shine effect */
+.theme-toggle::before, .nav-toggle::before, .auth-btn::before {
     content: '';
     position: absolute;
     top: -50%;
@@ -563,9 +630,11 @@ body {
     transform: rotate(30deg);
     transition: all 0.5s;
     opacity: 0;
+    z-index: -1;
 }
 
-.theme-toggle:hover {
+/* Consistent hover effects for all buttons */
+.theme-toggle:hover, .nav-toggle:hover {
     background: var(--primary);
     color: var(--bg-light);
     transform: translateY(-2px) scale(1.05);
@@ -574,57 +643,26 @@ body {
     border-color: var(--primary);
 }
 
-.theme-toggle:hover::before {
+.theme-toggle:hover::before, .nav-toggle:hover::before {
     opacity: 1;
     transform: rotate(30deg) translate(50%, 50%);
 }
 
-.auth-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--glass-shadow);
-    flex-shrink: 0;
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-}
+/* Auth button specific styles (inherits from base button styles above) */
 
-.auth-btn::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(rgba(255,255,255,0.2), transparent);
-    transform: rotate(30deg);
-    transition: all 0.5s;
-    opacity: 0;
-}
-
+/* Login button - default state with primary accent */
 .login-btn {
-    background: var(--glass-bg);
     color: var(--primary);
-    border: 1px solid var(--primary);
+    border-color: var(--primary);
 }
 
 .login-btn:hover {
     background: var(--primary);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
-    filter: drop-shadow(0 3px 10px rgba(59, 130, 246, 0.2));
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+    filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.2));
+    border-color: var(--primary);
 }
 
 .login-btn:hover::before {
@@ -632,17 +670,18 @@ body {
     transform: rotate(30deg) translate(50%, 50%);
 }
 
+/* Logout button - filled primary state */
 .logout-btn {
     background: var(--primary);
     color: white;
-    border: 1px solid var(--primary);
+    border-color: var(--primary);
 }
 
 .logout-btn:hover {
     background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
-    filter: drop-shadow(0 3px 10px rgba(59, 130, 246, 0.2));
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+    filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.2));
 }
 
 .logout-btn:hover::before {
@@ -716,33 +755,65 @@ body {
     display: none !important;
 }
 
-/* Enhanced button interaction styles */
+/* Enhanced button interaction styles for all header buttons */
 .theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
-    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.3) !important;
-    tap-highlight-color: rgba(59, 130, 246, 0.3) !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-    -khtml-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-    user-select: none !important;
-    touch-action: manipulation !important;
-    cursor: pointer !important;
-    outline: none !important;
+    /* Touch and interaction improvements */
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.3);
+    tap-highlight-color: rgba(59, 130, 246, 0.3);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    cursor: pointer;
+    outline: none;
+    
+    /* Ensure clickability */
+    pointer-events: auto;
+    z-index: 100;
+    position: relative;
+    
+    /* Minimum touch target size */
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Add visual feedback on interactions */
+    transition: all 0.2s ease;
 }
 
-/* Ensure buttons are always clickable */
-.theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
-    pointer-events: auto !important;
-    z-index: 100 !important;
-    position: relative !important;
+/* Active/pressed state for better feedback */
+.theme-toggle:active, .nav-toggle:active, .auth-btn:active, .search-icon-container:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
 }
 
 /* Focus states for accessibility */
 .theme-toggle:focus-visible, .nav-toggle:focus-visible, .auth-btn:focus-visible, .search-icon-container:focus-visible {
-    outline: 2px solid var(--primary) !important;
-    outline-offset: 2px !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Ensure navbar and nav sections don't block interactions */
+.navbar {
+    z-index: 1000;
+}
+
+.nav-right, .nav-actions {
+    pointer-events: auto;
+    z-index: 1000;
+}
+
+/* Special handling for search elements */
+#global-search, #search-icon-container {
+    pointer-events: auto;
+    z-index: 101;
+    position: relative;
 }
 
 /* Mobile Menu Overlay */
@@ -952,31 +1023,7 @@ body.mobile-menu-open {
     }
 }
 
-.nav-toggle {
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    border-radius: 50%;
-    color: var(--text);
-    font-size: 0.9rem;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: var(--glass-shadow);
-    flex-shrink: 0;
-}
-
-.nav-toggle:hover {
-    background: var(--primary);
-    color: var(--bg-light);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
-    filter: drop-shadow(0 3px 10px rgba(59, 130, 246, 0.2));
-}
+/* Nav toggle inherits from base button styles above - no additional styles needed */
 
 /* Footer Styles */
 .footer {
@@ -1216,26 +1263,67 @@ body.mobile-menu-open {
         padding: 60px 0 0 0;
     }
     
-    /* Enhanced mobile button support */
+    /* Enhanced mobile button support - consistent sizing */
     .theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
-        min-width: 44px !important;
-        min-height: 44px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        position: relative !important;
-        z-index: 1001 !important;
+        min-width: 44px;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
+        z-index: 1001;
+        
+        /* Slightly smaller font on mobile */
+        font-size: 0.85rem;
     }
     
-    /* Increase touch target area */
+    /* Search container adjustments for mobile */
+    .global-search {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .global-search.expanded {
+        width: 180px; /* Slightly larger for mobile readability */
+    }
+    
+    .search-input-container {
+        left: 44px;
+        height: 44px;
+    }
+    
+    .global-search.expanded .search-input-container {
+        width: calc(100% - 44px);
+    }
+    
+    /* User avatar should also be consistent on mobile */
+    .user-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 0.85rem;
+    }
+    
+    /* Increase touch target area on mobile */
     .theme-toggle::after, .nav-toggle::after, .auth-btn::after, .search-icon-container::after {
-        content: '' !important;
-        position: absolute !important;
-        top: -12px !important;
-        left: -12px !important;
-        right: -12px !important;
-        bottom: -12px !important;
-        z-index: -1 !important;
+        content: '';
+        position: absolute;
+        top: -12px;
+        left: -12px;
+        right: -12px;
+        bottom: -12px;
+        z-index: -1;
+    }
+    
+    /* Prevent mobile menu flash on load */
+    .mobile-menu,
+    .mobile-menu-overlay {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .mobile-menu.show,
+    .mobile-menu-overlay.show {
+        opacity: 1;
+        visibility: visible;
     }
     
     .nav-container {
@@ -1289,7 +1377,7 @@ body.mobile-menu-open {
     }
 
     .nav-actions {
-        gap: 8px;
+        gap: 8px; /* Consistent spacing */
         align-items: center;
         flex-wrap: nowrap;
         flex-shrink: 0;
@@ -1374,7 +1462,7 @@ body.mobile-menu-open {
     }
     
     .nav-actions {
-        gap: 6px;
+        gap: 6px; /* Tighter spacing for very small screens */
         flex-shrink: 0;
     }
     
@@ -1383,43 +1471,49 @@ body.mobile-menu-open {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 120px; /* Increased from 100px for better readability */
+        max-width: 120px;
     }
     
     .nav-logo-img {
         height: 32px;
     }
     
-    .auth-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 0.8rem;
+    /* Consistent small button sizing on very small screens */
+    .theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
+        width: 36px;
+        height: 36px;
+        font-size: 0.75rem;
         flex-shrink: 0;
     }
     
-    /* Keep auth button visible but optimize for small screens */
-    #auth-section {
-        flex-shrink: 0;
+    /* Search container adjustments for very small screens */
+    .global-search {
+        width: 36px;
+        height: 36px;
     }
     
-    .theme-toggle {
-        width: 32px;
-        height: 32px;
-        font-size: 0.8rem;
-        flex-shrink: 0;
+    .global-search.expanded {
+        width: 160px;
     }
     
-    .nav-toggle {
-        width: 32px;
-        height: 32px;
-        font-size: 0.8rem;
-        flex-shrink: 0;
+    .search-input-container {
+        left: 36px;
+        height: 36px;
+    }
+    
+    .global-search.expanded .search-input-container {
+        width: calc(100% - 36px);
     }
     
     .user-avatar {
-        width: 32px;
-        height: 32px;
-        font-size: 0.8rem;
+        width: 36px;
+        height: 36px;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    /* Keep auth section visible but compact */
+    #auth-section {
         flex-shrink: 0;
     }
     

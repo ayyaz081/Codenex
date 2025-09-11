@@ -210,19 +210,22 @@ class SharedComponents {
     initializeEventHandlers() {
         console.log('🔧 Initializing event handlers...');
         
-        // Theme toggle with enhanced event handling
-        this.attachButtonHandler('theme-toggle', this.toggleTheme.bind(this), 'Theme toggle');
-
-        // Logout button
-        this.attachButtonHandler('logout-btn', this.handleLogout.bind(this), 'Logout button');
-
-        // Mobile navigation toggle
-        this.initializeMobileNavigation();
+        // Use setTimeout to ensure DOM is fully loaded
+        setTimeout(() => {
+            // Theme toggle with enhanced event handling
+            this.attachButtonHandler('theme-toggle', this.toggleTheme.bind(this), 'Theme toggle');
+    
+            // Logout button
+            this.attachButtonHandler('logout-btn', this.handleLogout.bind(this), 'Logout button');
+    
+            // Mobile navigation toggle
+            this.initializeMobileNavigation();
+            
+            console.log('✅ Event handlers initialized');
+        }, 100);
 
         // Check auth state on window focus
         window.addEventListener('focus', this.checkAuthState.bind(this));
-        
-        console.log('✅ Event handlers initialized');
     }
     
     /**
@@ -232,41 +235,80 @@ class SharedComponents {
         const element = document.getElementById(elementId);
         if (!element) {
             console.warn(`⚠️ ${description}: Element #${elementId} not found`);
-            return;
+            return false;
         }
         
         // Remove existing handlers to prevent duplicates
         element.onclick = null;
         
-        // Add both click and touchstart for mobile compatibility
+        // Store handler reference for potential cleanup
+        if (!element._sharedComponentHandlers) {
+            element._sharedComponentHandlers = [];
+        }
+        
+        // Create wrapped handler with proper event handling
         const wrappedHandler = (e) => {
             e.preventDefault();
             e.stopPropagation();
             console.log(`🖱️ ${description} clicked`);
-            handler(e);
+            
+            try {
+                handler(e);
+            } catch (error) {
+                console.error(`❌ Error in ${description} handler:`, error);
+            }
         };
         
+        // Add click event listener
         element.addEventListener('click', wrappedHandler, { passive: false });
+        element._sharedComponentHandlers.push({ type: 'click', handler: wrappedHandler });
         
-        // Add touch support for mobile
+        // Add touch support for mobile devices
         if ('ontouchstart' in window) {
-            element.addEventListener('touchstart', wrappedHandler, { passive: false });
+            const touchHandler = (e) => {
+                // Only handle if not already handled by click
+                if (e.type === 'touchstart') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`👆 ${description} touched`);
+                    
+                    try {
+                        handler(e);
+                    } catch (error) {
+                        console.error(`❌ Error in ${description} touch handler:`, error);
+                    }
+                }
+            };
+            
+            element.addEventListener('touchstart', touchHandler, { passive: false });
+            element._sharedComponentHandlers.push({ type: 'touchstart', handler: touchHandler });
         }
         
-        // Ensure element is focusable and accessible
-        if (!element.tabIndex) {
+        // Ensure element is accessible
+        if (!element.tabIndex || element.tabIndex < 0) {
             element.tabIndex = 0;
         }
         
-        // Add keyboard support
-        element.addEventListener('keydown', (e) => {
+        // Add keyboard support for accessibility
+        const keyHandler = (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                handler(e);
+                e.stopPropagation();
+                console.log(`⌨️ ${description} activated via keyboard`);
+                
+                try {
+                    handler(e);
+                } catch (error) {
+                    console.error(`❌ Error in ${description} keyboard handler:`, error);
+                }
             }
-        });
+        };
+        
+        element.addEventListener('keydown', keyHandler);
+        element._sharedComponentHandlers.push({ type: 'keydown', handler: keyHandler });
         
         console.log(`✅ ${description}: Handler attached successfully`);
+        return true;
     }
 
     /**
