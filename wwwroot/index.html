@@ -8,6 +8,156 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="/css/shared-styles.css">
     <style>
+        /* Prevent mobile menu flash on load */
+        .mobile-menu,
+        .mobile-menu-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .mobile-menu.show,
+        .mobile-menu-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Ensure mobile buttons are properly touchable */
+        .nav-toggle, .theme-toggle, .auth-btn {
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            tap-highlight-color: rgba(0,0,0,0.1);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+        
+        /* Improve touch targets on mobile */
+        @media (max-width: 768px) {
+            .nav-toggle, .theme-toggle, .auth-btn {
+                min-width: 44px;
+                min-height: 44px;
+                position: relative;
+                z-index: 1000 !important; /* Ensure buttons are above everything */
+            }
+            
+            .nav-toggle::before, .theme-toggle::before, .auth-btn::before {
+                content: '';
+                position: absolute;
+                top: -8px;
+                left: -8px;
+                right: -8px;
+                bottom: -8px;
+                z-index: -1;
+            }
+        }
+        
+        /* Make all nav buttons consistent with search button style */
+        .nav-toggle, .theme-toggle, .auth-btn {
+            background: var(--glass-bg) !important;
+            backdrop-filter: var(--glass-blur) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 50% !important;
+            box-shadow: var(--glass-shadow) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            color: var(--text) !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        /* Add the same pseudo-element effect as search button */
+        .nav-toggle::before, .theme-toggle::before, .auth-btn::before {
+            content: '' !important;
+            position: absolute !important;
+            top: -50% !important;
+            left: -50% !important;
+            width: 200% !important;
+            height: 200% !important;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent) !important;
+            transform: rotate(30deg) !important;
+            transition: all 0.5s !important;
+            opacity: 0 !important;
+            z-index: -1 !important;
+        }
+        
+        /* Hover effects matching search button */
+        .nav-toggle:hover, .theme-toggle:hover, .auth-btn:hover {
+            background: var(--primary) !important;
+            color: var(--bg-light) !important;
+            transform: translateY(-2px) scale(1.05) !important;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25) !important;
+            filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.2)) !important;
+            border-color: var(--primary) !important;
+        }
+        
+        .nav-toggle:hover::before, .theme-toggle:hover::before, .auth-btn:hover::before {
+            opacity: 1 !important;
+            transform: rotate(30deg) translate(50%, 50%) !important;
+        }
+        
+        /* Focus states */
+        .nav-toggle:focus, .theme-toggle:focus, .auth-btn:focus {
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+        }
+        
+        /* Remove debug borders - mobile is working now */
+        
+        /* Ensure navbar has proper z-index */
+        .navbar {
+            z-index: 1000 !important;
+        }
+        
+        /* Make sure nav-right section doesn't block clicks */
+        .nav-right, .nav-actions {
+            pointer-events: auto !important;
+            z-index: 1000 !important;
+        }
+        
+        /* Ensure search elements are clickable */
+        #global-search, #search-icon-container {
+            pointer-events: auto !important;
+            z-index: 1001 !important;
+            position: relative !important;
+        }
+        
+        /* Remove debug outline and ensure search transitions work */
+        #global-search {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        
+        #global-search.expanded {
+            width: 160px !important;
+        }
+        
+        #global-search .search-input-container {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        
+        #global-search.expanded .search-input-container {
+            opacity: 1 !important;
+            width: calc(100% - 40px) !important;
+        }
+        
+        /* Force initial state */
+        #global-search:not(.expanded) {
+            width: 40px !important;
+        }
+        
+        #global-search:not(.expanded) .search-input-container {
+            opacity: 0 !important;
+            width: 0 !important;
+        }
+        
+        /* Make search icon border radius adjust */
+        #global-search.expanded #search-icon-container {
+            border-radius: 20px 0 0 20px !important;
+            border-right: none !important;
+        }
 
         .carousel {
             position: relative;
@@ -144,7 +294,8 @@
 
         .intro-section {
             padding: 0 16px;
-       position: relative;
+            position: relative;
+            min-height: auto;
         }
 
         #footer-placeholder {
@@ -367,6 +518,20 @@
         @media (max-width: 1280px) {
             .feature-container {
                 overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                scrollbar-width: thin;
+                -webkit-overflow-scrolling: touch;
+            }
+            .feature-container::-webkit-scrollbar {
+                height: 4px;
+            }
+            .feature-container::-webkit-scrollbar-track {
+                background: var(--glass-bg);
+                border-radius: 2px;
+            }
+            .feature-container::-webkit-scrollbar-thumb {
+                background: var(--primary);
+                border-radius: 2px;
             }
             .feature-scroller {
                 width: max-content;
@@ -374,28 +539,80 @@
             .feature-card {
                 flex: 0 0 45%;
                 max-width: 300px;
+                scroll-snap-align: start;
+            }
+        }
+
+        @media (max-width: 1024px) and (min-width: 769px) {
+            /* Tablet styles */
+            .carousel {
+                height: 450px;
+            }
+            .carousel-content {
+                padding: 40px 30px;
+                max-width: 700px;
+            }
+            .carousel-content h2 {
+                font-size: 2.8rem;
+            }
+            .carousel-content p {
+                font-size: 1.2rem;
+            }
+            .overview-card {
+                padding: 35px;
+            }
+            .overview-card h1 {
+                font-size: 2.8rem;
+            }
+            .feature-container-wrapper {
+                padding: 32px;
+            }
+            .feature-card {
+                flex: 0 0 48%;
+                max-width: 350px;
             }
         }
 
         @media (max-width: 768px) {
             .carousel {
                 height: 350px;
+                margin-bottom: 30px;
+            }
+            .carousel-content {
+                padding: 30px 20px;
+                max-width: 90%;
             }
             .carousel-content h2 {
                 font-size: 2.4rem;
+                margin-bottom: 12px;
             }
             .carousel-content p {
                 font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
+            .overview-card {
+                padding: 30px 20px;
+                margin: 20px 0;
             }
             .overview-card h1 {
                 font-size: 2.4rem;
+                margin-bottom: 20px;
+            }
+            .overview-card p {
+                font-size: 1.1rem;
             }
             .feature-container-wrapper {
                 padding: 24px;
+                margin: 20px 0;
             }
             .feature-card {
                 flex: 0 0 90%;
                 max-width: 320px;
+                margin-bottom: 16px;
+            }
+            .feature-scroller {
+                gap: 20px;
+                padding: 0 8px;
             }
             .feature-card h3 {
                 font-size: 1.4rem;
@@ -405,38 +622,61 @@
                 width: 100px;
             }
             .intro-section {
-            padding: 0 16px;
-       }
+                padding: 0 16px;
+                margin-top: 20px;
+            }
+            .container {
+                padding: 0 16px;
+            }
             #footer-placeholder {
-                margin-top: 32px;
+                margin-top: 40px;
             }
         }
 
         @media (max-width: 480px) {
             .carousel {
                 height: 300px;
+                margin-bottom: 24px;
             }
             .carousel-content {
-                padding: 20px;
+                padding: 20px 16px;
+                max-width: 95%;
             }
             .carousel-content h2 {
                 font-size: 2rem;
+                margin-bottom: 10px;
             }
             .carousel-content p {
                 font-size: 1rem;
+                margin-bottom: 16px;
+            }
+            .carousel-content a {
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+            .overview-card {
+                padding: 24px 16px;
+                margin: 16px 0;
             }
             .overview-card h1 {
                 font-size: 2rem;
+                margin-bottom: 16px;
             }
             .overview-card p {
                 font-size: 1.1rem;
             }
             .feature-container-wrapper {
                 padding: 16px;
+                margin: 16px 0;
             }
             .feature-card {
                 flex: 0 0 100%;
                 max-width: 280px;
+                margin-bottom: 12px;
+            }
+            .feature-scroller {
+                gap: 16px;
+                padding: 0 4px;
             }
             .feature-card h3 {
                 font-size: 1.3rem;
@@ -450,16 +690,20 @@
                 width: 80px;
             }
             .intro-section {
-            padding: 0 12px;
-       }
+                padding: 0 12px;
+                margin-top: 16px;
+            }
+            .container {
+                padding: 0 12px;
+            }
             #footer-placeholder {
-                margin-top: 24px;
+                margin-top: 32px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header will be loaded by JavaScript -->
+    <!-- Header will be loaded by SharedComponents -->
     <div id="header-placeholder"></div>
 
     <section class="carousel">
@@ -546,9 +790,216 @@
     <!-- Footer will be loaded by JavaScript -->
     <div id="footer-placeholder"></div>
 
-    <!-- Include configuration and shared components JavaScript -->
+    <!-- Include configuration -->
     <script src="/js/config.js"></script>
+    <!-- Include shared components (handles header, auth, search) -->
     <script src="/js/shared-components.js"></script>
+    <!-- Initialize SharedComponents with failsafe -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Starting initialization...');
+            
+            // Initialize SharedComponents which handles all header functionality
+            if (typeof window !== 'undefined' && window.sharedComponents) {
+                window.sharedComponents.init().then(() => {
+                    console.log('✅ SharedComponents initialized successfully');
+                    // Add failsafe button handlers after a short delay
+                    setTimeout(addFailsafeHandlers, 500);
+                }).catch(error => {
+                    console.error('❌ SharedComponents initialization failed:', error);
+                    // Fallback to direct button handlers
+                    setTimeout(addFailsafeHandlers, 100);
+                });
+            } else if (typeof SharedComponents !== 'undefined') {
+                // Create and expose a single global instance if not present
+                try {
+                    window.sharedComponents = new SharedComponents();
+                    window.sharedComponents.init().then(() => {
+                        console.log('✅ SharedComponents initialized successfully');
+                        setTimeout(addFailsafeHandlers, 500);
+                    }).catch(error => {
+                        console.error('❌ SharedComponents initialization failed:', error);
+                        setTimeout(addFailsafeHandlers, 100);
+                    });
+                } catch (e) {
+                    console.error('❌ Failed to create SharedComponents instance:', e);
+                    setTimeout(addFailsafeHandlers, 100);
+                }
+            } else {
+                console.error('❌ SharedComponents class not found!');
+                // Fallback to direct button handlers
+                setTimeout(addFailsafeHandlers, 100);
+            }
+        });
+        
+        // Failsafe button handlers to ensure functionality
+        function addFailsafeHandlers() {
+            console.log('🔧 Adding failsafe button handlers...');
+            
+            // Enhanced failsafe theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                // Remove any existing handlers to prevent duplicates
+                themeBtn.onclick = null;
+                
+                console.log('🎨 Adding failsafe theme handler');
+                const themeHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🎨 Theme button clicked (failsafe)');
+                    const html = document.documentElement;
+                    const current = html.getAttribute('data-theme') || 'light';
+                    const newTheme = current === 'light' ? 'dark' : 'light';
+                    html.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    this.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
+                    console.log('✅ Theme changed to:', newTheme);
+                };
+                
+                themeBtn.addEventListener('click', themeHandler, { passive: false });
+                if ('ontouchstart' in window) {
+                    themeBtn.addEventListener('touchstart', themeHandler, { passive: false });
+                }
+            }
+            
+            // Enhanced failsafe mobile menu
+            const menuBtn = document.getElementById('nav-toggle');
+            if (menuBtn) {
+                // Remove any existing handlers
+                menuBtn.onclick = null;
+                
+                console.log('📱 Adding failsafe mobile menu handler');
+                const menuHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('📱 Menu button clicked (failsafe)');
+                    toggleMobileMenuFailsafe();
+                };
+                
+                menuBtn.addEventListener('click', menuHandler, { passive: false });
+                if ('ontouchstart' in window) {
+                    menuBtn.addEventListener('touchstart', menuHandler, { passive: false });
+                }
+            }
+            
+            // Enhanced failsafe search toggle
+            const searchBtn = document.getElementById('search-icon-container');
+            if (searchBtn) {
+                // Remove any existing handlers
+                searchBtn.onclick = null;
+                
+                console.log('🔍 Adding failsafe search handler');
+                const searchHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔍 Search button clicked (failsafe)');
+                    const search = document.getElementById('global-search');
+                    const input = document.getElementById('global-search-input');
+                    if (search) {
+                        const isExpanded = search.classList.contains('expanded');
+                        if (isExpanded) {
+                            search.classList.remove('expanded');
+                            if (input) input.blur();
+                        } else {
+                            search.classList.add('expanded');
+                            setTimeout(() => { if (input) input.focus(); }, 300);
+                        }
+                    }
+                };
+                
+                searchBtn.addEventListener('click', searchHandler, { passive: false });
+                if ('ontouchstart' in window) {
+                    searchBtn.addEventListener('touchstart', searchHandler, { passive: false });
+                }
+            }
+            
+            // Enhanced failsafe logout button
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                // Remove any existing handlers
+                logoutBtn.onclick = null;
+                
+                console.log('👤 Adding failsafe logout handler');
+                const logoutHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('👤 Logout button clicked (failsafe)');
+                    if (confirm('Are you sure you want to logout?')) {
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('userInfo');
+                        const loggedOut = document.getElementById('logged-out-section');
+                        const loggedIn = document.getElementById('logged-in-section');
+                        if (loggedOut) loggedOut.style.display = 'block';
+                        if (loggedIn) loggedIn.style.display = 'none';
+                        console.log('✅ Logged out');
+                    }
+                };
+                
+                logoutBtn.addEventListener('click', logoutHandler, { passive: false });
+                if ('ontouchstart' in window) {
+                    logoutBtn.addEventListener('touchstart', logoutHandler, { passive: false });
+                }
+            }
+            
+            // Initialize theme if not set
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (themeBtn) {
+                themeBtn.innerHTML = `<i class="fas fa-${savedTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
+            }
+            
+            console.log('✅ Failsafe handlers added');
+        }
+        
+        // Mobile menu toggle function
+        function toggleMobileMenuFailsafe() {
+            if (window.innerWidth > 1024) return;
+            
+            let menu = document.querySelector('.mobile-menu');
+            let overlay = document.querySelector('.mobile-menu-overlay');
+            
+            if (!menu) {
+                // Create mobile menu
+                overlay = document.createElement('div');
+                overlay.className = 'mobile-menu-overlay';
+                overlay.onclick = toggleMobileMenuFailsafe;
+                
+                menu = document.createElement('div');
+                menu.className = 'mobile-menu';
+                menu.style.top = '70px';
+                menu.innerHTML = `
+                    <div class="mobile-menu-content">
+                        <ul class="mobile-nav-links">
+                            <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                            <li><a href="/About"><i class="fas fa-user-circle"></i> About</a></li>
+                            <li><a href="/Publications"><i class="fas fa-file-alt"></i> Publications</a></li>
+                            <li><a href="/Products"><i class="fas fa-cube"></i> Products</a></li>
+                            <li><a href="/Repository"><i class="fab fa-github"></i> Repository</a></li>
+                            <li><a href="/solutions"><i class="fas fa-lightbulb"></i> Solutions</a></li>
+                            <li><a href="/Contact"><i class="fas fa-envelope"></i> Contact</a></li>
+                        </ul>
+                    </div>
+                `;
+                
+                document.body.appendChild(overlay);
+                document.body.appendChild(menu);
+            }
+            
+            const isOpen = menu.classList.contains('show');
+            
+            if (isOpen) {
+                menu.classList.remove('show');
+                overlay.classList.remove('show');
+                document.body.classList.remove('mobile-menu-open');
+                console.log('✅ Menu closed');
+            } else {
+                menu.classList.add('show');
+                overlay.classList.add('show');
+                document.body.classList.add('mobile-menu-open');
+                console.log('✅ Menu opened');
+            }
+        }
+    </script>
     <script>
         // Home page specific JavaScript
         const slides = document.querySelector('.carousel-slides');

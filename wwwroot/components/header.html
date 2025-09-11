@@ -5,17 +5,17 @@
                 <img src="/components/logo.png" alt="Codenex Solutions" class="nav-logo-img">
                 <span class="nav-logo-text">Codenex Solutions</span>
             </a>
-            <div class="nav-center">
-                <ul class="nav-links">
-                    <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
-                    <li><a href="/About"><i class="fas fa-user-circle"></i> About</a></li>
-                    <li><a href="/Publications"><i class="fas fa-file-alt"></i> Publications</a></li>
-                    <li><a href="/Products"><i class="fas fa-cube"></i> Products</a></li>
-                    <li><a href="/Repository"><i class="fab fa-github"></i> Repository</a></li>
-                    <li><a href="/solutions"><i class="fas fa-lightbulb"></i> Solutions</a></li>
-                    <li><a href="/Contact"><i class="fas fa-envelope"></i> Contact</a></li>
-                </ul>
-            </div>
+        </div>
+        <div class="nav-center">
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/About"><i class="fas fa-user-circle"></i> About</a></li>
+                <li><a href="/Publications"><i class="fas fa-file-alt"></i> Publications</a></li>
+                <li><a href="/Products"><i class="fas fa-cube"></i> Products</a></li>
+                <li><a href="/Repository"><i class="fab fa-github"></i> Repository</a></li>
+                <li><a href="/solutions"><i class="fas fa-lightbulb"></i> Solutions</a></li>
+                <li><a href="/Contact"><i class="fas fa-envelope"></i> Contact</a></li>
+            </ul>
         </div>
         <div class="nav-right">
             <div class="nav-actions">
@@ -34,21 +34,18 @@
                 </div>
                 <div id="auth-section">
                     <div id="logged-out-section">
-                        <a href="/Auth" class="auth-btn login-btn">
+                        <a href="/Auth" class="auth-btn login-btn" title="Login">
                             <i class="fas fa-sign-in-alt"></i>
-                            Login
                         </a>
                     </div>
                     <div id="logged-in-section" style="display: none;">
                         <div class="user-info">
-                            <a href="/Auth" class="user-link" id="user-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
+                            <a href="/Auth" class="user-link" id="user-link" title="User Account">
                                 <div class="user-avatar" id="user-avatar">U</div>
-                                <span id="user-name">User</span>
                             </a>
                         </div>
-                        <button class="auth-btn logout-btn" id="logout-btn">
+                        <button class="auth-btn logout-btn" id="logout-btn" title="Logout">
                             <i class="fas fa-sign-out-alt"></i>
-                            Logout
                         </button>
                     </div>
                 </div>

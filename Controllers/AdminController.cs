@@ -10,7 +10,7 @@ namespace CodeNex.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Manager")]
     public class AdminController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
@@ -29,6 +29,7 @@ namespace CodeNex.Controllers
 
         // GET: api/admin/users
         [HttpGet("users")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<object>>> GetUsers(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
@@ -92,6 +93,7 @@ namespace CodeNex.Controllers
 
         // GET: api/admin/users/{id}
         [HttpGet("users/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<object>> GetUser([FromRoute] string id)
         {
             try
@@ -125,6 +127,7 @@ namespace CodeNex.Controllers
 
         // PUT: api/admin/users/{id}/role
         [HttpPut("users/{id}/role")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateUserRole([FromRoute] string id, [FromBody] UpdateUserRoleDto dto)
         {
             try
@@ -164,6 +167,7 @@ namespace CodeNex.Controllers
 
         // PUT: api/admin/users/{id}/block
         [HttpPut("users/{id}/block")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BlockUser([FromRoute] string id, [FromBody] BlockUserDto dto)
         {
             try
@@ -198,6 +202,7 @@ namespace CodeNex.Controllers
 
         // DELETE: api/admin/users/{id}
         [HttpDelete("users/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser([FromRoute] string id)
         {
             try

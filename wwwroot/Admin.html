@@ -2212,6 +2212,60 @@
     </div>
 
     <script>
+        // Authorization check - run immediately
+        function checkUserAccess() {
+            const token = localStorage.getItem('authToken');
+            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            
+            // Check if user has valid token and is logged in
+            if (!token || !userInfo.email) {
+                window.location.href = '/Auth?returnUrl=' + encodeURIComponent(window.location.href);
+                return false;
+            }
+            
+            // Check token expiration
+            if (userInfo.expiresAt) {
+                const expiresAt = new Date(userInfo.expiresAt);
+                if (expiresAt <= new Date()) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    window.location.href = '/Auth?returnUrl=' + encodeURIComponent(window.location.href);
+                    return false;
+                }
+            }
+            
+            // If not admin or manager, redirect to auth page
+            if (userInfo.role !== 'Admin' && userInfo.role !== 'Manager') {
+                window.location.href = '/Auth?returnUrl=' + encodeURIComponent(window.location.href);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Don't run authorization check immediately - let it run after DOM loads
+        
+        // Update UI based on user role
+        function updateUIForRole() {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            const roleBadge = document.getElementById('roleBadge');
+            const usersMenuItem = document.querySelector('.nav-link[data-section="users"]')?.parentElement;
+            const adminUserDisplay = document.getElementById('adminUserDisplay');
+            
+            // Update role badge and name display
+            if (roleBadge) {
+                roleBadge.textContent = userInfo.role === 'Admin' ? 'Administrator' : userInfo.role || 'User';
+            }
+            if (adminUserDisplay) {
+                adminUserDisplay.textContent = userInfo.firstName || 'User';
+            }
+            
+            // Hide user management for non-admin users
+            if (userInfo.role !== 'Admin' && usersMenuItem) {
+                usersMenuItem.style.display = 'none';
+            }
+        }
+        
         // Global configuration
         // Use the PortfolioConfig if available, otherwise detect dynamically
         function getBackendBaseUrl() {
@@ -2542,12 +2596,12 @@
         // Initialize app - Updated to redirect non-admin users
         function initializeApp() {
             checkAuthStatus();
-            if (isLoggedIn && currentUser && currentUser.role === 'Admin') {
-                // User is already logged in as admin, show admin interface
+            if (isLoggedIn && currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Manager')) {
+                // User is already logged in as admin or manager, show admin interface
                 document.querySelector('.admin-container').style.display = 'flex';
                 updateAdminDisplay();
             } else {
-                // User not logged in or not admin, redirect to auth page
+                // User not logged in or not admin/manager, redirect to auth page
                 window.location.href = '/Auth?returnUrl=' + encodeURIComponent(window.location.href);
             }
         }
@@ -2598,8 +2652,16 @@
 
         // DOM elements after DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Run authorization check first
+            if (!checkUserAccess()) {
+                return; // Stop execution if not authorized
+            }
+            
             // Initialize DOM elements after DOM is loaded
             sidebar = document.getElementById('sidebar');
+            
+            // Update UI based on user role
+            updateUIForRole();
             mainContent = document.getElementById('mainContent');
             mobileToggle = document.getElementById('mobileToggle');
             themeToggle = document.getElementById('themeToggle');

@@ -1,3 +1,5 @@
+// Shared components file - authorization is now handled in individual pages
+
 /**
  * Shared Components Manager
  * Handles loading and initialization of shared header/footer components
@@ -87,42 +89,118 @@ class SharedComponents {
     async loadComponents() {
         try {
             // Load header
+            console.log('Loading header component...');
             const headerResponse = await fetch('/components/header.html');
+            if (!headerResponse.ok) {
+                throw new Error(`Header fetch failed: ${headerResponse.status}`);
+            }
             const headerHtml = await headerResponse.text();
             
             // Load footer
+            console.log('Loading footer component...');
             const footerResponse = await fetch('/components/footer.html');
-            const footerHtml = await footerResponse.text();
+            if (!footerResponse.ok) {
+                console.warn('Footer fetch failed, continuing without footer');
+            } else {
+                const footerHtml = await footerResponse.text();
+                
+                // Replace footer placeholder
+                const footerPlaceholder = document.getElementById('footer-placeholder');
+                if (footerPlaceholder) {
+                    const footerContainer = document.createElement('div');
+                    footerContainer.innerHTML = footerHtml;
+                    footerPlaceholder.replaceWith(footerContainer.firstElementChild);
+                }
+            }
 
             // Replace header placeholder
             const headerPlaceholder = document.getElementById('header-placeholder');
             if (headerPlaceholder) {
+                console.log('Replacing header placeholder...');
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
                 headerPlaceholder.replaceWith(headerContainer.firstElementChild);
             } else {
+                console.log('Header placeholder not found, inserting at body start...');
                 // Fallback: Insert header at the beginning of body
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
                 document.body.insertBefore(headerContainer.firstElementChild, document.body.firstChild);
             }
-
-            // Replace footer placeholder
-            const footerPlaceholder = document.getElementById('footer-placeholder');
-            if (footerPlaceholder) {
-                const footerContainer = document.createElement('div');
-                footerContainer.innerHTML = footerHtml;
-                footerPlaceholder.replaceWith(footerContainer.firstElementChild);
-            } else {
-                // Fallback: Insert footer at the end of body
-                const footerContainer = document.createElement('div');
-                footerContainer.innerHTML = footerHtml;
-                document.body.appendChild(footerContainer.firstElementChild);
-            }
+            
+            console.log('Header component loaded successfully');
 
         } catch (error) {
             console.error('Error loading components:', error);
-            throw error;
+            // Create a fallback header if loading fails
+            this.createFallbackHeader();
+        }
+    }
+    
+    /**
+     * Create a fallback header if the main header fails to load
+     */
+    createFallbackHeader() {
+        console.log('Creating fallback header...');
+        const fallbackHeader = `
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-left">
+                        <a href="/" class="nav-logo">
+                            <span class="nav-logo-text">Codenex Solutions</span>
+                        </a>
+                    </div>
+                    <div class="nav-center">
+                        <ul class="nav-links">
+                            <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                            <li><a href="/About"><i class="fas fa-user-circle"></i> About</a></li>
+                            <li><a href="/Publications"><i class="fas fa-file-alt"></i> Publications</a></li>
+                            <li><a href="/Products"><i class="fas fa-cube"></i> Products</a></li>
+                            <li><a href="/Repository"><i class="fab fa-github"></i> Repository</a></li>
+                            <li><a href="/solutions"><i class="fas fa-lightbulb"></i> Solutions</a></li>
+                            <li><a href="/Contact"><i class="fas fa-envelope"></i> Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="nav-right">
+                        <div class="nav-actions">
+                            <div id="auth-section">
+                                <div id="logged-out-section">
+                                    <a href="/Auth" class="auth-btn login-btn" title="Login">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                    </a>
+                                </div>
+                                <div id="logged-in-section" style="display: none;">
+                                    <div class="user-info">
+                                        <a href="/Auth" class="user-link" id="user-link" title="User Account">
+                                            <div class="user-avatar" id="user-avatar">U</div>
+                                        </a>
+                                    </div>
+                                    <button class="auth-btn logout-btn" id="logout-btn" title="Logout">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="theme-toggle" id="theme-toggle">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                            <div class="nav-mobile">
+                                <button class="nav-toggle" id="nav-toggle">
+                                    <i class="fas fa-bars"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        `;
+        
+        const headerPlaceholder = document.getElementById('header-placeholder');
+        if (headerPlaceholder) {
+            headerPlaceholder.innerHTML = fallbackHeader;
+        } else {
+            const headerContainer = document.createElement('div');
+            headerContainer.innerHTML = fallbackHeader;
+            document.body.insertBefore(headerContainer.firstElementChild, document.body.firstChild);
         }
     }
 
@@ -130,20 +208,65 @@ class SharedComponents {
      * Initialize all event handlers
      */
     initializeEventHandlers() {
-        // Theme toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', this.toggleTheme.bind(this));
-        }
+        console.log('🔧 Initializing event handlers...');
+        
+        // Theme toggle with enhanced event handling
+        this.attachButtonHandler('theme-toggle', this.toggleTheme.bind(this), 'Theme toggle');
 
         // Logout button
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', this.handleLogout.bind(this));
-        }
+        this.attachButtonHandler('logout-btn', this.handleLogout.bind(this), 'Logout button');
+
+        // Mobile navigation toggle
+        this.initializeMobileNavigation();
 
         // Check auth state on window focus
         window.addEventListener('focus', this.checkAuthState.bind(this));
+        
+        console.log('✅ Event handlers initialized');
+    }
+    
+    /**
+     * Enhanced button handler attachment with fallbacks
+     */
+    attachButtonHandler(elementId, handler, description) {
+        const element = document.getElementById(elementId);
+        if (!element) {
+            console.warn(`⚠️ ${description}: Element #${elementId} not found`);
+            return;
+        }
+        
+        // Remove existing handlers to prevent duplicates
+        element.onclick = null;
+        
+        // Add both click and touchstart for mobile compatibility
+        const wrappedHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log(`🖱️ ${description} clicked`);
+            handler(e);
+        };
+        
+        element.addEventListener('click', wrappedHandler, { passive: false });
+        
+        // Add touch support for mobile
+        if ('ontouchstart' in window) {
+            element.addEventListener('touchstart', wrappedHandler, { passive: false });
+        }
+        
+        // Ensure element is focusable and accessible
+        if (!element.tabIndex) {
+            element.tabIndex = 0;
+        }
+        
+        // Add keyboard support
+        element.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handler(e);
+            }
+        });
+        
+        console.log(`✅ ${description}: Handler attached successfully`);
     }
 
     /**
@@ -209,15 +332,20 @@ class SharedComponents {
         const loggedOutSection = document.getElementById('logged-out-section');
         const loggedInSection = document.getElementById('logged-in-section');
         const userAvatar = document.getElementById('user-avatar');
-        const userName = document.getElementById('user-name');
+        const userLink = document.getElementById('user-link');
         
         if (loggedOutSection) loggedOutSection.style.display = 'none';
         if (loggedInSection) loggedInSection.style.display = 'flex';
         
-        if (userAvatar && userName) {
+        if (userAvatar) {
             const initials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
-            userAvatar.textContent = initials;
-            userName.textContent = `${user.firstName || ''} ${user.lastName || ''}`;
+            userAvatar.textContent = initials || 'U';
+            
+            // Set tooltip with full name
+            if (userLink) {
+                const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                userLink.title = fullName || 'User Account';
+            }
         }
     }
 
@@ -251,6 +379,469 @@ class SharedComponents {
     }
 
     /**
+     * Initialize mobile navigation functionality
+     */
+    initializeMobileNavigation() {
+        console.log('📱 Initializing mobile navigation...');
+        
+        // Use enhanced button handler for nav toggle
+        this.attachButtonHandler('nav-toggle', this.toggleMobileMenu.bind(this), 'Mobile navigation toggle');
+        
+        // Create mobile menu initially if on mobile/tablet
+        this.handleMobileMenuCreation();
+        
+        // Handle window resize to show/hide mobile menu appropriately
+        window.addEventListener('resize', () => {
+            this.handleMobileMenuCreation();
+        });
+        
+        // Handle clicks outside mobile menu to close it
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024) { // Only on mobile/tablet
+                const mobileMenu = document.querySelector('.mobile-menu');
+                const navToggle = document.getElementById('nav-toggle');
+                
+                if (mobileMenu && mobileMenu.classList.contains('show') && 
+                    !mobileMenu.contains(e.target) && !navToggle?.contains(e.target)) {
+                    this.closeMobileMenu();
+                }
+            }
+        });
+        
+        // Handle escape key to close mobile menu
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && window.innerWidth <= 1024) {
+                this.closeMobileMenu();
+            }
+        });
+    }
+
+    /**
+     * Handle mobile menu creation based on screen size
+     */
+    handleMobileMenuCreation() {
+        const isMobileTablet = window.innerWidth <= 1024;
+        const existingMenu = document.querySelector('.mobile-menu');
+        const existingOverlay = document.querySelector('.mobile-menu-overlay');
+        
+        if (isMobileTablet && !existingMenu) {
+            // Create mobile menu on mobile/tablet
+            this.createMobileMenu();
+        } else if (!isMobileTablet && existingMenu) {
+            // Remove mobile menu on desktop
+            this.removeMobileMenu();
+        }
+        
+        // Also ensure the mobile nav toggle is properly visible/hidden
+        const navMobile = document.querySelector('.nav-mobile');
+        if (navMobile) {
+            if (isMobileTablet) {
+                navMobile.style.display = 'flex';
+            } else {
+                navMobile.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Create mobile menu structure
+     */
+    createMobileMenu() {
+        // Check if mobile menu already exists
+        if (document.querySelector('.mobile-menu')) {
+            return;
+        }
+        
+        // Create mobile menu overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'mobile-menu-overlay';
+        
+        // Create mobile menu
+        const mobileMenu = document.createElement('div');
+        mobileMenu.className = 'mobile-menu';
+        
+        // Create mobile menu content
+        const menuContent = document.createElement('div');
+        menuContent.className = 'mobile-menu-content';
+        
+        // Create mobile search container
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'mobile-search-container';
+        searchContainer.innerHTML = `
+            <div class="mobile-search">
+                <input type="text" class="mobile-search-input" id="mobile-search-input" 
+                       placeholder="Search products, publications, solutions..." autocomplete="off">
+                <i class="mobile-search-icon fas fa-search"></i>
+            </div>
+            <div class="search-suggestions" id="mobile-search-suggestions"></div>
+        `;
+        
+        // Create mobile navigation links
+        const navLinks = document.createElement('ul');
+        navLinks.className = 'mobile-nav-links';
+        
+        // Get navigation links from desktop menu
+        const desktopNavLinks = document.querySelectorAll('.nav-links a');
+        desktopNavLinks.forEach(link => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = link.href;
+            a.innerHTML = link.innerHTML;
+            a.addEventListener('click', () => {
+                this.closeMobileMenu();
+            });
+            li.appendChild(a);
+            navLinks.appendChild(li);
+        });
+        
+        // Add authentication link to mobile menu
+        const authLi = document.createElement('li');
+        const authA = document.createElement('a');
+        authA.href = '/Auth';
+        authA.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login / Account';
+        authA.addEventListener('click', () => {
+            this.closeMobileMenu();
+        });
+        authLi.appendChild(authA);
+        navLinks.appendChild(authLi);
+        
+        // Assemble mobile menu
+        menuContent.appendChild(searchContainer);
+        menuContent.appendChild(navLinks);
+        mobileMenu.appendChild(menuContent);
+        
+        // Add to page
+        document.body.appendChild(overlay);
+        document.body.appendChild(mobileMenu);
+        
+        // Initialize mobile search
+        this.initializeMobileSearch();
+    }
+
+    /**
+     * Remove mobile menu
+     */
+    removeMobileMenu() {
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const overlay = document.querySelector('.mobile-menu-overlay');
+        
+        if (mobileMenu) {
+            mobileMenu.remove();
+        }
+        if (overlay) {
+            overlay.remove();
+        }
+        
+        // Ensure body class is removed
+        document.body.classList.remove('mobile-menu-open');
+    }
+
+    /**
+     * Toggle mobile menu
+     */
+    toggleMobileMenu() {
+        // Only work on mobile/tablet
+        if (window.innerWidth > 1024) {
+            return;
+        }
+        
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const overlay = document.querySelector('.mobile-menu-overlay');
+        
+        if (mobileMenu && overlay) {
+            const isOpen = mobileMenu.classList.contains('show');
+            
+            if (isOpen) {
+                this.closeMobileMenu();
+            } else {
+                this.openMobileMenu();
+            }
+        }
+    }
+
+    /**
+     * Open mobile menu
+     */
+    openMobileMenu() {
+        // Only work on mobile/tablet
+        if (window.innerWidth > 1024) {
+            return;
+        }
+        
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const overlay = document.querySelector('.mobile-menu-overlay');
+        const body = document.body;
+        
+        if (mobileMenu && overlay) {
+            mobileMenu.classList.add('show');
+            overlay.classList.add('show');
+            body.classList.add('mobile-menu-open');
+        }
+    }
+
+    /**
+     * Close mobile menu
+     */
+    closeMobileMenu() {
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const overlay = document.querySelector('.mobile-menu-overlay');
+        const body = document.body;
+        
+        if (mobileMenu && overlay) {
+            mobileMenu.classList.remove('show');
+            overlay.classList.remove('show');
+            body.classList.remove('mobile-menu-open');
+        }
+    }
+
+    /**
+     * Initialize mobile search functionality
+     */
+    initializeMobileSearch() {
+        const mobileSearchInput = document.getElementById('mobile-search-input');
+        const mobileSuggestions = document.getElementById('mobile-search-suggestions');
+        
+        if (mobileSearchInput) {
+            mobileSearchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                this.selectedSuggestionIndex = -1;
+                
+                if (this.searchTimeout) {
+                    clearTimeout(this.searchTimeout);
+                }
+                
+                if (query.length < 2) {
+                    this.hideMobileSuggestions();
+                    return;
+                }
+                
+                this.searchTimeout = setTimeout(() => {
+                    this.performMobileSearch(query);
+                }, 300);
+            });
+            
+            mobileSearchInput.addEventListener('keydown', (e) => {
+                this.handleMobileSearchKeydown(e);
+            });
+        }
+    }
+
+    /**
+     * Perform mobile search
+     */
+    async performMobileSearch(query) {
+        try {
+            let response = await fetch(`${this.backendBaseUrl}/api/GlobalSearch?query=${encodeURIComponent(query)}&pageSize=8`);
+            if (!response.ok) {
+                response = await fetch(`${this.backendBaseUrl}/api/search/global?query=${encodeURIComponent(query)}`);
+            }
+            if (!response.ok) {
+                this.performMobileFallbackSearch(query);
+                return;
+            }
+
+            const data = await response.json();
+            const suggestions = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+            const normalizedSuggestions = suggestions.map(item => this.normalizeApiResult(item));
+            this.displayMobileSuggestions(normalizedSuggestions);
+
+        } catch (error) {
+            console.error('Mobile search error:', error);
+            this.performMobileFallbackSearch(query);
+        }
+    }
+
+    /**
+     * Perform mobile fallback search
+     */
+    performMobileFallbackSearch(query) {
+        const fallbackSuggestions = [
+            {
+                type: 'page',
+                title: 'Publications',
+                description: 'Research papers and publications',
+                url: '/Publications'
+            },
+            {
+                type: 'page',
+                title: 'Products',
+                description: 'Our product offerings',
+                url: '/Products'
+            },
+            {
+                type: 'page',
+                title: 'Solutions',
+                description: 'Our solution catalog',
+                url: '/solutions'
+            },
+            {
+                type: 'page',
+                title: 'Repository',
+                description: 'Code repositories and resources',
+                url: '/Repository'
+            }
+        ].filter(item => 
+            item.title.toLowerCase().includes(query.toLowerCase()) ||
+            item.description.toLowerCase().includes(query.toLowerCase())
+        ).slice(0, 4);
+
+        this.displayMobileSuggestions(fallbackSuggestions);
+    }
+
+    /**
+     * Display mobile search suggestions
+     */
+    displayMobileSuggestions(suggestions) {
+        const suggestionsContainer = document.getElementById('mobile-search-suggestions');
+        
+        if (!suggestions || suggestions.length === 0) {
+            this.hideMobileSuggestions();
+            return;
+        }
+
+        const suggestionsHtml = suggestions.map((suggestion, index) => {
+            const icon = this.getTypeIcon(suggestion.type);
+            const urlAttr = suggestion.url ? `data-url="${this.escapeForHtmlAttribute(suggestion.url)}"` : '';
+            const idAttr = suggestion.id != null ? `data-id="${suggestion.id}"` : '';
+            const typeAttr = `data-type="${this.escapeForHtmlAttribute(suggestion.type)}"`;
+            return `
+                <div class="suggestion-item" data-index="${index}" ${typeAttr} ${idAttr} ${urlAttr}
+                     onclick="sharedComponents.handleMobileSuggestionClick(this)">
+                    <i class="suggestion-icon ${icon}"></i>
+                    <div class="suggestion-content">
+                        <div class="suggestion-title">${this.escapeHtml(suggestion.title)}</div>
+                        <div class="suggestion-meta">${this.escapeHtml(suggestion.description || suggestion.type)}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const searchQuery = document.getElementById('mobile-search-input').value.trim();
+        const searchAllHtml = `
+            <div class="suggestion-item" onclick="sharedComponents.performMobileSearchNavigation('${this.escapeForHtmlAttribute(searchQuery)}')">
+                <i class="suggestion-icon fas fa-search"></i>
+                <div class="suggestion-content">
+                    <div class="suggestion-title">Search for "${this.escapeHtml(searchQuery)}"</div>
+                    <div class="suggestion-meta">View all results</div>
+                </div>
+            </div>
+        `;
+
+        suggestionsContainer.innerHTML = suggestionsHtml + searchAllHtml;
+        suggestionsContainer.classList.add('show');
+        this.selectedSuggestionIndex = -1;
+    }
+
+    /**
+     * Handle mobile search keydown
+     */
+    handleMobileSearchKeydown(e) {
+        const suggestionsContainer = document.getElementById('mobile-search-suggestions');
+        const suggestions = suggestionsContainer.querySelectorAll('.suggestion-item');
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                this.selectedSuggestionIndex = Math.min(this.selectedSuggestionIndex + 1, suggestions.length - 1);
+                this.updateMobileSuggestionSelection();
+                break;
+
+            case 'ArrowUp':
+                e.preventDefault();
+                this.selectedSuggestionIndex = Math.max(this.selectedSuggestionIndex - 1, -1);
+                this.updateMobileSuggestionSelection();
+                break;
+
+            case 'Enter':
+                e.preventDefault();
+                if (this.selectedSuggestionIndex >= 0 && suggestions[this.selectedSuggestionIndex]) {
+                    this.handleMobileSuggestionClick(suggestions[this.selectedSuggestionIndex]);
+                } else {
+                    this.performMobileSearchNavigation(e.target.value.trim());
+                }
+                break;
+
+            case 'Escape':
+                this.hideMobileSuggestions();
+                e.target.blur();
+                break;
+        }
+    }
+
+    /**
+     * Update mobile suggestion selection
+     */
+    updateMobileSuggestionSelection() {
+        const suggestions = document.querySelectorAll('#mobile-search-suggestions .suggestion-item');
+        
+        suggestions.forEach((suggestion, index) => {
+            if (suggestion && suggestion.classList) {
+                if (index === this.selectedSuggestionIndex) {
+                    suggestion.classList.add('selected');
+                } else {
+                    suggestion.classList.remove('selected');
+                }
+            }
+        });
+    }
+
+    /**
+     * Handle mobile suggestion click
+     */
+    handleMobileSuggestionClick(element) {
+        this.hideMobileSuggestions();
+        this.closeMobileMenu();
+        
+        const type = element.getAttribute('data-type');
+        const id = element.getAttribute('data-id');
+        const url = element.getAttribute('data-url');
+
+        if (url) {
+            window.location.href = url;
+            return;
+        }
+
+        switch (type) {
+            case 'product':
+                window.location.href = id ? `/Products?id=${id}` : '/Products';
+                break;
+            case 'publication':
+                window.location.href = id ? `/Publications?id=${id}` : '/Publications';
+                break;
+            case 'solution':
+                window.location.href = id ? `/solutions?id=${id}` : '/solutions';
+                break;
+            case 'repository':
+                window.location.href = id ? `/Repository?id=${id}` : '/Repository';
+                break;
+            default:
+                const query = document.getElementById('mobile-search-input')?.value.trim() || '';
+                this.navigateToSearchResults(query);
+        }
+    }
+
+    /**
+     * Perform mobile search navigation
+     */
+    performMobileSearchNavigation(query) {
+        this.hideMobileSuggestions();
+        this.closeMobileMenu();
+        if (query) {
+            this.navigateToSearchResults(query);
+        }
+    }
+
+    /**
+     * Hide mobile suggestions
+     */
+    hideMobileSuggestions() {
+        const suggestionsContainer = document.getElementById('mobile-search-suggestions');
+        if (suggestionsContainer) {
+            suggestionsContainer.classList.remove('show');
+        }
+    }
+
+    /**
      * Initialize global search functionality
      */
     initializeGlobalSearch() {
@@ -267,8 +858,8 @@ class SharedComponents {
             if (searchContainer && searchIconContainer && searchInput && suggestionsContainer) {
                 // All elements found, proceed with initialization
                 
-                // Search expansion event listeners
-                searchIconContainer.addEventListener('click', this.handleSearchExpand.bind(this));
+                // Search expansion event listeners with enhanced handling
+                this.attachButtonHandler('search-icon-container', this.handleSearchExpand.bind(this), 'Search expand');
                 searchInput.addEventListener('focus', this.handleSearchExpand.bind(this));
                 searchInput.addEventListener('blur', this.handleSearchCollapse.bind(this));
                 
@@ -819,6 +1410,10 @@ class SharedComponents {
 
 // Global instance
 const sharedComponents = new SharedComponents();
+// Expose globally for inline handlers in generated HTML (e.g., suggestion items)
+if (typeof window !== 'undefined') {
+    window.sharedComponents = sharedComponents;
+}
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
