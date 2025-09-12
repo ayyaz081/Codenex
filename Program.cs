@@ -270,7 +270,7 @@ app.Use((context, next) =>
         "media-src 'self' https:; " +
         "object-src 'none'; " +
         "child-src https://*.google.com https://*.googleapis.com https://*.gstatic.com; " +
-        "frame-src https://*.google.com https://*.googleapis.com https://*.gstatic.com; " +
+        "frame-src https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.youtube.com https://www.youtube.com; " +
         "frame-ancestors 'none'; " +
         "form-action 'self'; " +
         "base-uri 'self'; " +
