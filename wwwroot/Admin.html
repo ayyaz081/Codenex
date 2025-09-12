@@ -4674,79 +4674,71 @@ list="repositoryCategoryList" style="padding-right: 35px;">
             `).join('');
         }
 
-        // Modal Management Functions - Fixed to prevent scroll issues
+        // Modal Management Functions - Gentle and stable
         function showModal(modalId) {
-            console.log('🔵 NUCLEAR: Opening modal:', modalId);
+            console.log('🔵 Opening modal:', modalId);
             
-            // NUCLEAR OPTION: Never block scrolling
             const modal = document.getElementById(modalId);
             if (modal) {
+                // CRITICAL: Reset any lingering display styles before showing
+                modal.style.display = '';
                 modal.classList.add('show');
-                // CRITICAL: Don't block body scrolling anymore
-                console.log('🔵 NUCLEAR: Modal opened WITHOUT blocking scroll');
+                
+                console.log('✅ Modal opened successfully, display reset and show class added');
+            } else {
+                console.error('❌ Modal not found:', modalId);
             }
-            
-            // Immediate scroll restoration just in case
-            setTimeout(forceScrollRestore, 100);
         }
 
         function closeModal(modalId) {
-            console.log('🔴 NUCLEAR: Closing modal:', modalId);
+            console.log('🔴 Closing modal:', modalId);
             
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('show');
-                modal.style.display = 'none';
+                // Allow CSS transitions to handle the closing animation
+                
+                // Optional: Set display: none after transition completes
                 setTimeout(() => {
-                    modal.style.display = '';
+                    if (!modal.classList.contains('show')) {
+                        modal.style.display = 'none';
+                    }
                 }, 300);
+            } else {
+                console.error('❌ Modal not found for closing:', modalId);
             }
             
-            // NUCLEAR SCROLL RESTORATION - Always run regardless
-            forceScrollRestore();
+            // Gentle scroll restoration only after modal is closed
+            setTimeout(() => {
+                forceScrollRestore();
+            }, 350); // Wait a bit longer for CSS transition to complete
             
-            console.log('✅ NUCLEAR: Modal closed and scroll FORCED');
+            console.log('✅ Modal closed');
         }
         
-        // NUCLEAR SCROLL RESTORATION FUNCTION
+        // GENTLE SCROLL RESTORATION FUNCTION (Fixed to prevent page shake)
         function forceScrollRestore() {
-            console.log('💣 NUCLEAR SCROLL RESTORE ACTIVATED');
+            console.log('🔧 Gentle scroll restore activated');
             
-            // Kill ALL scroll-blocking styles with extreme prejudice
+            // Check if any modal is actually open before restoring
+            const openModal = document.querySelector('.modal-overlay.show');
+            if (openModal) {
+                console.log('📋 Modal is open, skipping scroll restore:', openModal.id);
+                return; // Don't restore scroll if modal is legitimately open
+            }
+            
+            // Gently restore scroll without aggressive testing
             document.body.style.overflow = '';
             document.body.style.overflowY = '';
-            document.body.style.overflowX = '';
             document.body.style.position = '';
             document.body.style.height = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
-            document.body.style.left = '';
-            document.body.style.right = '';
-            document.body.style.bottom = '';
-            
-            // Kill HTML element styles too
             document.documentElement.style.overflow = '';
-            document.documentElement.style.overflowY = '';
-            document.documentElement.style.overflowX = '';
-            document.documentElement.style.position = '';
-            document.documentElement.style.height = '';
             
-            // Remove ALL classes that could block scrolling
-            document.body.classList.remove('modal-open', 'no-scroll', 'mobile-menu-open', 'scroll-locked');
-            document.documentElement.classList.remove('modal-open', 'no-scroll', 'mobile-menu-open', 'scroll-locked');
-            
-            // Remove all data attributes related to scrolling
+            // Remove scroll-blocking classes
+            document.body.classList.remove('modal-open', 'no-scroll', 'mobile-menu-open');
             document.body.removeAttribute('data-original-overflow');
-            document.body.removeAttribute('data-scroll-locked');
             
-            // Force scroll test
-            const testScroll = window.pageYOffset;
-            window.scrollTo(0, testScroll + 1);
-            setTimeout(() => {
-                window.scrollTo(0, testScroll);
-            }, 10);
-            
-            console.log('💥 NUCLEAR SCROLL RESTORE COMPLETE - Page should be scrollable!');
+            console.log('✅ Gentle scroll restore complete');
         }
         
         // Close modal when clicking outside - Enhanced with safety handling
@@ -4758,24 +4750,20 @@ list="repositoryCategoryList" style="padding-right: 35px;">
             }
         });
         
-        // NUCLEAR button safety system - only for modal buttons
+        // Simple button safety system (non-aggressive)
         document.addEventListener('click', function(e) {
             const button = e.target.closest('button');
-            if (button && (button.classList.contains('btn-view') || button.classList.contains('btn-warning'))) {
-                console.log('🔶 NUCLEAR: Modal button clicked:', button.getAttribute('onclick') || button.textContent.trim());
+            if (button && (button.classList.contains('btn-view') || button.classList.contains('btn-warning') || button.classList.contains('btn-danger'))) {
+                console.log('🔶 Modal button clicked:', button.getAttribute('onclick') || button.textContent.trim());
                 
-                // Safety check after button click
+                // Very gentle safety check after a reasonable delay
                 setTimeout(() => {
                     const hasOpenModal = document.querySelector('.modal-overlay.show');
-                    if (!hasOpenModal) {
-                        // Only run cleanup if no modal is open (meaning it should have closed but scroll might be stuck)
-                        const isScrollBlocked = document.body.style.overflow === 'hidden';
-                        if (isScrollBlocked) {
-                            forceScrollRestore();
-                            console.log('💥 NUCLEAR: Fixed scroll after modal button click');
-                        }
+                    if (!hasOpenModal && document.body.style.overflow === 'hidden') {
+                        forceScrollRestore();
+                        console.log('🔧 Gentle scroll fix after button click');
                     }
-                }, 2000);
+                }, 1000); // Reduced from 2000ms
             }
         });
         
@@ -5732,7 +5720,8 @@ list="repositoryCategoryList" style="padding-right: 35px;">
                 const repositoryId = formData.get('repositoryId');
                 const isEditing = repositoryId && repositoryId !== '';
                 
-                console.log(`${isEditing ? 'Updating' : 'Creating'} repository with data:`, Object.fromEntries(formData));
+                console.log(`${isEditing ? 'Updating' : 'Creating'} repository with data:`);
+                console.log('Form data entries:', Object.fromEntries(formData));
                 
                 const token = getAuthToken(); // Use the proper auth token function
                 const headers = {
@@ -5743,18 +5732,18 @@ list="repositoryCategoryList" style="padding-right: 35px;">
                     headers['Authorization'] = `Bearer ${token}`;
                 }
                 
-                // Prepare the data object
+                // Prepare the data object with correct field names (Pascal case to match DTO)
                 const data = {
-                    title: formData.get('title'),
-                    description: formData.get('description'),
-                    tags: formData.get('tags') || '',
-                    githubUrl: formData.get('githubUrl') || '',
-                    license: formData.get('license') || '',
-                    version: formData.get('version') || '',
-                    category: formData.get('category') || '',
-                    technicalStack: formData.get('technicalStack') || '',
-                    isFree: formData.get('pricing') === 'free',
-                    isPremium: formData.get('pricing') === 'premium'
+                    Title: formData.get('title'),
+                    Description: formData.get('description'),
+                    Tags: formData.get('tags') || '',
+                    GitHubUrl: formData.get('githubUrl') || '',
+                    License: formData.get('license') || '',
+                    Version: formData.get('version') || '',
+                    Category: formData.get('category') || '',
+                    TechnicalStack: formData.get('technicalStack') || '',
+                    IsFree: formData.get('pricing') === 'free',
+                    IsPremium: formData.get('pricing') === 'premium'
                 };
                 
                 let apiUrl, method;
@@ -5768,7 +5757,8 @@ list="repositoryCategoryList" style="padding-right: 35px;">
                 
                 console.log('API URL:', apiUrl);
                 console.log('Method:', method);
-                console.log('Payload:', data);
+                console.log('Payload being sent:', data);
+                console.log('Authorization token present:', !!token);
                 
                 const response = await fetch(apiUrl, {
                     method: method,
@@ -6012,18 +6002,21 @@ list="repositoryCategoryList" style="padding-right: 35px;">
                 
                 const repository = await response.json();
                 
-                // Populate the form with existing data
+                console.log('Repository data loaded for editing:', repository);
+                console.log('GitHub URL from server:', repository.gitHubUrl);
+                
+                // Populate the form with existing data (using camelCase for JSON response fields)
                 document.getElementById('repositoryId').value = repository.id;
                 document.getElementById('repositoryTitle').value = repository.title || '';
                 document.getElementById('repositoryCategory').value = repository.category || '';
                 document.getElementById('repositoryDescription').value = repository.description || '';
                 document.getElementById('repositoryTags').value = repository.tags || '';
                 document.getElementById('repositoryTechnicalStack').value = repository.technicalStack || '';
-                document.getElementById('repositoryGithubUrl').value = repository.githubUrl || '';
+                document.getElementById('repositoryGithubUrl').value = repository.gitHubUrl || ''; // Fixed: was repository.githubUrl
                 document.getElementById('repositoryLicense').value = repository.license || '';
                 document.getElementById('repositoryVersion').value = repository.version || '';
                 
-                // Set pricing radio buttons
+                // Set pricing radio buttons (using camelCase for JSON response fields)
                 const freeRadio = document.querySelector('input[name="pricing"][value="free"]');
                 const premiumRadio = document.querySelector('input[name="pricing"][value="premium"]');
                 if (repository.isFree) {
@@ -6896,205 +6889,8 @@ ${contact.message}
             return true;
         }
 
-        // Form Event Handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            // Product form handler
-            const productForm = document.getElementById('productForm');
-            if (productForm) {
-                productForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    // Check role permissions
-                    if (!validateRolePermission(['Admin', 'Manager'])) {
-                        return;
-                    }
-                    
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const isEditing = formData.get('productId') && formData.get('productId') !== '';
-                    
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
-                    
-                    const success = await submitProductForm(formData);
-                    
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    if (isEditing) {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Product';
-                    } else {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Create Product';
-                    }
-                });
-            }
-
-            // Carousel form handler
-            const carouselForm = document.getElementById('carouselForm');
-            if (carouselForm) {
-                carouselForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const isEditing = formData.get('slideId') && formData.get('slideId') !== '';
-                    
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
-                    
-                    const success = await submitCarouselForm(formData);
-                    
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    if (isEditing) {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Slide';
-                    } else {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Create Slide';
-                    }
-                });
-            }
-
-            // Solution form handler
-            const solutionForm = document.getElementById('solutionForm');
-            if (solutionForm) {
-                solutionForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const isEditing = formData.get('solutionId') && formData.get('solutionId') !== '';
-                    
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
-                    
-                    const success = await submitSolutionForm(formData);
-                    
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    if (isEditing) {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Solution';
-                    } else {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Create Solution';
-                    }
-                });
-            }
-
-            // Publication form handler
-            const publicationForm = document.getElementById('publicationForm');
-            if (publicationForm) {
-                publicationForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-                    
-                    const success = await submitPublicationForm(formData);
-                    
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Create Publication';
-                });
-            }
-
-            // Team Member form handler (About section)
-            const teamMemberForm = document.getElementById('teamMemberForm');
-            if (teamMemberForm) {
-                teamMemberForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const isEditing = formData.get('teamMemberId') && formData.get('teamMemberId') !== '';
-
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
-
-                    const success = await submitTeamMemberForm(formData);
-
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = isEditing ? '<i class="fas fa-save"></i> Update Member' : '<i class="fas fa-save"></i> Create Member';
-                });
-            }
-
-            // Testimonial form handler (About section)
-            const testimonialForm = document.getElementById('testimonialForm');
-            if (testimonialForm) {
-                testimonialForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const isEditing = formData.get('testimonialId') && formData.get('testimonialId') !== '';
-
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
-
-                    const success = await submitTestimonialForm(formData);
-
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = isEditing ? '<i class="fas fa-save"></i> Update Testimonial' : '<i class="fas fa-save"></i> Create Testimonial';
-                });
-            }
-
-            // Repository form handler
-            const repositoryForm = document.getElementById('repositoryForm');
-            if (repositoryForm) {
-                repositoryForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const isEditing = formData.get('repositoryId') && formData.get('repositoryId') !== '';
-                    
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
-                    
-                    const success = await submitRepositoryForm(formData);
-                    
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    if (isEditing) {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Repository Item';
-                    } else {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Create Repository Item';
-                    }
-                });
-            }
-
-            // User form handler
-            const userForm = document.getElementById('userForm');
-            if (userForm) {
-                userForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const isEditing = formData.get('userId') && formData.get('userId') !== '';
-                    
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
-                    
-                    const success = await submitUserForm(formData);
-                    
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    if (isEditing) {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update User';
-                    } else {
-                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Create User';
-                    }
-                });
-            }
-
-        });
+        // Form Event Handlers - REMOVED TO PREVENT DUPLICATES
+        // All form event listeners are now handled in setupFormEventListeners() only
 
         // View Functions for all sections
         async function viewProduct(id) {
@@ -7639,6 +7435,150 @@ ${contact.message}
         // Make test functions globally available
         window.testDynamicCategoriesImplementation = testDynamicCategoriesImplementation;
         window.testAddCustomCategory = testAddCustomCategory;
+        
+        // Test repository form field mapping
+        window.testRepositoryFormMapping = function() {
+            console.log('=== Testing Repository Form Field Mapping ===');
+            
+            const testData = {
+                title: 'Test Repository',
+                description: 'Test Description',
+                tags: 'test, demo',
+                gitHubUrl: 'https://github.com/test/repo',
+                license: 'MIT',
+                version: '1.0.0',
+                category: 'Web Application',
+                technicalStack: 'React, Node.js',
+                isFree: true,
+                isPremium: false
+            };
+            
+            console.log('Expected JSON response format:', testData);
+            
+            // Test form field reading
+            console.log('\n--- Testing Form Field Reading ---');
+            const form = document.getElementById('repositoryForm');
+            if (form) {
+                const formData = new FormData(form);
+                console.log('Form fields can be read:', {
+                    title: !!document.getElementById('repositoryTitle'),
+                    description: !!document.getElementById('repositoryDescription'),
+                    tags: !!document.getElementById('repositoryTags'),
+                    githubUrl: !!document.getElementById('repositoryGithubUrl'),
+                    license: !!document.getElementById('repositoryLicense'),
+                    version: !!document.getElementById('repositoryVersion'),
+                    category: !!document.getElementById('repositoryCategory'),
+                    technicalStack: !!document.getElementById('repositoryTechnicalStack')
+                });
+            }
+            
+            // Test edit function field mapping
+            console.log('\n--- Testing Edit Function Field Mapping ---');
+            console.log('Edit function will read from JSON response:');
+            console.log('  repository.gitHubUrl (camelCase with capital H)');
+            console.log('  repository.technicalStack (camelCase)');
+            console.log('  repository.isFree (camelCase)');
+            console.log('  repository.isPremium (camelCase)');
+            
+            console.log('\n--- Field Name Mapping Summary ---');
+            console.log('HTML form name -> FormData key -> JSON payload key:');
+            console.log('  githubUrl -> githubUrl -> GitHubUrl');
+            console.log('  technicalStack -> technicalStack -> TechnicalStack');
+            console.log('  pricing -> pricing -> IsFree/IsPremium');
+            
+            console.log('\nJSON response key -> Edit function reads:');
+            console.log('  gitHubUrl (from server) -> repository.gitHubUrl');
+            console.log('  technicalStack (from server) -> repository.technicalStack');
+            console.log('  isFree (from server) -> repository.isFree');
+            
+            return 'Repository form mapping test completed - check console for details';
+        };
+        
+        // Test all the fixes applied
+        window.testAdminFixes = function() {
+            console.log('=== Testing Admin Panel Fixes ===');
+            
+            // Test 1: Check for duplicate event listeners
+            console.log('\n--- Testing Duplicate Form Listeners ---');
+            const repositoryForm = document.getElementById('repositoryForm');
+            if (repositoryForm) {
+                const listeners = repositoryForm.cloneNode().getEventListeners?.() || 'Event listeners check not available in this browser';
+                console.log('Repository form listeners:', listeners);
+            }
+            
+            // Test 2: Check modal functions
+            console.log('\n--- Testing Modal Functions ---');
+            console.log('showModal function type:', typeof showModal);
+            console.log('closeModal function type:', typeof closeModal);
+            console.log('forceScrollRestore function type:', typeof forceScrollRestore);
+            
+            // Test 3: Check for any open modals
+            console.log('\n--- Testing Modal State ---');
+            const openModals = document.querySelectorAll('.modal-overlay.show');
+            console.log('Currently open modals:', openModals.length, Array.from(openModals).map(m => m.id));
+            
+            // Test 4: Check body scroll state
+            console.log('\n--- Testing Scroll State ---');
+            console.log('Body overflow:', document.body.style.overflow || 'default');
+            console.log('Body classes:', Array.from(document.body.classList));
+            
+            // Test 5: Check edit buttons
+            console.log('\n--- Testing Edit Buttons ---');
+            const editButtons = document.querySelectorAll('.btn-warning[onclick*="edit"]');
+            console.log('Edit buttons found:', editButtons.length);
+            editButtons.forEach((btn, i) => {
+                console.log(`Edit button ${i + 1}:`, btn.getAttribute('onclick'), 'disabled:', btn.disabled);
+            });
+            
+            console.log('\n=== All Tests Complete ===');
+            return {
+                repositoryForm: !!repositoryForm,
+                modalFunctions: typeof showModal === 'function',
+                openModals: openModals.length,
+                scrollState: document.body.style.overflow || 'default',
+                editButtons: editButtons.length
+            };
+        };
+        
+        // Test modal state specifically
+        window.testModalState = function() {
+            console.log('=== Testing Modal State ===');
+            
+            const viewModal = document.getElementById('viewModal');
+            console.log('\n--- View Modal Status ---');
+            if (viewModal) {
+                console.log('View modal exists:', true);
+                console.log('Has show class:', viewModal.classList.contains('show'));
+                console.log('Display style:', viewModal.style.display || 'default');
+                console.log('Computed display:', window.getComputedStyle(viewModal).display);
+                console.log('Classes:', Array.from(viewModal.classList));
+            } else {
+                console.log('View modal exists:', false);
+            }
+            
+            // Test all modals
+            console.log('\n--- All Modals Status ---');
+            const allModals = document.querySelectorAll('.modal-overlay');
+            allModals.forEach((modal, i) => {
+                console.log(`Modal ${i + 1} (${modal.id || 'no-id'}):`, {
+                    hasShow: modal.classList.contains('show'),
+                    display: modal.style.display || 'default',
+                    computed: window.getComputedStyle(modal).display
+                });
+            });
+            
+            return {
+                viewModalExists: !!viewModal,
+                totalModals: allModals.length,
+                openModals: document.querySelectorAll('.modal-overlay.show').length
+            };
+        };
+        
+        // Force view modal test
+        window.forceViewModal = function() {
+            console.log('🧪 Force testing view modal...');
+            showViewModal('Test Modal', '<p>This is a test modal content</p>');
+        };
 
 
         // Homepage preview function (simplified)
@@ -10051,18 +9991,39 @@ ${contact.message}
             });
         }
         
-        // Setup form event listeners for modal submissions
+        // Setup form event listeners for modal submissions (ENHANCED)
         function setupFormEventListeners() {
             console.log('Setting up form event listeners...');
+            
+            // Clear existing listeners first to prevent duplicates
+            const forms = ['productForm', 'solutionForm', 'publicationForm', 'repositoryForm', 'teamMemberForm', 'testimonialForm', 'userForm', 'carouselForm'];
+            forms.forEach(formId => {
+                const form = document.getElementById(formId);
+                if (form) {
+                    // Clone node to remove all existing event listeners
+                    const newForm = form.cloneNode(true);
+                    form.parentNode.replaceChild(newForm, form);
+                }
+            });
             
             // Product form submission
             const productForm = document.getElementById('productForm');
             if (productForm) {
                 productForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    console.log('Product form submitted');
                     const formData = new FormData(productForm);
-                    await submitProductForm(formData);
+                    const submitBtn = productForm.querySelector('button[type="submit"]');
+                    const isEditing = formData.get('productId') && formData.get('productId') !== '';
+                    
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
+                    
+                    const success = await submitProductForm(formData);
+                    
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = isEditing ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-save"></i> Create Product';
                 });
                 console.log('✓ Product form listener added');
             }
@@ -10096,9 +10057,19 @@ ${contact.message}
             if (repositoryForm) {
                 repositoryForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    console.log('Repository form submitted');
                     const formData = new FormData(repositoryForm);
-                    await submitRepositoryForm(formData);
+                    const submitBtn = repositoryForm.querySelector('button[type="submit"]');
+                    const isEditing = formData.get('repositoryId') && formData.get('repositoryId') !== '';
+                    
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${isEditing ? 'Updating...' : 'Creating...'}`;
+                    
+                    const success = await submitRepositoryForm(formData);
+                    
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = isEditing ? '<i class="fas fa-save"></i> Update Repository Item' : '<i class="fas fa-save"></i> Create Repository Item';
                 });
                 console.log('✓ Repository form listener added');
             }
