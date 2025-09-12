@@ -946,7 +946,7 @@ body {
 /*
  * CONSISTENT HEADER BUTTON SYSTEM
  * ===============================
- * All header buttons (theme-toggle, nav-toggle, auth-btn, search-icon-container)
+ * All header buttons (theme-toggle, nav-toggle, auth-btn, search-icon-container, user-avatar)
  * share consistent styling, sizing, and behavior:
  * 
  * - Desktop: 40px × 40px
@@ -1084,31 +1084,67 @@ body {
 }
 
 .user-link:hover {
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
+    /* Keep link hover minimal to not conflict with avatar hover */
     transform: translateY(-1px);
-    box-shadow: var(--glass-shadow);
 }
 
 .user-link:hover .user-avatar {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    /* Consistent hover effects with other header buttons */
+    background: var(--primary);
+    color: var(--bg-light);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+    filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.2));
+    border-color: var(--primary);
+}
+
+.user-link:hover .user-avatar::before {
+    opacity: 1;
+    transform: rotate(30deg) translate(50%, 50%);
 }
 
 .user-avatar {
+    /* Consistent sizing with other header buttons */
     width: 40px;
     height: 40px;
+    
+    /* Consistent styling with other header buttons */
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: var(--text);
+    
+    /* Layout consistent with other buttons */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
     flex-shrink: 0;
-    transition: all 0.3s ease;
+    
+    /* Visual effects consistent with other buttons */
     box-shadow: var(--glass-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    
+    /* Typography consistent with other buttons */
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Consistent pseudo-element for shine effect */
+.user-avatar::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(rgba(255,255,255,0.2), transparent);
+    transform: rotate(30deg);
+    transition: all 0.5s;
+    opacity: 0;
+    z-index: -1;
 }
 
 /* Logged in section styling */
@@ -1134,7 +1170,7 @@ body {
 }
 
 /* Enhanced button interaction styles for all header buttons */
-.theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
+.theme-toggle, .nav-toggle, .auth-btn, .search-icon-container, .user-avatar {
     /* Touch and interaction improvements */
     -webkit-tap-highlight-color: rgba(59, 130, 246, 0.3);
     tap-highlight-color: rgba(59, 130, 246, 0.3);
@@ -1165,13 +1201,13 @@ body {
 }
 
 /* Active/pressed state for better feedback */
-.theme-toggle:active, .nav-toggle:active, .auth-btn:active, .search-icon-container:active {
+.theme-toggle:active, .nav-toggle:active, .auth-btn:active, .search-icon-container:active, .user-avatar:active {
     transform: scale(0.95);
     transition: transform 0.1s ease;
 }
 
 /* Focus states for accessibility */
-.theme-toggle:focus-visible, .nav-toggle:focus-visible, .auth-btn:focus-visible, .search-icon-container:focus-visible {
+.theme-toggle:focus-visible, .nav-toggle:focus-visible, .auth-btn:focus-visible, .search-icon-container:focus-visible, .user-avatar:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
@@ -1687,7 +1723,7 @@ body.mobile-menu-open {
     }
     
     /* Increase touch target area on mobile */
-    .theme-toggle::after, .nav-toggle::after, .auth-btn::after, .search-icon-container::after {
+    .theme-toggle::after, .nav-toggle::after, .auth-btn::after, .search-icon-container::after, .user-avatar::after {
         content: '';
         position: absolute;
         top: -12px;
@@ -1864,7 +1900,7 @@ body.mobile-menu-open {
     }
     
     /* Consistent small button sizing on very small screens */
-    .theme-toggle, .nav-toggle, .auth-btn, .search-icon-container {
+    .theme-toggle, .nav-toggle, .auth-btn, .search-icon-container, .user-avatar {
         width: 36px;
         height: 36px;
         font-size: 0.75rem;
