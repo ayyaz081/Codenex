@@ -244,46 +244,42 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-if (app.Environment.IsDevelopment())
+// Custom security headers for both dev and production
+app.Use((context, next) =>
 {
-    // Development-only configurations
-}
-else
-{
-    // Production security headers (but no HSTS)
-    
-    // Custom security headers
-    app.Use((context, next) =>
+    // Apply basic security headers in all environments
+    if (!app.Environment.IsDevelopment())
     {
         context.Response.Headers["X-Content-Type-Options"] = "nosniff";
         context.Response.Headers["X-Frame-Options"] = "DENY";
         context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
         context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-        var cspDirectives = Environment.GetEnvironmentVariable("CSP_DIRECTIVES") ??
-            "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
-            "style-src-elem 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
-            "img-src 'self' data: https: blob:; " +
-            "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
-            "connect-src 'self' https: wss:; " +
-            "media-src 'self' https:; " +
-            "object-src 'none'; " +
-            "child-src https://maps.google.com; " +
-            "frame-src https://maps.google.com; " +
-            "frame-ancestors 'none'; " +
-            "form-action 'self'; " +
-            "base-uri 'self'; " +
-            "manifest-src 'self'; " +
-            "upgrade-insecure-requests;";
-        
-        context.Response.Headers["Content-Security-Policy"] = cspDirectives;
         context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()";
-        // Less restrictive CORS policies for better compatibility
         context.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
-        return next();
-    });
-}
+    }
+    
+    // Apply CSP in all environments to test Google Maps
+    var cspDirectives = Environment.GetEnvironmentVariable("CSP_DIRECTIVES") ??
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
+        "style-src-elem 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
+        "img-src 'self' data: https: blob:; " +
+        "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
+        "connect-src 'self' https: wss:; " +
+        "media-src 'self' https:; " +
+        "object-src 'none'; " +
+        "child-src https://*.google.com https://*.googleapis.com https://*.gstatic.com; " +
+        "frame-src https://*.google.com https://*.googleapis.com https://*.gstatic.com; " +
+        "frame-ancestors 'none'; " +
+        "form-action 'self'; " +
+        "base-uri 'self'; " +
+        "manifest-src 'self'; " +
+        "upgrade-insecure-requests;";
+    
+    context.Response.Headers["Content-Security-Policy"] = cspDirectives;
+    return next();
+});
 
 // Disable HTTPS redirection - let deployment/reverse proxy handle HTTPS
 // No HTTPS redirection in application
