@@ -1766,66 +1766,9 @@
 
         // Request solution
         function requestSolution(solutionId) {
-            // Find the solution details - check both arrays and handle different ID field names
-            let solution = filteredSolutions.find(s => s.id === solutionId || s.Id === solutionId) || 
-                          solutions.find(s => s.id === solutionId || s.Id === solutionId);
-            
-            // If still not found, try to get it from the API (for modal cases)
-            if (!solution) {
-                // If we're calling from modal, try to fetch fresh data
-                const modalTitle = document.getElementById('modal-title');
-                if (modalTitle && modalTitle.textContent) {
-                    // Find by title as fallback
-                    solution = filteredSolutions.find(s => s.title === modalTitle.textContent) || 
-                              solutions.find(s => s.title === modalTitle.textContent);
-                }
-            }
-            
-            if (!solution) {
-                alert('Solution not found. Please try again.');
-                return;
-            }
-            
-            // Prepare email content
-            const emailTo = 'bc220201051aay@vu.edu.pk';
-            const emailSubject = encodeURIComponent('Quote Request for Solution');
-            
-            // Create detailed email body
-            const emailBody = encodeURIComponent(
-                `Dear Team,\n\n` +
-                `I am interested in getting a quote for the following solution:\n\n` +
-                `Solution Title: ${solution.title}\n` +
-                `Problem Area: ${solution.problemArea || 'Not specified'}\n` +
-                `Description: ${solution.summary || solution.description || 'No description available'}\n\n` +
-                `${solution.keyFeatures ? `Key Features:\n${solution.keyFeatures.split(',').map(f => `• ${f.trim()}`).join('\n')}\n\n` : ''}` +
-                `${solution.technologiesUsed ? `Technologies: ${solution.technologiesUsed}\n\n` : ''}` +
-                `Please provide me with:\n` +
-                `• Detailed pricing information\n` +
-                `• Implementation timeline\n` +
-                `• Any customization options available\n` +
-                `• Support and maintenance details\n\n` +
-                `I look forward to hearing from you soon.\n\n` +
-                `Best regards`
-            );
-            
-            // Create mailto URL
-            const mailtoUrl = `mailto:${emailTo}?subject=${emailSubject}&body=${emailBody}`;
-            
-            // Open email client
-            try {
-                window.location.href = mailtoUrl;
-            } catch (error) {
-                console.error('Error opening email client:', error);
-                // Fallback: copy email details to clipboard
-                const fallbackText = `Email: ${emailTo}\nSubject: Quote Request for Solution\n\nBody: ${decodeURIComponent(emailBody)}`;
-                navigator.clipboard.writeText(fallbackText).then(() => {
-                    alert('Email client could not be opened. Email details have been copied to clipboard.');
-                }).catch(() => {
-                    alert(`Email client could not be opened. Please send an email to: ${emailTo} with subject "Quote Request for Solution" and include details about ${solution.title}.`);
-                });
-            }
+            // Redirect to contact page with solution information
+            window.location.href = `Contact.html?solution=${solutionId}&action=quote`;
         }
-
         // Schedule meeting
         function scheduleMeeting(solutionId) {
             // Find the solution details for context

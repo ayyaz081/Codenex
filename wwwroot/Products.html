@@ -1498,56 +1498,8 @@
 
         // Request product quote
         function requestProduct(productId) {
-            // Find the product details
-            let product = filteredProducts.find(p => p.id === productId || p.Id === productId) || 
-                         products.find(p => p.id === productId || p.Id === productId);
-            
-            // If still not found, try to get it from the modal
-            if (!product) {
-                const modalTitle = document.getElementById('modal-title');
-                if (modalTitle && modalTitle.textContent) {
-                    product = filteredProducts.find(p => p.title === modalTitle.textContent) || 
-                             products.find(p => p.title === modalTitle.textContent);
-                }
-            }
-            
-            if (!product) {
-                alert('Product not found. Please try again.');
-                return;
-            }
-            
-            // Prepare email content
-            const emailTo = 'bc220201051aay@vu.edu.pk';
-            const emailSubject = encodeURIComponent(`Quote Request for Product - ${product.title}`);
-            
-            // Create detailed email body
-            const emailBody = encodeURIComponent(
-                `Dear Team,\n\n` +
-                `I am interested in getting a quote for the following product:\n\n` +
-                `Product Title: ${product.title}\n` +
-                `Domain: ${product.domain}\n` +
-                `Description: ${product.shortDescription || product.longDescription || 'No description available'}\n\n` +
-                `Please provide me with:\n` +
-                `• Detailed pricing information\n` +
-                `• Implementation timeline\n` +
-                `• Any customization options available\n` +
-                `• Support and maintenance details\n` +
-                `• Licensing terms\n\n` +
-                `I look forward to hearing from you soon.\n\n` +
-                `Best regards`
-            );
-            
-            // Create mailto URL
-            const mailtoUrl = `mailto:${emailTo}?subject=${emailSubject}&body=${emailBody}`;
-            
-            // Open email client
-            try {
-                window.location.href = mailtoUrl;
-            } catch (error) {
-                console.error('Error opening email client:', error);
-                // Fallback: show alert with email details
-                alert(`Email client could not be opened. Please send an email to: ${emailTo} with subject "Quote Request for Product - ${product.title}" and include details about your requirements.`);
-            }
+            // Redirect to contact page with product information
+            window.location.href = `Contact.html?product=${productId}&action=quote`;
         }
 
         // Show error state
