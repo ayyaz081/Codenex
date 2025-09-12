@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using CodeNex.Data;
 using CodeNex.Models;
 using CodeNex.Services;
+using CodeNex.Controllers;
 using System.Security.Claims;
 using System.Text;
 using DotNetEnv;
@@ -187,6 +188,16 @@ builder.Services.Configure<EmailSettings>(options =>
 // Add custom services
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Add HttpClient for repository downloads and external API calls
+builder.Services.AddHttpClient<RepositoryController>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(5); // Set timeout for large repository downloads
+    client.DefaultRequestHeaders.Add("User-Agent", "CodeNex-App/1.0");
+});
+
+// Also add general HttpClient for other controllers that might need it
+builder.Services.AddHttpClient();
 
 // Security headers will be added in middleware, but no HSTS configuration
 

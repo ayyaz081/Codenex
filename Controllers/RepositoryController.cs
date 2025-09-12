@@ -6,6 +6,7 @@ using CodeNex.Models;
 using CodeNex.DTOs;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CodeNex.Controllers
 {
@@ -15,13 +16,13 @@ namespace CodeNex.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<RepositoryController> _logger;
+        private readonly HttpClient _httpClient;
 
-        public RepositoryController(
-            AppDbContext context,
-            ILogger<RepositoryController> logger)
+        public RepositoryController(AppDbContext context, ILogger<RepositoryController> logger, HttpClient httpClient)
         {
             _context = context;
             _logger = logger;
+            _httpClient = httpClient;
         }
 
         // GET: api/repository
@@ -326,10 +327,15 @@ namespace CodeNex.Controllers
                     _logger.LogInformation($"Download count updated for repository {id}: {trackingRepo.DownloadCount}");
                 }
 
-                // In a real application, this would stream the actual file content
-                // For demo purposes, we'll return a placeholder ZIP content
+                // Download actual repository content from GitHub
                 var fileName = $"{repository.Title.Replace(" ", "_").Replace("/", "_")}_v{repository.Version}.zip";
-                var fileContent = GeneratePlaceholderZip(repository);
+                var fileContent = await DownloadRepositoryFromGitHub(repository.GitHubUrl, repository.Title);
+                
+                if (fileContent == null || fileContent.Length == 0)
+                {
+                    _logger.LogWarning($"Failed to download repository content from {repository.GitHubUrl}, falling back to placeholder");
+                    fileContent = GeneratePlaceholderZip(repository);
+                }
                 
                 _logger.LogInformation($"Serving download for repository {id}, filename: {fileName}, size: {fileContent.Length} bytes");
                 
@@ -465,6 +471,74 @@ This is a placeholder download. In production, this would contain the actual rep
 ";
             
             return Encoding.UTF8.GetBytes(readmeContent);
+        }
+
+        private async Task<byte[]?> DownloadRepositoryFromGitHub(string gitHubUrl, string repositoryTitle)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(gitHubUrl))
+                {
+                    _logger.LogWarning($"Empty GitHub URL for repository: {repositoryTitle}");
+                    return null;
+                }
+
+                // Extract owner and repo name from GitHub URL
+                // Supports formats: https://github.com/owner/repo or https://github.com/owner/repo.git
+                var githubPattern = @"github\.com[:/]([^/]+)/([^/.]+)(?:\.git)?/?$";
+                var match = Regex.Match(gitHubUrl, githubPattern, RegexOptions.IgnoreCase);
+                
+                if (!match.Success)
+                {
+                    _logger.LogWarning($"Invalid GitHub URL format: {gitHubUrl} for repository: {repositoryTitle}");
+                    return null;
+                }
+
+                var owner = match.Groups[1].Value;
+                var repo = match.Groups[2].Value;
+                
+                // GitHub API endpoint for downloading repository as ZIP
+                var downloadUrl = $"https://api.github.com/repos/{owner}/{repo}/zipball";
+                
+                _logger.LogInformation($"Downloading repository from: {downloadUrl}");
+                
+                // Set user agent (required by GitHub API)
+                _httpClient.DefaultRequestHeaders.Clear();
+                if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "CodeNex-App/1.0");
+                }
+                
+                // Download the repository ZIP file
+                var response = await _httpClient.GetAsync(downloadUrl);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsByteArrayAsync();
+                    _logger.LogInformation($"Successfully downloaded {content.Length} bytes from {downloadUrl}");
+                    return content;
+                }
+                else
+                {
+                    _logger.LogWarning($"GitHub API returned {response.StatusCode} for {downloadUrl}: {response.ReasonPhrase}");
+                    return null;
+                }
+            }
+            catch (HttpRequestException httpEx)
+            {
+                _logger.LogError(httpEx, $"HTTP error downloading repository from GitHub: {gitHubUrl}");
+                return null;
+            }
+            catch (TaskCanceledException timeoutEx)
+            {
+                _logger.LogError(timeoutEx, $"Timeout downloading repository from GitHub: {gitHubUrl}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unexpected error downloading repository from GitHub: {gitHubUrl}");
+                return null;
+            }
         }
     }
 }
