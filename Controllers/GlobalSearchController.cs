@@ -41,21 +41,14 @@ namespace CodeNex.Controllers
                 var results = new List<GlobalSearchResultDto>();
                 var resultsByType = new Dictionary<string, int>();
 
-                // Search based on category filter - use parallel execution for better performance
+                // Search categories sequentially to avoid potential issues
                 var searchCategories = GetSearchCategories(category);
 
-                var searchTasks = searchCategories.Select(async searchCategory =>
+                foreach (var searchCategory in searchCategories)
                 {
                     var categoryResults = await SearchByCategory(query, searchCategory);
-                    return new { Category = searchCategory, Results = categoryResults };
-                }).ToArray();
-
-                var searchResults = await Task.WhenAll(searchTasks);
-                
-                foreach (var searchResult in searchResults)
-                {
-                    results.AddRange(searchResult.Results);
-                    resultsByType[searchResult.Category] = searchResult.Results.Count;
+                    results.AddRange(categoryResults);
+                    resultsByType[searchCategory] = categoryResults.Count;
                 }
 
                 // Sort by relevance and apply pagination
@@ -86,7 +79,71 @@ namespace CodeNex.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error performing global search for query: {Query}", query);
-                return StatusCode(500, "Internal server error");
+                return StatusCode(500, new { error = ex.Message, query = query });
+            }
+        }
+
+        // GET: api/globalsearch/test - Simple test endpoint
+        [HttpGet("test")]
+        public async Task<ActionResult> TestSearch([FromQuery] string query = "test")
+        {
+            try
+            {
+                var productCount = await _context.Products.CountAsync();
+                var solutionCount = await _context.Solutions.CountAsync();
+                var publicationCount = await _context.Publications.CountAsync();
+                var repositoryCount = await _context.Repositories.CountAsync();
+                
+                return Ok(new {
+                    message = "GlobalSearch controller is working",
+                    query,
+                    counts = new {
+                        products = productCount,
+                        solutions = solutionCount,
+                        publications = publicationCount,
+                        repositories = repositoryCount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Test endpoint error");
+                return StatusCode(500, new { error = ex.Message, stackTrace = ex.StackTrace });
+            }
+        }
+
+        // GET: api/globalsearch/minimal - Minimal search test
+        [HttpGet("minimal")]
+        public async Task<ActionResult> MinimalSearch([FromQuery] string query = "test")
+        {
+            try
+            {
+                _logger.LogInformation("Starting minimal search for query: {Query}", query);
+                
+                // Test just products first
+                var products = await _context.Products
+                    .Where(p => p.Title.Contains(query))
+                    .Take(2)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Title,
+                        p.ShortDescription
+                    })
+                    .ToListAsync();
+                
+                _logger.LogInformation("Found {Count} products", products.Count);
+                
+                return Ok(new {
+                    query,
+                    productCount = products.Count,
+                    products = products.Take(1).ToList() // Just return first product
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Minimal search error for query: {Query}", query);
+                return StatusCode(500, new { error = ex.Message, innerException = ex.InnerException?.Message });
             }
         }
 
@@ -162,99 +219,138 @@ namespace CodeNex.Controllers
 
         private async Task<List<GlobalSearchResultDto>> SearchProducts(string query)
         {
-            return await _context.Products
+            var products = await _context.Products
                 .Where(p => p.Title.Contains(query) || 
                            p.ShortDescription.Contains(query) || 
                            p.LongDescription.Contains(query) ||
                            p.Domain.Contains(query))
                 .Take(50) // Limit results for performance
-                .Select(p => new GlobalSearchResultDto
+                .Select(p => new
                 {
-                    Type = "product",
-                    Id = p.Id,
-                    Title = p.Title,
-                    Description = p.ShortDescription,
-                    Url = $"Products.html?id={p.Id}",
-                    ImageUrl = p.ImageUrl,
-                    Domain = p.Domain,
-                    Category = p.Domain,
-                    Relevance = CalculateRelevance(query, p.Title, p.ShortDescription),
-                    CreatedAt = p.CreatedAt
+                    p.Id,
+                    p.Title,
+                    p.ShortDescription,
+                    p.ImageUrl,
+                    p.Domain,
+                    p.CreatedAt
                 })
                 .ToListAsync();
+
+            return products.Select(p => new GlobalSearchResultDto
+            {
+                Type = "product",
+                Id = p.Id,
+                Title = p.Title,
+                Description = p.ShortDescription,
+                Url = $"Products.html?id={p.Id}",
+                ImageUrl = p.ImageUrl,
+                Domain = p.Domain,
+                Category = p.Domain,
+                Relevance = CalculateRelevance(query, p.Title, p.ShortDescription ?? ""),
+                CreatedAt = p.CreatedAt
+            }).ToList();
         }
 
         private async Task<List<GlobalSearchResultDto>> SearchSolutions(string query)
         {
-            return await _context.Solutions
+            var solutions = await _context.Solutions
                 .Where(s => s.IsActive && (s.Title.Contains(query) || 
                                           s.Summary.Contains(query) ||
                                           s.ProblemArea.Contains(query)))
                 .Take(50) // Limit results for performance
-                .Select(s => new GlobalSearchResultDto
+                .Select(s => new
                 {
-                    Type = "solution",
-                    Id = s.Id,
-                    Title = s.Title,
-                    Description = s.Summary,
-                    Url = $"Solutions.html?id={s.Id}",
-                    ImageUrl = s.DemoImageUrl,
-                    Domain = null,
-                    Category = s.ProblemArea,
-                    Relevance = CalculateRelevance(query, s.Title, s.Summary),
-                    CreatedAt = s.CreatedAt
+                    s.Id,
+                    s.Title,
+                    s.Summary,
+                    s.DemoImageUrl,
+                    s.ProblemArea,
+                    s.CreatedAt
                 })
                 .ToListAsync();
+
+            return solutions.Select(s => new GlobalSearchResultDto
+            {
+                Type = "solution",
+                Id = s.Id,
+                Title = s.Title,
+                Description = s.Summary,
+                Url = $"Solutions.html?id={s.Id}",
+                ImageUrl = s.DemoImageUrl,
+                Domain = null,
+                Category = s.ProblemArea,
+                Relevance = CalculateRelevance(query, s.Title, s.Summary ?? ""),
+                CreatedAt = s.CreatedAt
+            }).ToList();
         }
 
         private async Task<List<GlobalSearchResultDto>> SearchPublications(string query)
         {
-            return await _context.Publications
+            var publications = await _context.Publications
                 .Where(p => p.IsPublished && (p.Title.Contains(query) || 
                                              p.Authors.Contains(query) ||
                                              p.Abstract.Contains(query) ||
                                              p.Keywords.Contains(query) ||
                                              p.Domain.Contains(query)))
                 .Take(50) // Limit results for performance
-                .Select(p => new GlobalSearchResultDto
+                .Select(p => new
                 {
-                    Type = "publication",
-                    Id = p.Id,
-                    Title = p.Title,
-                    Description = p.Abstract,
-                    Url = $"Publications.html?id={p.Id}",
-                    ImageUrl = p.ThumbnailUrl,
-                    Domain = p.Domain,
-                    Category = p.Domain,
-                    Relevance = CalculateRelevance(query, p.Title, p.Abstract),
-                    CreatedAt = p.CreatedAt
+                    p.Id,
+                    p.Title,
+                    p.Abstract,
+                    p.ThumbnailUrl,
+                    p.Domain,
+                    p.CreatedAt
                 })
                 .ToListAsync();
+
+            return publications.Select(p => new GlobalSearchResultDto
+            {
+                Type = "publication",
+                Id = p.Id,
+                Title = p.Title,
+                Description = p.Abstract,
+                Url = $"Publications.html?id={p.Id}",
+                ImageUrl = p.ThumbnailUrl,
+                Domain = p.Domain,
+                Category = p.Domain,
+                Relevance = CalculateRelevance(query, p.Title, p.Abstract ?? ""),
+                CreatedAt = p.CreatedAt
+            }).ToList();
         }
 
         private async Task<List<GlobalSearchResultDto>> SearchRepositories(string query)
         {
-            return await _context.Repositories
+            var repositories = await _context.Repositories
                 .Where(r => r.IsActive && (r.Title.Contains(query) || 
                                           r.Description.Contains(query) ||
                                           r.Tags.Contains(query) ||
                                           r.TechnicalStack.Contains(query) ||
                                           r.Category.Contains(query)))
                 .Take(50) // Limit results for performance
-                .Select(r => new GlobalSearchResultDto
+                .Select(r => new
                 {
-                    Type = "repository",
-                    Id = r.Id,
-                    Title = r.Title,
-                    Description = r.Description,
-                    Url = $"Repository.html?id={r.Id}",
-                    ImageUrl = null,
-                    Domain = null,
-                    Category = r.Category,
-                    Relevance = CalculateRelevance(query, r.Title, r.Description),
-                    CreatedAt = r.CreatedAt
+                    r.Id,
+                    r.Title,
+                    r.Description,
+                    r.Category,
+                    r.CreatedAt
                 })
                 .ToListAsync();
+
+            return repositories.Select(r => new GlobalSearchResultDto
+            {
+                Type = "repository",
+                Id = r.Id,
+                Title = r.Title,
+                Description = r.Description,
+                Url = $"Repository.html?id={r.Id}",
+                ImageUrl = null,
+                Domain = null,
+                Category = r.Category,
+                Relevance = CalculateRelevance(query, r.Title, r.Description ?? ""),
+                CreatedAt = r.CreatedAt
+            }).ToList();
         }
 
         private static double CalculateRelevance(string query, string title, string description)

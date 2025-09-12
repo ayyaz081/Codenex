@@ -10,10 +10,51 @@
             <ul class="nav-links">
                 <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="/About"><i class="fas fa-user-circle"></i> About</a></li>
-                <li><a href="/Publications"><i class="fas fa-file-alt"></i> Publications</a></li>
-                <li><a href="/Products"><i class="fas fa-cube"></i> Products</a></li>
-                <li><a href="/Repository"><i class="fab fa-github"></i> Repository</a></li>
-                <li><a href="/solutions"><i class="fas fa-lightbulb"></i> Solutions</a></li>
+                
+                <!-- Publications with dynamic domains dropdown -->
+                <li class="nav-dropdown">
+                    <a href="/Publications" class="nav-dropdown-toggle">
+                        <i class="fas fa-file-alt"></i> Publications
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </a>
+                    <div class="nav-dropdown-menu" id="publications-dropdown">
+                        <div class="dropdown-loading">Loading...</div>
+                    </div>
+                </li>
+                
+                <!-- Products with dynamic domains dropdown -->
+                <li class="nav-dropdown">
+                    <a href="/Products" class="nav-dropdown-toggle">
+                        <i class="fas fa-cube"></i> Products
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </a>
+                    <div class="nav-dropdown-menu" id="products-dropdown">
+                        <div class="dropdown-loading">Loading...</div>
+                    </div>
+                </li>
+                
+                <!-- Repository with dynamic categories dropdown -->
+                <li class="nav-dropdown">
+                    <a href="/Repository" class="nav-dropdown-toggle">
+                        <i class="fab fa-github"></i> Repository
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </a>
+                    <div class="nav-dropdown-menu" id="repository-dropdown">
+                        <div class="dropdown-loading">Loading...</div>
+                    </div>
+                </li>
+                
+                <!-- Solutions with dynamic problem areas dropdown -->
+                <li class="nav-dropdown">
+                    <a href="/solutions" class="nav-dropdown-toggle">
+                        <i class="fas fa-lightbulb"></i> Solutions
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </a>
+                    <div class="nav-dropdown-menu" id="solutions-dropdown">
+                        <div class="dropdown-loading">Loading...</div>
+                    </div>
+                </li>
+                
                 <li><a href="/Contact"><i class="fas fa-envelope"></i> Contact</a></li>
             </ul>
         </div>

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using CodeNex.Data;
 using CodeNex.Models;
 using CodeNex.DTOs;
+using CodeNex.Services;
+using Microsoft.Extensions.Options;
 
 namespace CodeNex.Controllers
 {
@@ -12,13 +14,19 @@ namespace CodeNex.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<ContactController> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
         public ContactController(
             AppDbContext context,
-            ILogger<ContactController> logger)
+            ILogger<ContactController> logger,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         // POST: api/contact
@@ -32,29 +40,85 @@ namespace CodeNex.Controllers
 
             try
             {
-                var contactForm = new ContactForm
+                // Get admin email from configuration
+                var adminEmail = _configuration["ADMIN_EMAIL"] ?? "bc220201051aay@vu.edu.pk";
+                
+                _logger.LogInformation($"Processing contact form submission from {dto.Email}: {dto.Subject}");
+
+                // Send email notification to admin
+                var emailSent = await _emailService.SendContactFormNotificationAsync(
+                    adminEmail,
+                    dto.Name,
+                    dto.Email,
+                    dto.Subject,
+                    dto.Message
+                );
+
+                if (emailSent)
                 {
-                    Name = dto.Name,
-                    Email = dto.Email,
-                    Subject = dto.Subject,
-                    Message = dto.Message,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    IsRead = false,
-                    IsReplied = false
-                };
+                    _logger.LogInformation($"Contact form email notification sent successfully to admin: {adminEmail}");
+                }
+                else
+                {
+                    _logger.LogWarning($"Failed to send contact form email notification to admin: {adminEmail}");
+                }
 
-                _context.ContactForms.Add(contactForm);
-                await _context.SaveChangesAsync();
+                // CONFIGURATION: Database Storage
+                // Set CONTACT_SAVE_TO_DATABASE=false in .env to disable database storage
+                // and only use email notifications
+                var saveToDatabase = _configuration.GetValue<bool>("CONTACT_SAVE_TO_DATABASE", true);
+                
+                ContactForm? contactForm = null;
+                if (saveToDatabase)
+                {
+                    contactForm = new ContactForm
+                    {
+                        Name = dto.Name,
+                        Email = dto.Email,
+                        Subject = dto.Subject,
+                        Message = dto.Message,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        IsRead = false,
+                        IsReplied = false
+                    };
 
-                _logger.LogInformation($"New contact form submission from {dto.Email}: {dto.Subject}");
+                    _context.ContactForms.Add(contactForm);
+                    await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Contact form submitted successfully", id = contactForm.Id });
+                    _logger.LogInformation($"Contact form submission saved to database. From: {dto.Email}, Subject: {dto.Subject}");
+                }
+                else
+                {
+                    _logger.LogInformation($"Database storage disabled - contact form only sent via email. From: {dto.Email}, Subject: {dto.Subject}");
+                }
+
+                // Return success regardless of email status, as long as the form was processed
+                string responseMessage;
+                if (emailSent)
+                {
+                    responseMessage = saveToDatabase 
+                        ? "Thank you! Your message has been sent successfully, the admin has been notified, and your submission has been saved." 
+                        : "Thank you! Your message has been sent successfully and the admin has been notified.";
+                }
+                else
+                {
+                    responseMessage = saveToDatabase 
+                        ? "Thank you! Your message has been received and saved. The admin will be notified." 
+                        : "Thank you! Your message has been received. We will contact you soon.";
+                }
+
+                return Ok(new { 
+                    message = responseMessage, 
+                    id = contactForm?.Id,
+                    emailSent = emailSent,
+                    savedToDatabase = saveToDatabase 
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error submitting contact form");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, "Error processing contact form submission from {Email}", dto.Email);
+                return StatusCode(500, "We encountered an issue processing your message. Please try again or contact us directly.");
             }
         }
 

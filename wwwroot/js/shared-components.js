@@ -67,6 +67,7 @@ class SharedComponents {
             this.initializeEventHandlers();
             this.checkAuthState();
             this.initializeGlobalSearch();
+            this.initializeNavDropdowns();
             this.initializeTheme();
             this.setActiveNavigation();
             this.updateNavigationLinks();
@@ -675,9 +676,7 @@ class SharedComponents {
         try {
             let response = await fetch(`${this.backendBaseUrl}/api/GlobalSearch?query=${encodeURIComponent(query)}&pageSize=8`);
             if (!response.ok) {
-                response = await fetch(`${this.backendBaseUrl}/api/search/global?query=${encodeURIComponent(query)}`);
-            }
-            if (!response.ok) {
+                console.log('Global search API not available, using fallback');
                 this.performMobileFallbackSearch(query);
                 return;
             }
@@ -845,16 +844,16 @@ class SharedComponents {
 
         switch (type) {
             case 'product':
-                window.location.href = id ? `/Products?id=${id}` : '/Products';
+                window.location.href = id ? `/Products.html?id=${id}` : '/Products.html';
                 break;
             case 'publication':
-                window.location.href = id ? `/Publications?id=${id}` : '/Publications';
+                window.location.href = id ? `/Publications.html?id=${id}` : '/Publications.html';
                 break;
             case 'solution':
-                window.location.href = id ? `/solutions?id=${id}` : '/solutions';
+                window.location.href = id ? `/solutions.html?id=${id}` : '/solutions.html';
                 break;
             case 'repository':
-                window.location.href = id ? `/Repository?id=${id}` : '/Repository';
+                window.location.href = id ? `/Repository.html?id=${id}` : '/Repository.html';
                 break;
             default:
                 const query = document.getElementById('mobile-search-input')?.value.trim() || '';
@@ -881,6 +880,312 @@ class SharedComponents {
         if (suggestionsContainer) {
             suggestionsContainer.classList.remove('show');
         }
+    }
+
+    /**
+     * Initialize navigation dropdowns
+     */
+    initializeNavDropdowns() {
+        console.log('🔽 Initializing navigation dropdowns...');
+        
+        // Load dropdown data
+        this.loadNavigationData();
+        
+        // Initialize dropdown event listeners
+        this.initializeDropdownEvents();
+    }
+    
+    /**
+     * Load navigation dropdown data from API
+     */
+    async loadNavigationData() {
+        try {
+            const response = await fetch(`${this.backendBaseUrl}/api/Navigation/all`);
+            if (!response.ok) {
+                console.warn('Navigation API not available, using fallback');
+                this.setupFallbackDropdowns();
+                return;
+            }
+            
+            const data = await response.json();
+            this.populateDropdowns(data);
+            
+        } catch (error) {
+            console.error('Error loading navigation data:', error);
+            this.setupFallbackDropdowns();
+        }
+    }
+    
+    /**
+     * Populate dropdowns with data from API
+     */
+    populateDropdowns(data) {
+        console.log('🔽 Populating dropdowns with data:', data);
+        
+        // Publications dropdown
+        console.log('📚 Publications domains:', data.publications?.domains || []);
+        this.populatePublicationsDropdown(data.publications?.domains || []);
+        
+        // Products dropdown
+        console.log('📦 Products domains:', data.products?.domains || []);
+        this.populateProductsDropdown(data.products?.domains || []);
+        
+        // Repository dropdown
+        console.log('📁 Repository categories:', data.repositories?.categories || []);
+        this.populateRepositoryDropdown(data.repositories?.categories || []);
+        
+        // Solutions dropdown
+        console.log('💡 Solutions problem areas:', data.solutions?.problemAreas || []);
+        this.populateSolutionsDropdown(data.solutions?.problemAreas || []);
+        
+    }
+    
+    /**
+     * Populate publications dropdown
+     */
+    populatePublicationsDropdown(domains) {
+        console.log('📚 populatePublicationsDropdown called with:', domains);
+        const dropdown = document.getElementById('publications-dropdown');
+        console.log('📚 Publications dropdown element:', dropdown);
+        if (!dropdown) {
+            console.error('❌ Publications dropdown element not found!');
+            return;
+        }
+        
+        if (domains.length === 0) {
+            console.log('📚 Publications: No domains available');
+            dropdown.innerHTML = `
+                <div class="dropdown-item">No domains available</div>
+                <a href="/Publications" class="dropdown-item dropdown-view-all">View All Publications</a>
+            `;
+            return;
+        }
+        
+        console.log('📚 Publications: Generating HTML for domains:', domains);
+        const domainsHtml = domains.map(domain => 
+            `<a href="/Publications?domain=${encodeURIComponent(domain)}" class="dropdown-item">${this.escapeHtml(domain)}</a>`
+        ).join('');
+        
+        const finalHtml = `
+            <div class="dropdown-section-title">By Domain</div>
+            ${domainsHtml}
+            <a href="/Publications" class="dropdown-item dropdown-view-all">View All Publications</a>
+        `;
+        
+        console.log('📚 Publications: Setting innerHTML to:', finalHtml);
+        dropdown.innerHTML = finalHtml;
+    }
+    
+    /**
+     * Populate products dropdown
+     */
+    populateProductsDropdown(domains) {
+        const dropdown = document.getElementById('products-dropdown');
+        if (!dropdown) return;
+        
+        if (domains.length === 0) {
+            dropdown.innerHTML = `
+                <div class="dropdown-item">No domains available</div>
+                <a href="/Products" class="dropdown-item dropdown-view-all">View All Products</a>
+            `;
+            return;
+        }
+        
+        const domainsHtml = domains.map(domain => 
+            `<a href="/Products?domain=${encodeURIComponent(domain)}" class="dropdown-item">${this.escapeHtml(domain)}</a>`
+        ).join('');
+        
+        dropdown.innerHTML = `
+            <div class="dropdown-section-title">By Domain</div>
+            ${domainsHtml}
+            <a href="/Products" class="dropdown-item dropdown-view-all">View All Products</a>
+        `;
+    }
+    
+    /**
+     * Populate repository dropdown
+     */
+    populateRepositoryDropdown(categories) {
+        console.log('📁 populateRepositoryDropdown called with:', categories);
+        const dropdown = document.getElementById('repository-dropdown');
+        console.log('📁 Repository dropdown element:', dropdown);
+        if (!dropdown) {
+            console.error('❌ Repository dropdown element not found!');
+            return;
+        }
+        
+        if (categories.length === 0) {
+            console.log('📁 Repository: No categories available');
+            dropdown.innerHTML = `
+                <div class="dropdown-item">No categories available</div>
+                <a href="/Repository" class="dropdown-item dropdown-view-all">View All Repositories</a>
+            `;
+            return;
+        }
+        
+        console.log('📁 Repository: Generating HTML for categories:', categories);
+        const categoriesHtml = categories.map(category => 
+            `<a href="/Repository?category=${encodeURIComponent(category)}" class="dropdown-item">${this.escapeHtml(category)}</a>`
+        ).join('');
+        
+        const finalHtml = `
+            <div class="dropdown-section-title">By Category</div>
+            ${categoriesHtml}
+            <a href="/Repository" class="dropdown-item dropdown-view-all">View All Repositories</a>
+        `;
+        
+        console.log('📁 Repository: Setting innerHTML to:', finalHtml);
+        dropdown.innerHTML = finalHtml;
+    }
+    
+    /**
+     * Populate solutions dropdown
+     */
+    populateSolutionsDropdown(problemAreas) {
+        const dropdown = document.getElementById('solutions-dropdown');
+        if (!dropdown) return;
+        
+        if (problemAreas.length === 0) {
+            dropdown.innerHTML = `
+                <div class="dropdown-item">No problem areas available</div>
+                <a href="/solutions" class="dropdown-item dropdown-view-all">View All Solutions</a>
+            `;
+            return;
+        }
+        
+        const problemAreasHtml = problemAreas.map(area => 
+            `<a href="/solutions?problemArea=${encodeURIComponent(area)}" class="dropdown-item">${this.escapeHtml(area)}</a>`
+        ).join('');
+        
+        dropdown.innerHTML = `
+            <div class="dropdown-section-title">By Problem Area</div>
+            ${problemAreasHtml}
+            <a href="/solutions" class="dropdown-item dropdown-view-all">View All Solutions</a>
+        `;
+    }
+    
+    /**
+     * Setup fallback dropdowns when API is not available
+     */
+    setupFallbackDropdowns() {
+        const dropdowns = {
+            'publications-dropdown': '<a href="/Publications" class="dropdown-item dropdown-view-all">View All Publications</a>',
+            'products-dropdown': '<a href="/Products" class="dropdown-item dropdown-view-all">View All Products</a>',
+            'repository-dropdown': '<a href="/Repository" class="dropdown-item dropdown-view-all">View All Repositories</a>',
+            'solutions-dropdown': '<a href="/solutions" class="dropdown-item dropdown-view-all">View All Solutions</a>'
+        };
+        
+        Object.entries(dropdowns).forEach(([id, html]) => {
+            const dropdown = document.getElementById(id);
+            if (dropdown) {
+                dropdown.innerHTML = html;
+            }
+        });
+    }
+    
+    /**
+     * Initialize dropdown event listeners
+     */
+    initializeDropdownEvents() {
+        const dropdowns = document.querySelectorAll('.nav-dropdown');
+        
+        dropdowns.forEach(dropdown => {
+            const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            const menu = dropdown.querySelector('.nav-dropdown-menu');
+            
+            if (!toggle || !menu) return;
+            
+            let hideTimeout;
+            
+            // Show dropdown on hover with immediate response
+            dropdown.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+                this.showDropdown(menu, toggle);
+            });
+            
+            // Hide dropdown on mouse leave with delay
+            dropdown.addEventListener('mouseleave', () => {
+                hideTimeout = setTimeout(() => {
+                    this.hideDropdown(menu);
+                }, 150); // 150ms delay
+            });
+            
+            // Keep dropdown open when hovering over the menu itself
+            menu.addEventListener('mouseenter', () => {
+                clearTimeout(hideTimeout);
+            });
+            
+            // Hide when leaving the menu
+            menu.addEventListener('mouseleave', () => {
+                hideTimeout = setTimeout(() => {
+                    this.hideDropdown(menu);
+                }, 100);
+            });
+        });
+        
+        // Hide all dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-dropdown')) {
+                this.hideAllDropdowns();
+            }
+        });
+    }
+    
+    /**
+     * Show dropdown menu
+     */
+    showDropdown(menu, toggle) {
+        // Hide all other dropdowns first
+        this.hideAllDropdowns();
+        
+        // Position the dropdown
+        this.positionDropdown(menu, toggle);
+        
+        // Show the dropdown
+        menu.classList.add('show');
+    }
+    
+    /**
+     * Hide dropdown menu
+     */
+    hideDropdown(menu) {
+        menu.classList.remove('show');
+    }
+    
+    /**
+     * Hide all dropdown menus
+     */
+    hideAllDropdowns() {
+        const dropdowns = document.querySelectorAll('.nav-dropdown-menu');
+        dropdowns.forEach(dropdown => {
+            dropdown.classList.remove('show');
+        });
+    }
+    
+    /**
+     * Position dropdown menu using fixed positioning
+     */
+    positionDropdown(menu, toggle) {
+        const rect = toggle.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const menuWidth = 180;
+        
+        // Position below the toggle with minimal gap
+        const top = rect.bottom + 2;
+        let left = rect.left;
+        
+        // Simple left alignment with screen boundary checks
+        if (left + menuWidth > viewportWidth - 20) {
+            left = viewportWidth - menuWidth - 20;
+        }
+        if (left < 20) {
+            left = 20;
+        }
+        
+        // Apply positioning
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
+        
     }
 
     /**
@@ -917,6 +1222,14 @@ class SharedComponents {
                         if (!searchInput.value.trim()) {
                             this.collapseSearchBar();
                         }
+                    }
+                });
+                
+                // Reposition dropdown on window resize
+                window.addEventListener('resize', () => {
+                    const suggestionsContainer = document.getElementById('search-suggestions');
+                    if (suggestionsContainer && suggestionsContainer.classList.contains('show')) {
+                        this.positionSuggestionsDropdown(suggestionsContainer);
                     }
                 });
                 
@@ -1018,12 +1331,8 @@ class SharedComponents {
      */
     async performGlobalSearch(query) {
         try {
-            // Prefer the newer GlobalSearch endpoint which returns rich DTOs
+            // Use the GlobalSearch endpoint
             let response = await fetch(`${this.backendBaseUrl}/api/GlobalSearch?query=${encodeURIComponent(query)}&pageSize=8`);
-            if (!response.ok) {
-                // Fallback to legacy search endpoint
-                response = await fetch(`${this.backendBaseUrl}/api/search/global?query=${encodeURIComponent(query)}`);
-            }
             if (!response.ok) {
                 console.log('Global search API not available, using fallback');
                 this.performFallbackSearch(query);
@@ -1081,6 +1390,37 @@ class SharedComponents {
     }
 
     /**
+     * Position suggestions dropdown using fixed positioning
+     */
+    positionSuggestionsDropdown(suggestionsContainer) {
+        const searchContainer = document.getElementById('global-search');
+        if (!searchContainer) return;
+        
+        const rect = searchContainer.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const dropdownWidth = 280; // min-width from CSS
+        
+        // Position below the search container with some margin
+        const top = rect.bottom + 8;
+        let left = rect.left;
+        
+        // Ensure dropdown doesn't go off screen on the right
+        if (left + dropdownWidth > viewportWidth - 20) {
+            left = viewportWidth - dropdownWidth - 20;
+        }
+        
+        // Ensure dropdown doesn't go off screen on the left
+        if (left < 20) {
+            left = 20;
+        }
+        
+        // Apply positioning
+        suggestionsContainer.style.top = `${top}px`;
+        suggestionsContainer.style.left = `${left}px`;
+        suggestionsContainer.style.width = `${Math.max(dropdownWidth, rect.width)}px`;
+    }
+
+    /**
      * Display search suggestions
      */
     displaySuggestions(suggestions) {
@@ -1090,6 +1430,9 @@ class SharedComponents {
             this.hideSuggestions();
             return;
         }
+        
+        // Position the dropdown using fixed positioning to break out of any stacking context
+        this.positionSuggestionsDropdown(suggestionsContainer);
 
         const suggestionsHtml = suggestions.map((suggestion, index) => {
             const icon = this.getTypeIcon(suggestion.type);
@@ -1142,19 +1485,19 @@ class SharedComponents {
             startsWith(url, '/solutions/') ||
             startsWith(url, '/publications/') ||
             startsWith(url, '/repositories/')) {
-            switch (typeLower) {
+        switch (typeLower) {
                 case 'product':
-                    url = id != null ? `/Products?id=${id}` : '/Products';
+                    url = id != null ? `/Products.html?id=${id}` : '/Products.html';
                     break;
                 case 'solution':
                     // File is lowercase on disk
-                    url = id != null ? `/solutions?id=${id}` : '/solutions';
+                    url = id != null ? `/solutions.html?id=${id}` : '/solutions.html';
                     break;
                 case 'publication':
-                    url = id != null ? `/Publications?id=${id}` : '/Publications';
+                    url = id != null ? `/Publications.html?id=${id}` : '/Publications.html';
                     break;
                 case 'repository':
-                    url = id != null ? `/Repository?id=${id}` : '/Repository';
+                    url = id != null ? `/Repository.html?id=${id}` : '/Repository.html';
                     break;
                 default:
                     // Default to search results if we only have a title/description
@@ -1202,16 +1545,16 @@ class SharedComponents {
 
         switch (type) {
             case 'product':
-                window.location.href = id ? `/Products?id=${id}` : '/Products';
+                window.location.href = id ? `/Products.html?id=${id}` : '/Products.html';
                 break;
             case 'publication':
-                window.location.href = id ? `/Publications?id=${id}` : '/Publications';
+                window.location.href = id ? `/Publications.html?id=${id}` : '/Publications.html';
                 break;
             case 'solution':
-                window.location.href = id ? `/solutions?id=${id}` : '/solutions';
+                window.location.href = id ? `/solutions.html?id=${id}` : '/solutions.html';
                 break;
             case 'repository':
-                window.location.href = id ? `/Repository?id=${id}` : '/Repository';
+                window.location.href = id ? `/Repository.html?id=${id}` : '/Repository.html';
                 break;
             default:
                 const query = document.getElementById('global-search-input')?.value.trim() || '';
@@ -1277,9 +1620,15 @@ class SharedComponents {
     handleSearchExpand() {
         const searchContainer = document.getElementById('global-search');
         const searchInput = document.getElementById('global-search-input');
+        const navCenter = document.querySelector('.nav-center');
         
         if (searchContainer && !searchContainer.classList.contains('expanded')) {
             searchContainer.classList.add('expanded');
+            
+            // Collapse nav links to prevent overlap
+            if (navCenter) {
+                navCenter.classList.add('search-expanded');
+            }
             
             // Focus the input after expansion animation
             setTimeout(() => {
@@ -1312,9 +1661,17 @@ class SharedComponents {
      */
     collapseSearchBar() {
         const searchContainer = document.getElementById('global-search');
+        const navCenter = document.querySelector('.nav-center');
+        
         if (searchContainer) {
             searchContainer.classList.remove('expanded');
         }
+        
+        // Restore nav links visibility
+        if (navCenter) {
+            navCenter.classList.remove('search-expanded');
+        }
+        
         this.hideSuggestions();
     }
 

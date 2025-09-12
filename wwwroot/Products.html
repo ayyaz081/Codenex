@@ -982,12 +982,53 @@
         // Ensure deep-linked product appears on the current page before initial render
         function handleDeepLinkPaging() {
             const urlParams = new URLSearchParams(window.location.search);
+            console.log('Products handleDeepLinkPaging called. URL params:', window.location.search);
+            
+            // Handle individual product ID
             const idParam = urlParams.get('id');
-            if (!idParam) return;
-            const id = parseInt(idParam, 10);
-            const idx = filteredProducts.findIndex(p => p.id === id || p.Id === id);
-            if (idx >= 0) {
-                currentPage = Math.floor(idx / pageSize) + 1;
+            if (idParam) {
+                console.log('Found product ID parameter:', idParam);
+                const id = parseInt(idParam, 10);
+                const idx = filteredProducts.findIndex(p => p.id === id || p.Id === id);
+                if (idx >= 0) {
+                    currentPage = Math.floor(idx / pageSize) + 1;
+                }
+                return;
+            }
+            
+            // Handle domain filtering
+            const domain = urlParams.get('domain');
+            console.log('Checking for domain parameter. Found:', domain);
+            if (domain) {
+                console.log('Deep link domain filter detected:', domain);
+                const domainFilter = document.getElementById('category-filter');
+                console.log('Domain filter element found:', domainFilter);
+                if (domainFilter) {
+                    console.log('Setting domain filter value to:', domain);
+                    // Set the domain filter value
+                    domainFilter.value = domain;
+                    console.log('Filter value set. Current value:', domainFilter.value);
+                    // Trigger filtering
+                    console.log('Calling applyFilters...');
+                    applyFilters();
+                    console.log('Applied domain filter from URL:', domain);
+                } else {
+                    console.warn('Domain filter element not found, will retry after DOM loads');
+                    // Retry after a short delay to ensure DOM is ready
+                    setTimeout(() => {
+                        console.log('Retrying domain filter application...');
+                        const retryDomainFilter = document.getElementById('category-filter');
+                        if (retryDomainFilter) {
+                            retryDomainFilter.value = domain;
+                            applyFilters();
+                            console.log('Applied domain filter from URL (retry):', domain);
+                        } else {
+                            console.error('Still could not find category-filter element after retry');
+                        }
+                    }, 500);
+                }
+            } else {
+                console.log('No domain parameter found in URL');
             }
         }
 
@@ -1677,7 +1718,7 @@
             try {
                 showLoadingState();
                 
-                const response = await fetch(`${backendBaseUrl}/api/search/global?query=${encodeURIComponent(query)}`);
+                const response = await fetch(`${backendBaseUrl}/api/GlobalSearch?query=${encodeURIComponent(query)}&pageSize=8`);
                 
                 if (!response.ok) {
                     throw new Error(`Search request failed: ${response.status}`);

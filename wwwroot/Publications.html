@@ -1848,12 +1848,41 @@
 
         function handleDeepLink() {
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // Handle individual publication ID
             const id = urlParams.get('id');
-            if (!id) return;
-            const el = document.getElementById(`publication-${id}`);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                try { viewPublication(parseInt(id, 10)); } catch {}
+            if (id) {
+                const el = document.getElementById(`publication-${id}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    try { viewPublication(parseInt(id, 10)); } catch {}
+                }
+                return;
+            }
+            
+            // Handle domain filtering
+            const domain = urlParams.get('domain');
+            if (domain) {
+                console.log('Deep link domain filter detected:', domain);
+                const domainFilter = document.getElementById('domain-filter');
+                if (domainFilter) {
+                    // Set the domain filter value
+                    domainFilter.value = domain;
+                    // Trigger search with domain filter
+                    performSearch();
+                    console.log('Applied domain filter from URL:', domain);
+                } else {
+                    console.warn('Domain filter element not found, will retry after DOM loads');
+                    // Retry after a short delay to ensure DOM is ready
+                    setTimeout(() => {
+                        const retryDomainFilter = document.getElementById('domain-filter');
+                        if (retryDomainFilter) {
+                            retryDomainFilter.value = domain;
+                            performSearch();
+                            console.log('Applied domain filter from URL (retry):', domain);
+                        }
+                    }, 500);
+                }
             }
         }
 

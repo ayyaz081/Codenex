@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenex Solutions - Privacy Policy</title>
+    <link rel="icon" type="image/x-icon" href="/components/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="/css/shared-styles.css">
+    <style>
+        .privacy-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 0 0 20px 20px;
+            overflow: hidden;
+        }
+
+        .privacy-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+            z-index: 1;
+        }
+
+        .privacy-header-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 40px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .privacy-header-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .privacy-header-content p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .privacy-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px 40px;
+        }
+
+        .privacy-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 32px;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .privacy-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            z-index: -1;
+        }
+
+        .privacy-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .privacy-section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 24px 0 16px;
+            color: var(--text);
+        }
+
+        .privacy-section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+
+        .privacy-section ul {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        .privacy-section li {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .contact-info {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .contact-info h3 {
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .contact-info p {
+            margin-bottom: 8px;
+        }
+
+        .contact-info a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-info a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 40px;
+            padding: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        @media (max-width: 768px) {
+            .privacy-header-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .privacy-section {
+                padding: 24px;
+            }
+            
+            .privacy-section h2 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <!-- Privacy Policy Header -->
+    <div class="privacy-header">
+        <div class="privacy-header-content">
+            <h1><i class="fas fa-shield-alt"></i> Privacy Policy</h1>
+            <p>Your privacy is important to us. Learn how we protect and handle your information.</p>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Content -->
+    <div class="privacy-content">
+        
+        <!-- Overview Section -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-info-circle"></i> Overview</h2>
+            <p>At Codenex Solutions, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you interact with our services, website, and digital solutions.</p>
+            <p>This policy applies to all services provided by Codenex Solutions, including our cloud technologies, cybersecurity solutions, data analytics services, AI solutions, and DevOps consulting.</p>
+        </div>
+
+        <!-- Information We Collect -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-database"></i> Information We Collect</h2>
+            
+            <h3>Personal Information</h3>
+            <p>We may collect the following types of personal information:</p>
+            <ul>
+                <li>Contact information (name, email address, phone number)</li>
+                <li>Business information (company name, job title, industry)</li>
+                <li>Communication preferences</li>
+                <li>Project requirements and technical specifications</li>
+                <li>Billing and payment information (when applicable)</li>
+            </ul>
+
+            <h3>Technical Information</h3>
+            <p>We automatically collect certain technical information when you visit our website:</p>
+            <ul>
+                <li>IP address and location data</li>
+                <li>Browser type and version</li>
+                <li>Device information</li>
+                <li>Website usage patterns and analytics</li>
+                <li>Cookies and similar tracking technologies</li>
+            </ul>
+        </div>
+
+        <!-- How We Use Your Information -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-cogs"></i> How We Use Your Information</h2>
+            <p>We use your information for the following purposes:</p>
+            <ul>
+                <li>Providing and improving our services</li>
+                <li>Communicating with you about projects and updates</li>
+                <li>Customizing your experience with our solutions</li>
+                <li>Processing payments and managing accounts</li>
+                <li>Analyzing website usage to improve functionality</li>
+                <li>Sending relevant marketing communications (with your consent)</li>
+                <li>Complying with legal obligations</li>
+                <li>Protecting against fraud and security threats</li>
+            </ul>
+        </div>
+
+        <!-- Information Sharing -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-share-alt"></i> Information Sharing</h2>
+            <p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
+            <ul>
+                <li><strong>Service Providers:</strong> With trusted third-party vendors who assist us in delivering our services</li>
+                <li><strong>Legal Requirements:</strong> When required by law or to protect our legal rights</li>
+                <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
+                <li><strong>Consent:</strong> When you explicitly consent to such sharing</li>
+            </ul>
+        </div>
+
+        <!-- Data Security -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-lock"></i> Data Security</h2>
+            <p>We implement robust security measures to protect your information:</p>
+            <ul>
+                <li>Encryption of data in transit and at rest</li>
+                <li>Regular security assessments and updates</li>
+                <li>Access controls and authentication protocols</li>
+                <li>Secure cloud infrastructure and backup systems</li>
+                <li>Employee training on data protection practices</li>
+                <li>Compliance with industry security standards</li>
+            </ul>
+            <p>While we strive to protect your information, no method of transmission over the internet is 100% secure. We encourage you to take steps to protect your own information as well.</p>
+        </div>
+
+        <!-- Your Rights -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-user-shield"></i> Your Rights</h2>
+            <p>You have the following rights regarding your personal information:</p>
+            <ul>
+                <li><strong>Access:</strong> Request access to your personal data</li>
+                <li><strong>Correction:</strong> Request correction of inaccurate information</li>
+                <li><strong>Deletion:</strong> Request deletion of your personal data</li>
+                <li><strong>Portability:</strong> Request a copy of your data in a portable format</li>
+                <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
+                <li><strong>Restriction:</strong> Request restrictions on processing your data</li>
+            </ul>
+            <p>To exercise these rights, please contact us using the information provided below.</p>
+        </div>
+
+        <!-- Cookies -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-cookie-bite"></i> Cookies and Tracking</h2>
+            <p>We use cookies and similar technologies to enhance your browsing experience:</p>
+            <ul>
+                <li><strong>Essential Cookies:</strong> Required for website functionality</li>
+                <li><strong>Analytics Cookies:</strong> Help us understand website usage</li>
+                <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
+                <li><strong>Marketing Cookies:</strong> Provide relevant content and advertisements</li>
+            </ul>
+            <p>You can control cookie settings through your browser preferences. Note that disabling certain cookies may affect website functionality.</p>
+        </div>
+
+        <!-- Data Retention -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-archive"></i> Data Retention</h2>
+            <p>We retain your personal information only for as long as necessary to:</p>
+            <ul>
+                <li>Fulfill the purposes for which it was collected</li>
+                <li>Comply with legal obligations</li>
+                <li>Resolve disputes and enforce agreements</li>
+                <li>Maintain business records as required</li>
+            </ul>
+            <p>When data is no longer needed, we securely delete or anonymize it in accordance with our data retention policies.</p>
+        </div>
+
+        <!-- Changes to Policy -->
+        <div class="privacy-section">
+            <h2><i class="fas fa-edit"></i> Changes to This Policy</h2>
+            <p>We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. We will notify you of significant changes by:</p>
+            <ul>
+                <li>Posting the updated policy on our website</li>
+                <li>Sending email notifications to registered users</li>
+                <li>Updating the "Last Updated" date below</li>
+            </ul>
+            <p>We encourage you to review this policy periodically to stay informed about how we protect your information.</p>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="contact-info">
+            <h3><i class="fas fa-envelope"></i> Contact Us</h3>
+            <p>If you have questions about this Privacy Policy or our data practices, please contact us:</p>
+            <p><strong>Email:</strong> <a href="mailto:bc220201051aay@vu.edu.pk">bc220201051aay@vu.edu.pk</a></p>
+            <p><strong>Phone:</strong> <a href="tel:+923354150415">+92 335 415 0415</a></p>
+            <p><strong>Address:</strong> Virtual University Gojra Campus, Punjab, Pakistan</p>
+        </div>
+
+        <!-- Last Updated -->
+        <div class="last-updated">
+            <p><strong>Last Updated:</strong> January 11, 2025</p>
+            <p>This Privacy Policy is effective as of the date listed above.</p>
+        </div>
+
+    </div>
+
+    <!-- Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Load shared components -->
+    <script src="/js/shared-components.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHeader();
+            loadFooter();
+        });
+    </script>
+</body>
+</html>

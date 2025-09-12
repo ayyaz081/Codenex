@@ -1271,6 +1271,7 @@
                     
                     updateStats();
                     renderSolutions();
+                    handleDeepLink();
                 } else {
                     throw new Error('Failed to load solutions');
                 }
@@ -1455,10 +1456,65 @@
             }
 
             // Render pagination
-            renderPagination(totalPages);
+            renderPagination();
+            
+            // Handle deep linking after rendering
+            if (!deepLinkHandled) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetId = urlParams.get('id');
+                if (targetId) {
+                    const el = document.getElementById(`solution-${targetId}`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        try { viewSolution(parseInt(targetId, 10)); } catch {}
+                        deepLinkHandled = true;
+                    }
+                }
+            }
+        }
+        
+        function handleDeepLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Handle individual solution ID
+            const id = urlParams.get('id');
+            if (id) {
+                // Find the page that contains this solution
+                const solutionIndex = filteredSolutions.findIndex(s => s.id === parseInt(id, 10));
+                if (solutionIndex >= 0) {
+                    currentPage = Math.floor(solutionIndex / pageSize) + 1;
+                    renderSolutions();
+                }
+                return;
+            }
+            
+            // Handle problemArea filtering
+            const problemArea = urlParams.get('problemArea');
+            if (problemArea) {
+                console.log('Deep link problemArea filter detected:', problemArea);
+                const categoryFilter = document.getElementById('category-filter');
+                if (categoryFilter) {
+                    // Set the category filter value (maps to problemArea)
+                    categoryFilter.value = problemArea;
+                    // Trigger filtering
+                    applyFilters();
+                    console.log('Applied problemArea filter from URL:', problemArea);
+                } else {
+                    console.warn('Category filter element not found, will retry after DOM loads');
+                    // Retry after a short delay to ensure DOM is ready
+                    setTimeout(() => {
+                        const retryCategoryFilter = document.getElementById('category-filter');
+                        if (retryCategoryFilter) {
+                            retryCategoryFilter.value = problemArea;
+                            applyFilters();
+                            console.log('Applied problemArea filter from URL (retry):', problemArea);
+                        }
+                    }, 500);
+                }
+            }
         }
 
-        // Apply filters
+        // View solution details
         function applyFilters() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const categoryFilter = document.getElementById('category-filter').value;
@@ -1710,14 +1766,103 @@
 
         // Request solution
         function requestSolution(solutionId) {
-            // In a real application, this would open a detailed request form or redirect to contact
-            window.location.href = `Contact?solution=${solutionId}&action=quote`;
+            // Find the solution details - check both arrays and handle different ID field names
+            let solution = filteredSolutions.find(s => s.id === solutionId || s.Id === solutionId) || 
+                          solutions.find(s => s.id === solutionId || s.Id === solutionId);
+            
+            // If still not found, try to get it from the API (for modal cases)
+            if (!solution) {
+                // If we're calling from modal, try to fetch fresh data
+                const modalTitle = document.getElementById('modal-title');
+                if (modalTitle && modalTitle.textContent) {
+                    // Find by title as fallback
+                    solution = filteredSolutions.find(s => s.title === modalTitle.textContent) || 
+                              solutions.find(s => s.title === modalTitle.textContent);
+                }
+            }
+            
+            if (!solution) {
+                alert('Solution not found. Please try again.');
+                return;
+            }
+            
+            // Prepare email content
+            const emailTo = 'bc220201051aay@vu.edu.pk';
+            const emailSubject = encodeURIComponent('Quote Request for Solution');
+            
+            // Create detailed email body
+            const emailBody = encodeURIComponent(
+                `Dear Team,\n\n` +
+                `I am interested in getting a quote for the following solution:\n\n` +
+                `Solution Title: ${solution.title}\n` +
+                `Problem Area: ${solution.problemArea || 'Not specified'}\n` +
+                `Description: ${solution.summary || solution.description || 'No description available'}\n\n` +
+                `${solution.keyFeatures ? `Key Features:\n${solution.keyFeatures.split(',').map(f => `• ${f.trim()}`).join('\n')}\n\n` : ''}` +
+                `${solution.technologiesUsed ? `Technologies: ${solution.technologiesUsed}\n\n` : ''}` +
+                `Please provide me with:\n` +
+                `• Detailed pricing information\n` +
+                `• Implementation timeline\n` +
+                `• Any customization options available\n` +
+                `• Support and maintenance details\n\n` +
+                `I look forward to hearing from you soon.\n\n` +
+                `Best regards`
+            );
+            
+            // Create mailto URL
+            const mailtoUrl = `mailto:${emailTo}?subject=${emailSubject}&body=${emailBody}`;
+            
+            // Open email client
+            try {
+                window.location.href = mailtoUrl;
+            } catch (error) {
+                console.error('Error opening email client:', error);
+                // Fallback: copy email details to clipboard
+                const fallbackText = `Email: ${emailTo}\nSubject: Quote Request for Solution\n\nBody: ${decodeURIComponent(emailBody)}`;
+                navigator.clipboard.writeText(fallbackText).then(() => {
+                    alert('Email client could not be opened. Email details have been copied to clipboard.');
+                }).catch(() => {
+                    alert(`Email client could not be opened. Please send an email to: ${emailTo} with subject "Quote Request for Solution" and include details about ${solution.title}.`);
+                });
+            }
         }
 
         // Schedule meeting
         function scheduleMeeting(solutionId) {
-            // In a real application, this would integrate with a calendar system
-            alert(`Scheduling meeting for solution #${solutionId}. This would integrate with a calendar booking system.`);
+            // Find the solution details for context
+            let solution = filteredSolutions.find(s => s.id === solutionId || s.Id === solutionId) || 
+                          solutions.find(s => s.id === solutionId || s.Id === solutionId);
+            
+            // If still not found, try to get it from the modal
+            if (!solution) {
+                const modalTitle = document.getElementById('modal-title');
+                if (modalTitle && modalTitle.textContent) {
+                    solution = filteredSolutions.find(s => s.title === modalTitle.textContent) || 
+                              solutions.find(s => s.title === modalTitle.textContent);
+                }
+            }
+            
+            // Open Google Calendar booking page
+            const bookingUrl = 'https://calendar.app.google/xta6b1fwfCN2Bkgc9';
+            
+            try {
+                // Open in new tab/window
+                window.open(bookingUrl, '_blank', 'noopener,noreferrer');
+                
+                // Optional: Show confirmation message with solution context
+                if (solution) {
+                    setTimeout(() => {
+                        alert(`Opening booking page for "${solution.title}". Please mention this solution in your meeting request.`);
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('Error opening booking page:', error);
+                // Fallback: copy URL to clipboard and show instructions
+                navigator.clipboard.writeText(bookingUrl).then(() => {
+                    alert(`Could not open booking page automatically. The URL has been copied to your clipboard: ${bookingUrl}`);
+                }).catch(() => {
+                    alert(`Please visit this URL to schedule a meeting: ${bookingUrl}`);
+                });
+            }
         }
         
         // Show no demo message
