@@ -269,7 +269,8 @@ else
             "connect-src 'self' https: wss:; " +
             "media-src 'self' https:; " +
             "object-src 'none'; " +
-            "child-src 'none'; " +
+            "child-src https://maps.google.com; " +
+            "frame-src https://maps.google.com; " +
             "frame-ancestors 'none'; " +
             "form-action 'self'; " +
             "base-uri 'self'; " +
