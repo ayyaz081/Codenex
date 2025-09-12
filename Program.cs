@@ -293,8 +293,25 @@ app.UseCors("DefaultCorsPolicy");
 // Enable response caching middleware
 app.UseResponseCaching();
 
+// Clean URL mapping for HTML pages (moved here for middleware access)
+var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+{
+    { "/About", "About.html" },
+    { "/Admin", "Admin.html" },
+    { "/Auth", "Auth.html" },
+    { "/Contact", "Contact.html" },
+    { "/Products", "Products.html" },
+    { "/Publications", "Publications.html" },
+    { "/Repository", "Repository.html" },
+    { "/SearchResults", "SearchResults.html" },
+    { "/solutions", "solutions.html" },
+    { "/EmailVerified", "EmailVerified.html" },
+    { "/Privacy-Policy", "Privacy-Policy.html" }
+};
+
 // Configure default files (index.html, default.html)
 app.UseDefaultFiles();
+
 
 // Serve static files from wwwroot
 app.UseStaticFiles();
@@ -304,6 +321,38 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+// Add explicit route for root path to serve index.html
+app.MapGet("/", async (HttpContext context) =>
+{
+    var filePath = Path.Combine(app.Environment.WebRootPath, "index.html");
+    if (File.Exists(filePath))
+    {
+        await ServeHtmlWithApiInjection(context, filePath, builder.Configuration);
+    }
+    else
+    {
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Index page not found");
+    }
+});
+
+// Add explicit route for Privacy Policy to ensure it works
+app.MapGet("/Privacy-Policy", async (HttpContext context) =>
+{
+    var filePath = Path.Combine(app.Environment.WebRootPath, "Privacy-Policy.html");
+    if (File.Exists(filePath))
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(filePath);
+    }
+    else
+    {
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync($"Privacy Policy page not found at: {filePath}");
+    }
+});
 
 // Configure health check endpoints
 app.MapHealthChecks("/health", new HealthCheckOptions
@@ -368,23 +417,6 @@ app.MapGet("/health/admin", async (UserManager<User> userManager) =>
 });
 
 
-// Clean URL mapping for HTML pages
-var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-{
-    { "/About", "About.html" },
-    { "/Admin", "Admin.html" },
-    { "/Auth", "Auth.html" },
-    { "/Contact", "Contact.html" },
-    { "/Products", "Products.html" },
-    { "/Publications", "Publications.html" },
-    { "/Repository", "Repository.html" },
-    { "/SearchResults", "SearchResults.html" },
-    { "/solutions", "solutions.html" },
-    { "/debug-api", "debug-api.html" },
-    { "/debug-backend", "debug-backend.html" },
-    { "/EmailVerified", "EmailVerified.html" }
-};
-
 // Helper function to inject API URL and serve HTML
 static async Task ServeHtmlWithApiInjection(HttpContext context, string htmlPath, IConfiguration configuration)
 {
@@ -419,23 +451,6 @@ static async Task ServeHtmlWithApiInjection(HttpContext context, string htmlPath
     await context.Response.WriteAsync(htmlContent);
 }
 
-// Map specific clean URLs
-foreach (var mapping in cleanUrlMappings)
-{
-    app.Map(mapping.Key, async context =>
-    {
-        var htmlPath = Path.Combine(app.Environment.WebRootPath, mapping.Value);
-        if (File.Exists(htmlPath))
-        {
-            await ServeHtmlWithApiInjection(context, htmlPath, builder.Configuration);
-        }
-        else
-        {
-            context.Response.StatusCode = 404;
-            await context.Response.WriteAsync("Page not found");
-        }
-    });
-}
 
 // Fallback route for SPA support (only for unmatched routes)
 app.MapFallback(async context =>
@@ -444,23 +459,68 @@ app.MapFallback(async context =>
     
     // Don't handle API routes or other known routes
     if (path.StartsWith("/api", StringComparison.OrdinalIgnoreCase) ||
-        path.StartsWith("/health", StringComparison.OrdinalIgnoreCase))
+        path.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase))
     {
         context.Response.StatusCode = 404;
         await context.Response.WriteAsync("Not Found");
         return;
     }
     
-    // Default fallback to index.html (SPA support)
-    var fallbackIndexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
-    if (File.Exists(fallbackIndexPath))
+    // Handle Privacy Policy variations first (case-insensitive)
+    if (path?.Equals("/privacy-policy", StringComparison.OrdinalIgnoreCase) == true ||
+        path?.Equals("/privacypolicy", StringComparison.OrdinalIgnoreCase) == true)
     {
-        await ServeHtmlWithApiInjection(context, fallbackIndexPath, builder.Configuration);
+        var privacyPath = Path.Combine(app.Environment.WebRootPath, "Privacy-Policy.html");
+        if (File.Exists(privacyPath))
+        {
+            await ServeHtmlWithApiInjection(context, privacyPath, builder.Configuration);
+            return;
+        }
+    }
+    
+    // Check if this is a clean URL that should be mapped to an HTML file
+    if (!string.IsNullOrEmpty(path) && cleanUrlMappings.TryGetValue(path, out var htmlFile))
+    {
+        var htmlPath = Path.Combine(app.Environment.WebRootPath, htmlFile);
+        if (File.Exists(htmlPath))
+        {
+            await ServeHtmlWithApiInjection(context, htmlPath, builder.Configuration);
+            return;
+        }
+    }
+    
+    // For root path, serve index.html
+    if (path == "/")
+    {
+        var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+        if (File.Exists(indexPath))
+        {
+            await ServeHtmlWithApiInjection(context, indexPath, builder.Configuration);
+            return;
+        }
+    }
+    
+    // For all other unmatched routes, try to serve the custom 404 page
+    var custom404Path = Path.Combine(app.Environment.WebRootPath, "404.html");
+    if (File.Exists(custom404Path))
+    {
+        context.Response.StatusCode = 404;
+        await ServeHtmlWithApiInjection(context, custom404Path, builder.Configuration);
     }
     else
     {
-        context.Response.StatusCode = 404;
-        await context.Response.WriteAsync("Page not found");
+        // Final fallback to index.html (SPA support)
+        var fallbackIndexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+        if (File.Exists(fallbackIndexPath))
+        {
+            await ServeHtmlWithApiInjection(context, fallbackIndexPath, builder.Configuration);
+        }
+        else
+        {
+            context.Response.StatusCode = 404;
+            await context.Response.WriteAsync("Page not found");
+        }
     }
 });
 

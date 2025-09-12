@@ -219,6 +219,7 @@ function createMobileMenu() {
 function handleSearchToggle() {
     const globalSearch = document.getElementById('global-search');
     const searchInput = document.getElementById('global-search-input');
+    const navCenter = document.querySelector('.nav-center');
     
     if (!globalSearch) {
         console.log('❌ Global search element not found');
@@ -231,6 +232,11 @@ function handleSearchToggle() {
         // Collapse search
         globalSearch.classList.remove('expanded');
         globalSearch.style.width = '40px';
+        
+        // Restore nav links visibility
+        if (navCenter) {
+            navCenter.classList.remove('search-expanded');
+        }
         
         const inputContainer = globalSearch.querySelector('.search-input-container');
         if (inputContainer) {
@@ -253,6 +259,11 @@ function handleSearchToggle() {
         // Expand search
         globalSearch.classList.add('expanded');
         globalSearch.style.width = '160px';
+        
+        // Collapse nav links to prevent overlap
+        if (navCenter) {
+            navCenter.classList.add('search-expanded');
+        }
         
         setTimeout(() => {
             const inputContainer = globalSearch.querySelector('.search-input-container');
