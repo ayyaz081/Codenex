@@ -34,59 +34,68 @@ namespace CodeNex.Services
             _logger.LogInformation($"GitHub Service initialized for organization: {_organizationName}");
         }
 
-        public async Task<bool> InviteUserToRepositoryAsync(string githubUsername, string repositoryName)
+        public async Task<bool> InviteUserToRepositoryAsync(string githubUsername, string repositoryName, string? organizationName = null)
         {
+            // Use provided organization name or fall back to default
+            var orgName = organizationName ?? _organizationName;
+            
             try
             {
-                _logger.LogInformation($"Attempting to invite GitHub user '{githubUsername}' to repository '{_organizationName}/{repositoryName}'");
+                _logger.LogInformation($"Attempting to invite GitHub user '{githubUsername}' to repository '{orgName}/{repositoryName}'");
 
                 // Add user as collaborator to the repository
                 // Permission can be: pull, push, admin, maintain, triage
                 await _githubClient.Repository.Collaborator.Add(
-                    _organizationName,
+                    orgName,
                     repositoryName,
                     githubUsername
                 );
 
-                _logger.LogInformation($"Successfully invited user '{githubUsername}' to repository '{_organizationName}/{repositoryName}'");
+                _logger.LogInformation($"✅ Successfully invited user '{githubUsername}' to repository '{orgName}/{repositoryName}'");
+                _logger.LogInformation($"User '{githubUsername}' should receive an email invitation to access the repository.");
                 return true;
             }
             catch (NotFoundException ex)
             {
-                _logger.LogError(ex, $"Repository '{_organizationName}/{repositoryName}' not found or user '{githubUsername}' doesn't exist");
+                _logger.LogError(ex, $"❌ Repository '{orgName}/{repositoryName}' not found or user '{githubUsername}' doesn't exist");
+                _logger.LogError($"Please verify: 1) Repository {orgName}/{repositoryName} exists and is private, 2) User {githubUsername} exists on GitHub");
                 return false;
             }
             catch (ApiException ex)
             {
-                _logger.LogError(ex, $"GitHub API error while inviting user '{githubUsername}': {ex.Message}");
+                _logger.LogError(ex, $"❌ GitHub API error while inviting user '{githubUsername}': {ex.Message}");
+                _logger.LogError($"API Status: {ex.StatusCode}, Headers: {string.Join(", ", ex.Headers?.Keys ?? new string[0])}");
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Unexpected error inviting user '{githubUsername}' to repository");
+                _logger.LogError(ex, $"❌ Unexpected error inviting user '{githubUsername}' to repository");
                 return false;
             }
         }
 
-        public async Task<bool> CheckUserAccessAsync(string githubUsername, string repositoryName)
+        public async Task<bool> CheckUserAccessAsync(string githubUsername, string repositoryName, string? organizationName = null)
         {
+            // Use provided organization name or fall back to default
+            var orgName = organizationName ?? _organizationName;
+            
             try
             {
-                _logger.LogInformation($"Checking access for user '{githubUsername}' to repository '{_organizationName}/{repositoryName}'");
+                _logger.LogInformation($"Checking access for user '{githubUsername}' to repository '{orgName}/{repositoryName}'");
 
                 // Check if user is a collaborator
                 var isCollaborator = await _githubClient.Repository.Collaborator.IsCollaborator(
-                    _organizationName,
+                    orgName,
                     repositoryName,
                     githubUsername
                 );
 
-                _logger.LogInformation($"User '{githubUsername}' access status for '{_organizationName}/{repositoryName}': {isCollaborator}");
+                _logger.LogInformation($"User '{githubUsername}' access status for '{orgName}/{repositoryName}': {isCollaborator}");
                 return isCollaborator;
             }
             catch (NotFoundException)
             {
-                _logger.LogWarning($"Repository '{_organizationName}/{repositoryName}' not found or user '{githubUsername}' doesn't exist");
+                _logger.LogWarning($"Repository '{orgName}/{repositoryName}' not found or user '{githubUsername}' doesn't exist");
                 return false;
             }
             catch (Exception ex)
@@ -96,20 +105,23 @@ namespace CodeNex.Services
             }
         }
 
-        public async Task<bool> RevokeUserAccessAsync(string githubUsername, string repositoryName)
+        public async Task<bool> RevokeUserAccessAsync(string githubUsername, string repositoryName, string? organizationName = null)
         {
+            // Use provided organization name or fall back to default
+            var orgName = organizationName ?? _organizationName;
+            
             try
             {
-                _logger.LogInformation($"Revoking access for user '{githubUsername}' from repository '{_organizationName}/{repositoryName}'");
+                _logger.LogInformation($"Revoking access for user '{githubUsername}' from repository '{orgName}/{repositoryName}'");
 
                 // Remove user as collaborator
                 await _githubClient.Repository.Collaborator.Delete(
-                    _organizationName,
+                    orgName,
                     repositoryName,
                     githubUsername
                 );
 
-                _logger.LogInformation($"Successfully revoked access for user '{githubUsername}' from repository '{_organizationName}/{repositoryName}'");
+                _logger.LogInformation($"Successfully revoked access for user '{githubUsername}' from repository '{orgName}/{repositoryName}'");
                 return true;
             }
             catch (NotFoundException ex)
