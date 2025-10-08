@@ -192,7 +192,7 @@ namespace CodeNex.Controllers
 
             try
             {
-                string uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "content");
+                string uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "solutions");
                 Directory.CreateDirectory(uploadsDir);
 
                 string? demoImageUrl = await ProcessUploadedFile(dto.DemoImageFile, uploadsDir, "demo");
@@ -264,7 +264,7 @@ namespace CodeNex.Controllers
                     if (form.Files.Any(f => f.Name == "demoImageFile"))
                     {
                         var file = form.Files.First(f => f.Name == "demoImageFile");
-                        string uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "content");
+                        string uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "solutions");
                         Directory.CreateDirectory(uploadsDir);
                         existing.DemoImageUrl = await ProcessUploadedFile(file, uploadsDir, "demo");
                     }
@@ -383,7 +383,7 @@ namespace CodeNex.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            return $"/content/{fileName}";
+            return $"/uploads/solutions/{fileName}";
         }
     }
 }

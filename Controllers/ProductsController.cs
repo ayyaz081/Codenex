@@ -83,7 +83,7 @@ namespace CodeNex.Controllers
                 if (dto.Image == null || dto.Image.Length == 0)
                     return BadRequest("Image is required.");
 
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "content");
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "products");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
@@ -101,7 +101,7 @@ namespace CodeNex.Controllers
                     ShortDescription = dto.ShortDescription,
                     LongDescription = dto.LongDescription,
                     Domain = dto.Domain,
-                    ImageUrl = $"/content/{fileName}"
+                    ImageUrl = $"/uploads/products/{fileName}"
                 };
 
                 _context.Products.Add(product);
@@ -147,7 +147,7 @@ namespace CodeNex.Controllers
                     }
 
                     // Upload new image
-                    var uploadsFolder = Path.Combine(_env.WebRootPath, "content");
+                    var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "products");
                     if (!Directory.Exists(uploadsFolder))
                         Directory.CreateDirectory(uploadsFolder);
 
@@ -159,7 +159,7 @@ namespace CodeNex.Controllers
                         await dto.Image.CopyToAsync(stream);
                     }
 
-                    product.ImageUrl = $"/content/{fileName}";
+                    product.ImageUrl = $"/uploads/products/{fileName}";
                 }
 
                 _context.Entry(product).State = EntityState.Modified;
