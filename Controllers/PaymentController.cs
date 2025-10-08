@@ -273,10 +273,26 @@ namespace CodeNex.Controllers
                 // Grant GitHub access
                 if (!string.IsNullOrEmpty(repository.GitHubRepoFullName))
                 {
-                    // Extract repo name from full name (e.g., "CodeNex-Premium/repo-name" -> "repo-name")
-                    var repoName = repository.GitHubRepoFullName.Split('/').LastOrDefault() ?? repository.GitHubRepoFullName;
+                    _logger.LogInformation($"Processing GitHub access for repository: {repository.GitHubRepoFullName}, user: {githubUsername}");
+                    
+                    // Extract organization and repo name from full name (e.g., "CodeNex-Premium/repo-name")
+                    var parts = repository.GitHubRepoFullName.Split('/', 2);
+                    if (parts.Length != 2)
+                    {
+                        _logger.LogError($"Invalid GitHubRepoFullName format: {repository.GitHubRepoFullName}. Expected format: 'org/repo'");
+                        return;
+                    }
+                    
+                    var organizationName = parts[0];
+                    var repoName = parts[1];
+                    
+                    _logger.LogInformation($"Parsed GitHub repository - Org: {organizationName}, Repo: {repoName}");
 
-                    var inviteSuccess = await _githubService.InviteUserToRepositoryAsync(githubUsername, repoName);
+                    var inviteSuccess = await _githubService.InviteUserToRepositoryAsync(
+                        githubUsername, 
+                        repoName,
+                        organizationName  // Pass the organization name from the repository record
+                    );
 
                     if (inviteSuccess)
                     {
@@ -287,11 +303,12 @@ namespace CodeNex.Controllers
 
                         await _context.SaveChangesAsync();
 
-                        _logger.LogInformation($"GitHub access granted to {githubUsername} for repository {repoName}");
+                        _logger.LogInformation($"✅ GitHub access granted successfully to {githubUsername} for repository {organizationName}/{repoName}");
                     }
                     else
                     {
-                        _logger.LogError($"Failed to grant GitHub access to {githubUsername} for repository {repoName}");
+                        _logger.LogError($"❌ Failed to grant GitHub access to {githubUsername} for repository {organizationName}/{repoName}");
+                        _logger.LogError($"Please check: 1) GitHub PAT has correct permissions, 2) Repository {organizationName}/{repoName} exists, 3) User {githubUsername} is valid");
                     }
                 }
                 else
