@@ -20,6 +20,8 @@ namespace CodeNex.Data
         public DbSet<PublicationRating> PublicationRatings => Set<PublicationRating>();
         public DbSet<ContactForm> ContactForms => Set<ContactForm>();
         public DbSet<CommentLike> CommentLikes => Set<CommentLike>();
+        public DbSet<Payment> Payments => Set<Payment>();
+        public DbSet<UserPurchase> UserPurchases => Set<UserPurchase>();
         // Removed About, Home, Team, Testimonial-related models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -84,6 +86,38 @@ namespace CodeNex.Data
             modelBuilder.Entity<CommentLike>()
                 .HasIndex(cl => new { cl.UserId, cl.CommentId })
                 .IsUnique();
+
+            // Configure Payment relationships
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Repository)
+                .WithMany()
+                .HasForeignKey(p => p.RepositoryId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+
+            // Configure UserPurchase relationships
+            modelBuilder.Entity<UserPurchase>()
+                .HasOne(up => up.User)
+                .WithMany()
+                .HasForeignKey(up => up.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+
+            modelBuilder.Entity<UserPurchase>()
+                .HasOne(up => up.Repository)
+                .WithMany()
+                .HasForeignKey(up => up.RepositoryId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+
+            modelBuilder.Entity<UserPurchase>()
+                .HasOne(up => up.Payment)
+                .WithMany()
+                .HasForeignKey(up => up.PaymentId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
 
             // Removed display order indexes for TeamMember, ClientTestimonial, and CarouselSlide
 

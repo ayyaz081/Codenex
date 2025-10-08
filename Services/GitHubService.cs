@@ -1,0 +1,151 @@
+using Octokit;
+
+namespace CodeNex.Services
+{
+    public class GitHubService : IGitHubService
+    {
+        private readonly GitHubClient _githubClient;
+        private readonly string _organizationName;
+        private readonly ILogger<GitHubService> _logger;
+
+        public GitHubService(IConfiguration configuration, ILogger<GitHubService> logger)
+        {
+            _logger = logger;
+
+            // Get configuration from environment variables
+            var accessToken = Environment.GetEnvironmentVariable("GITHUB_PERSONAL_ACCESS_TOKEN") ??
+                            configuration["GitHub:PersonalAccessToken"];
+            
+            _organizationName = Environment.GetEnvironmentVariable("GITHUB_ORGANIZATION_NAME") ??
+                              configuration["GitHub:OrganizationName"] ??
+                              "CodeNex-Premium";
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                throw new InvalidOperationException("GitHub Personal Access Token is not configured. Set GITHUB_PERSONAL_ACCESS_TOKEN in .env file.");
+            }
+
+            // Initialize GitHub client
+            _githubClient = new GitHubClient(new ProductHeaderValue("CodeNex-App"))
+            {
+                Credentials = new Credentials(accessToken)
+            };
+
+            _logger.LogInformation($"GitHub Service initialized for organization: {_organizationName}");
+        }
+
+        public async Task<bool> InviteUserToRepositoryAsync(string githubUsername, string repositoryName)
+        {
+            try
+            {
+                _logger.LogInformation($"Attempting to invite GitHub user '{githubUsername}' to repository '{_organizationName}/{repositoryName}'");
+
+                // Add user as collaborator to the repository
+                // Permission can be: pull, push, admin, maintain, triage
+                await _githubClient.Repository.Collaborator.Add(
+                    _organizationName,
+                    repositoryName,
+                    githubUsername
+                );
+
+                _logger.LogInformation($"Successfully invited user '{githubUsername}' to repository '{_organizationName}/{repositoryName}'");
+                return true;
+            }
+            catch (NotFoundException ex)
+            {
+                _logger.LogError(ex, $"Repository '{_organizationName}/{repositoryName}' not found or user '{githubUsername}' doesn't exist");
+                return false;
+            }
+            catch (ApiException ex)
+            {
+                _logger.LogError(ex, $"GitHub API error while inviting user '{githubUsername}': {ex.Message}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unexpected error inviting user '{githubUsername}' to repository");
+                return false;
+            }
+        }
+
+        public async Task<bool> CheckUserAccessAsync(string githubUsername, string repositoryName)
+        {
+            try
+            {
+                _logger.LogInformation($"Checking access for user '{githubUsername}' to repository '{_organizationName}/{repositoryName}'");
+
+                // Check if user is a collaborator
+                var isCollaborator = await _githubClient.Repository.Collaborator.IsCollaborator(
+                    _organizationName,
+                    repositoryName,
+                    githubUsername
+                );
+
+                _logger.LogInformation($"User '{githubUsername}' access status for '{_organizationName}/{repositoryName}': {isCollaborator}");
+                return isCollaborator;
+            }
+            catch (NotFoundException)
+            {
+                _logger.LogWarning($"Repository '{_organizationName}/{repositoryName}' not found or user '{githubUsername}' doesn't exist");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error checking user access for '{githubUsername}'");
+                return false;
+            }
+        }
+
+        public async Task<bool> RevokeUserAccessAsync(string githubUsername, string repositoryName)
+        {
+            try
+            {
+                _logger.LogInformation($"Revoking access for user '{githubUsername}' from repository '{_organizationName}/{repositoryName}'");
+
+                // Remove user as collaborator
+                await _githubClient.Repository.Collaborator.Delete(
+                    _organizationName,
+                    repositoryName,
+                    githubUsername
+                );
+
+                _logger.LogInformation($"Successfully revoked access for user '{githubUsername}' from repository '{_organizationName}/{repositoryName}'");
+                return true;
+            }
+            catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex, $"Repository or user not found when revoking access for '{githubUsername}'");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error revoking access for user '{githubUsername}'");
+                return false;
+            }
+        }
+
+        public async Task<bool> VerifyGitHubUsernameAsync(string githubUsername)
+        {
+            try
+            {
+                _logger.LogInformation($"Verifying GitHub username: '{githubUsername}'");
+
+                // Try to get the user
+                var user = await _githubClient.User.Get(githubUsername);
+
+                _logger.LogInformation($"GitHub username '{githubUsername}' verified successfully");
+                return user != null;
+            }
+            catch (NotFoundException)
+            {
+                _logger.LogWarning($"GitHub username '{githubUsername}' not found");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error verifying GitHub username '{githubUsername}'");
+                return false;
+            }
+        }
+    }
+}

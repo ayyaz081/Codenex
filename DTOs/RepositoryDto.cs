@@ -10,9 +10,6 @@ namespace CodeNex.DTOs
         [StringLength(1000)]
         public string? Description { get; set; }
 
-        [StringLength(200)]
-        public string? Tags { get; set; }
-
         [StringLength(255)]
         public string? GitHubUrl { get; set; }
 
@@ -21,16 +18,15 @@ namespace CodeNex.DTOs
         public bool? IsFree { get; set; }
 
         [StringLength(100)]
-        public string? License { get; set; }
-
-        [StringLength(50)]
-        public string? Version { get; set; }
-
-        [StringLength(100)]
         public string? Category { get; set; }
 
         [StringLength(200)]
         public string? TechnicalStack { get; set; }
+
+        public decimal? Price { get; set; }
+
+        [StringLength(255)]
+        public string? GitHubRepoFullName { get; set; }
 
         public bool? IsActive { get; set; }
     }
@@ -45,9 +41,6 @@ namespace CodeNex.DTOs
         [StringLength(1000)]
         public required string Description { get; set; }
 
-        [StringLength(200)]
-        public string? Tags { get; set; }
-
         [StringLength(255)]
         public string? GitHubUrl { get; set; }
 
@@ -56,15 +49,14 @@ namespace CodeNex.DTOs
         public bool IsFree { get; set; } = true;
 
         [StringLength(100)]
-        public string? License { get; set; }
-
-        [StringLength(50)]
-        public string? Version { get; set; }
-
-        [StringLength(100)]
         public string? Category { get; set; }
 
         [StringLength(200)]
         public string? TechnicalStack { get; set; }
+
+        public decimal? Price { get; set; }
+
+        [StringLength(255)]
+        public string? GitHubRepoFullName { get; set; }
     }
 }

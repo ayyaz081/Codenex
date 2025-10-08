@@ -208,6 +208,7 @@ builder.Services.Configure<EmailSettings>(options =>
 // Add custom services
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGitHubService, GitHubService>();
 
 // Add HttpClient for repository downloads and external API calls
 builder.Services.AddHttpClient<RepositoryController>(client =>
@@ -285,25 +286,25 @@ app.Use((context, next) =>
         context.Response.Headers["X-Frame-Options"] = "DENY";
         context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
         context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-        context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()";
+        context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=(self), usb=(), magnetometer=(), gyroscope=()";
         context.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
     }
     
     // Apply CSP in all environments to test Google Maps
     var cspDirectives = Environment.GetEnvironmentVariable("CSP_DIRECTIVES") ??
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js.stripe.com; " +
         "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
         "style-src-elem 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
         "img-src 'self' data: https: blob:; " +
         "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
-        "connect-src 'self' https: wss:; " +
+        "connect-src 'self' https: wss: https://api.stripe.com https://r.stripe.com https://errors.stripe.com; " +
         "media-src 'self' https:; " +
         "object-src 'none'; " +
         "child-src https://*.google.com https://*.googleapis.com https://*.gstatic.com; " +
-        "frame-src https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.youtube.com https://www.youtube.com; " +
+        "frame-src 'self' https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.youtube.com https://www.youtube.com https://js.stripe.com https://checkout.stripe.com; " +
         "frame-ancestors 'none'; " +
-        "form-action 'self'; " +
+        "form-action 'self' https://checkout.stripe.com; " +
         "base-uri 'self'; " +
         "manifest-src 'self'; " +
         "upgrade-insecure-requests;";
