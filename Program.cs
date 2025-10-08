@@ -134,7 +134,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 // Configure JWT Authentication - read from environment first
 var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
              builder.Configuration["Jwt:Key"] ?? 
-             "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
+             throw new InvalidOperationException("JWT_KEY must be configured in environment variables or appsettings");
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
                 builder.Configuration["Jwt:Issuer"] ?? "CodeNexAPI";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
@@ -605,9 +605,17 @@ static async Task CreateDefaultAdminUserAsync(IServiceProvider serviceProvider, 
             return;
         }
         
-// Read admin user from environment if provided; otherwise fall back to defaults
-        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "admin@portfolio.com";
-        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "Admin123!@#";
+        // Read admin user from environment variables (required)
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+        
+        // Skip admin creation if credentials not provided
+        if (string.IsNullOrEmpty(adminEmail) || string.IsNullOrEmpty(adminPassword))
+        {
+            logger.LogWarning("Admin credentials not configured. Set ADMIN_EMAIL and ADMIN_PASSWORD environment variables to create admin user.");
+            return;
+        }
+        
         var adminFirstName = "Admin";
         var adminLastName = "User";
         
