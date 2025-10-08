@@ -43,15 +43,16 @@ namespace CodeNex.Controllers
                                    throw new InvalidOperationException("Stripe Publishable Key is not configured");
 
             _stripeWebhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET") ??
-                                  configuration["Stripe:WebhookSecret"] ?? string.Empty;
+                                  configuration["Stripe:WebhookSecret"] ??
+                                  throw new InvalidOperationException("Stripe Webhook Secret is not configured. This is required for secure payment processing.");
 
             _successUrl = Environment.GetEnvironmentVariable("STRIPE_SUCCESS_URL") ??
                          configuration["Stripe:SuccessUrl"] ??
-                         "https://codenex.live/Repository.html?payment=success";
+                         throw new InvalidOperationException("Stripe Success URL is not configured");
 
             _cancelUrl = Environment.GetEnvironmentVariable("STRIPE_CANCEL_URL") ??
                         configuration["Stripe:CancelUrl"] ??
-                        "https://codenex.live/Repository.html?payment=cancel";
+                        throw new InvalidOperationException("Stripe Cancel URL is not configured");
 
             // Set Stripe API key
             StripeConfiguration.ApiKey = _stripeSecretKey;
@@ -168,42 +169,72 @@ namespace CodeNex.Controllers
         public async Task<IActionResult> StripeWebhook()
         {
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            
+            _logger.LogInformation("=== STRIPE WEBHOOK RECEIVED ===");
+            _logger.LogInformation($"Webhook payload length: {json?.Length ?? 0} bytes");
+            _logger.LogInformation($"Webhook secret configured: {!string.IsNullOrEmpty(_stripeWebhookSecret)}");
 
             try
             {
-                var stripeEvent = EventUtility.ConstructEvent(
+                Event stripeEvent;
+                
+                // Always verify webhook signature for security
+                var signature = Request.Headers["Stripe-Signature"].ToString();
+                
+                if (string.IsNullOrEmpty(signature))
+                {
+                    _logger.LogError("❌ Stripe webhook signature missing");
+                    return BadRequest("Webhook signature required");
+                }
+                
+                _logger.LogInformation($"Verifying Stripe webhook signature...");
+                
+                stripeEvent = EventUtility.ConstructEvent(
                     json,
-                    Request.Headers["Stripe-Signature"],
+                    signature,
                     _stripeWebhookSecret,
                     throwOnApiVersionMismatch: false
                 );
 
-                _logger.LogInformation($"Stripe webhook received: {stripeEvent.Type}");
+                _logger.LogInformation($"✅ Stripe webhook received: {stripeEvent.Type}");
+                _logger.LogInformation($"Event ID: {stripeEvent.Id}");
 
                 // Handle the checkout.session.completed event
                 if (stripeEvent.Type == "checkout.session.completed")
                 {
+                    _logger.LogInformation("Processing checkout.session.completed event");
+                    
                     var session = stripeEvent.Data.Object as Session;
                     if (session == null)
                     {
-                        _logger.LogWarning("Checkout session is null in webhook");
-                        return BadRequest();
+                        _logger.LogError("❌ Checkout session is null in webhook");
+                        return BadRequest("Session data is null");
                     }
 
+                    _logger.LogInformation($"Session ID: {session.Id}, Payment Status: {session.PaymentStatus}");
                     await HandleCheckoutSessionCompleted(session);
+                    
+                    _logger.LogInformation("✅ Webhook processing completed successfully");
+                }
+                else
+                {
+                    _logger.LogInformation($"Ignoring webhook event type: {stripeEvent.Type}");
                 }
 
                 return Ok();
             }
             catch (StripeException stripeEx)
             {
-                _logger.LogError(stripeEx, "Stripe webhook error");
+                _logger.LogError(stripeEx, $"❌ Stripe webhook error: {stripeEx.Message}");
+                _logger.LogError($"Stripe Error Code: {stripeEx.StripeError?.Code}, Type: {stripeEx.StripeError?.Type}");
                 return BadRequest($"Stripe error: {stripeEx.Message}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing webhook");
-                return StatusCode(500);
+                _logger.LogError(ex, "❌ Unexpected error processing webhook");
+                _logger.LogError($"Error type: {ex.GetType().Name}, Message: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, $"Error: {ex.Message}");
             }
         }
 
@@ -211,29 +242,59 @@ namespace CodeNex.Controllers
         {
             try
             {
-                _logger.LogInformation($"Processing completed checkout session: {session.Id}");
+                _logger.LogInformation($"=== PROCESSING CHECKOUT SESSION ===");
+                _logger.LogInformation($"Session ID: {session.Id}");
+                _logger.LogInformation($"Payment Status: {session.PaymentStatus}");
+                _logger.LogInformation($"Payment Intent ID: {session.PaymentIntentId}");
+                
+                // Log all metadata
+                _logger.LogInformation($"Metadata count: {session.Metadata?.Count ?? 0}");
+                if (session.Metadata != null)
+                {
+                    foreach (var kvp in session.Metadata)
+                    {
+                        _logger.LogInformation($"  Metadata[{kvp.Key}] = {kvp.Value}");
+                    }
+                }
 
                 // Get metadata from session
                 if (!session.Metadata.TryGetValue("userId", out var userId) ||
                     !session.Metadata.TryGetValue("repositoryId", out var repoIdStr) ||
                     !session.Metadata.TryGetValue("githubUsername", out var githubUsername))
                 {
-                    _logger.LogError("Missing metadata in checkout session");
+                    _logger.LogError("❌ Missing required metadata in checkout session");
+                    _logger.LogError($"UserId present: {session.Metadata?.ContainsKey("userId") ?? false}");
+                    _logger.LogError($"RepositoryId present: {session.Metadata?.ContainsKey("repositoryId") ?? false}");
+                    _logger.LogError($"GitHubUsername present: {session.Metadata?.ContainsKey("githubUsername") ?? false}");
                     return;
                 }
+                
+                _logger.LogInformation($"✅ Metadata extracted - UserId: {userId}, RepoId: {repoIdStr}, GitHub: {githubUsername}");
 
                 if (!int.TryParse(repoIdStr, out var repositoryId))
                 {
-                    _logger.LogError($"Invalid repository ID in metadata: {repoIdStr}");
+                    _logger.LogError($"❌ Invalid repository ID in metadata: {repoIdStr}");
                     return;
                 }
 
                 // Get repository
+                _logger.LogInformation($"Fetching repository with ID: {repositoryId}");
                 var repository = await _context.Repositories.FindAsync(repositoryId);
                 if (repository == null)
                 {
-                    _logger.LogError($"Repository not found: {repositoryId}");
+                    _logger.LogError($"❌ Repository not found with ID: {repositoryId}");
                     return;
+                }
+                
+                _logger.LogInformation($"✅ Repository found: {repository.Title}");
+                _logger.LogInformation($"  IsPremium: {repository.IsPremium}");
+                _logger.LogInformation($"  Price: {repository.Price}");
+                _logger.LogInformation($"  GitHubRepoFullName: {repository.GitHubRepoFullName ?? "(not set)"}");
+                
+                if (string.IsNullOrEmpty(repository.GitHubRepoFullName))
+                {
+                    _logger.LogError($"❌ Repository {repositoryId} does not have GitHubRepoFullName set. Cannot grant GitHub access.");
+                    // Continue to create payment/purchase records even if GitHub access cannot be granted
                 }
 
                 // Create payment record
@@ -422,6 +483,98 @@ namespace CodeNex.Controllers
             {
                 _logger.LogError(ex, $"Error verifying GitHub username: {githubUsername}");
                 return StatusCode(500, "Internal server error");
+            }
+        }
+        
+        // POST: api/payment/manual-grant-access/{purchaseId}
+        // Manual endpoint to grant GitHub access for testing/troubleshooting
+        [HttpPost("manual-grant-access/{purchaseId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ManualGrantAccess(int purchaseId)
+        {
+            try
+            {
+                _logger.LogInformation($"=== MANUAL GRANT ACCESS REQUEST ===");
+                _logger.LogInformation($"Purchase ID: {purchaseId}");
+                
+                // Get the purchase record
+                var purchase = await _context.UserPurchases
+                    .Include(up => up.Repository)
+                    .FirstOrDefaultAsync(up => up.Id == purchaseId);
+                    
+                if (purchase == null)
+                {
+                    _logger.LogError($"❌ Purchase not found: {purchaseId}");
+                    return NotFound($"Purchase {purchaseId} not found");
+                }
+                
+                _logger.LogInformation($"✅ Purchase found - User: {purchase.GitHubUsername}, Repo: {purchase.Repository?.GitHubRepoFullName}");
+                
+                if (purchase.Repository == null)
+                {
+                    _logger.LogError($"❌ Repository not found for purchase {purchaseId}");
+                    return NotFound("Repository not found");
+                }
+                
+                if (string.IsNullOrEmpty(purchase.Repository.GitHubRepoFullName))
+                {
+                    _logger.LogError($"❌ Repository does not have GitHubRepoFullName set");
+                    return BadRequest("Repository GitHubRepoFullName is not set");
+                }
+                
+                // Parse organization and repo name
+                var parts = purchase.Repository.GitHubRepoFullName.Split('/', 2);
+                if (parts.Length != 2)
+                {
+                    _logger.LogError($"❌ Invalid GitHubRepoFullName format: {purchase.Repository.GitHubRepoFullName}");
+                    return BadRequest($"Invalid GitHubRepoFullName format: {purchase.Repository.GitHubRepoFullName}. Expected: org/repo");
+                }
+                
+                var organizationName = parts[0];
+                var repoName = parts[1];
+                
+                _logger.LogInformation($"Parsed - Org: {organizationName}, Repo: {repoName}");
+                _logger.LogInformation($"Attempting to invite: {purchase.GitHubUsername}");
+                
+                // Grant GitHub access
+                var inviteSuccess = await _githubService.InviteUserToRepositoryAsync(
+                    purchase.GitHubUsername,
+                    repoName,
+                    organizationName
+                );
+                
+                if (inviteSuccess)
+                {
+                    purchase.GitHubInviteSent = true;
+                    purchase.GitHubInviteSentAt = DateTime.UtcNow;
+                    purchase.GitHubAccessGranted = true;
+                    purchase.GitHubAccessGrantedAt = DateTime.UtcNow;
+                    
+                    await _context.SaveChangesAsync();
+                    
+                    _logger.LogInformation($"✅ Successfully granted access to {purchase.GitHubUsername}");
+                    return Ok(new { 
+                        success = true, 
+                        message = $"Successfully invited {purchase.GitHubUsername} to {organizationName}/{repoName}",
+                        githubUsername = purchase.GitHubUsername,
+                        repository = $"{organizationName}/{repoName}"
+                    });
+                }
+                else
+                {
+                    _logger.LogError($"❌ Failed to grant access to {purchase.GitHubUsername}");
+                    return StatusCode(500, new { 
+                        success = false, 
+                        message = $"Failed to invite {purchase.GitHubUsername}. Check logs for details.",
+                        githubUsername = purchase.GitHubUsername,
+                        repository = $"{organizationName}/{repoName}"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in manual grant access for purchase {purchaseId}");
+                return StatusCode(500, $"Error: {ex.Message}");
             }
         }
     }
