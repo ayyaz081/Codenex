@@ -14,7 +14,27 @@ using System.Text;
 using DotNetEnv;
 
 // Load .env file automatically at startup
-Env.Load();
+// Use the application's base directory to ensure .env is found in production
+var envFilePath = Path.Combine(AppContext.BaseDirectory, ".env");
+if (File.Exists(envFilePath))
+{
+    Env.Load(envFilePath);
+    Console.WriteLine($"Loaded .env file from: {envFilePath}");
+}
+else
+{
+    // Fallback: try current directory (for development)
+    var currentDirEnvPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+    if (File.Exists(currentDirEnvPath))
+    {
+        Env.Load(currentDirEnvPath);
+        Console.WriteLine($"Loaded .env file from: {currentDirEnvPath}");
+    }
+    else
+    {
+        Console.WriteLine("Warning: No .env file found. Using appsettings and environment variables only.");
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
