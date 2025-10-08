@@ -324,7 +324,6 @@ namespace CodeNex.Controllers
             var repositories = await _context.Repositories
                 .Where(r => r.IsActive && (r.Title.Contains(query) || 
                                           r.Description.Contains(query) ||
-                                          r.Tags.Contains(query) ||
                                           r.TechnicalStack.Contains(query) ||
                                           r.Category.Contains(query)))
                 .Take(50) // Limit results for performance

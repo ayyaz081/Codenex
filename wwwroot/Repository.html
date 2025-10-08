@@ -7,6 +7,8 @@
     <link rel="icon" type="image/x-icon" href="/components/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="/css/shared-styles.css">
+    <!-- Stripe.js for payment processing - loaded early to ensure availability -->
+    <script src="https://js.stripe.com/v3/" async></script>
     <style>
 
         /* Repository page specific styles only - container handled by shared-styles.css */
@@ -1063,7 +1065,7 @@
             
             filteredRepositories = [...repositories];
             updateStats();
-            renderRepositories();
+            await renderRepositories();
             renderPagination();
         }
         
@@ -1119,7 +1121,7 @@
             }
         }
 
-        function renderRepositories() {
+        async function renderRepositories() {
             const container = document.getElementById('repositories-container');
             
             if (filteredRepositories.length === 0) {
@@ -1138,9 +1140,10 @@
             const endIndex = startIndex + pageSize;
             const pageItems = filteredRepositories.slice(startIndex, endIndex);
 
-            const repositoriesHtml = pageItems.map(repo => {
-                const actionButtons = generateActionButtons(repo);
-                const techTags = (repo.technicalStack || repo.tags || '').split(',').map(tech => 
+            // Generate action buttons for all repos (async)
+            const repositoriesWithButtons = await Promise.all(pageItems.map(async (repo) => {
+                const actionButtons = await generateActionButtons(repo);
+                const techTags = (repo.technicalStack || '').split(',').map(tech => 
                     tech.trim() ? `<span class="tech-tag">${tech.trim()}</span>` : ''
                 ).join('');
                 
@@ -1163,15 +1166,7 @@
                     <div class="repository-meta">
                         <div class="meta-item">
                             <i class="fas fa-download meta-icon"></i>
-                            <span>${repo.downloadCount || 0}</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-balance-scale meta-icon"></i>
-                            <span>${repo.license || 'MIT'}</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-tag meta-icon"></i>
-                            <span>v${repo.version || '1.0.0'}</span>
+                            <span>${repo.downloadCount || 0} downloads</span>
                         </div>
                         <div class="meta-item">
                             <i class="fas fa-calendar meta-icon"></i>
@@ -1188,7 +1183,9 @@
                     </div>
                 </div>
             `;
-            }).join('');
+            }));
+
+            const repositoriesHtml = repositoriesWithButtons.join('');
 
             container.innerHTML = `
                 <div class="repositories-grid">
@@ -1292,17 +1289,17 @@
             document.getElementById('pagination').innerHTML = paginationHtml;
         }
 
-        function changePage(page) {
+        async function changePage(page) {
             const totalPages = Math.ceil(filteredRepositories.length / pageSize);
             if (page < 1 || page > totalPages) return;
             
             currentPage = page;
-            renderRepositories();
+            await renderRepositories();
             renderPagination();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function applyFilters() {
+        async function applyFilters() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const categoryFilter = document.getElementById('category-filter').value;
             const typeFilter = document.getElementById('type-filter').value;
@@ -1312,8 +1309,7 @@
                 const matchesSearch = !searchTerm || 
                     repo.title.toLowerCase().includes(searchTerm) ||
                     repo.description.toLowerCase().includes(searchTerm) ||
-                    (repo.technicalStack && repo.technicalStack.toLowerCase().includes(searchTerm)) ||
-                    (repo.tags && repo.tags.toLowerCase().includes(searchTerm));
+                    (repo.technicalStack && repo.technicalStack.toLowerCase().includes(searchTerm));
                 
                 const matchesCategory = !categoryFilter || repo.category === categoryFilter;
                 
@@ -1341,7 +1337,7 @@
 
             currentPage = 1;
             updateStats();
-            renderRepositories();
+            await renderRepositories();
             renderPagination();
         }
 
@@ -1373,15 +1369,16 @@
             };
         }
 
-        function generateActionButtons(repo) {
+        async function generateActionButtons(repo) {
             let buttons = [];
             
             if (!repo.isPremium) {
+                // Free repository
                 if (repo.githubUrl) {
                     buttons.push(`
                         <a href="${repo.githubUrl}" target="_blank" class="action-btn btn-primary">
                             <i class="fab fa-github"></i>
-                            Access on GitHub
+                            View on GitHub
                         </a>
                     `);
                 } else {
@@ -1393,10 +1390,51 @@
                     `);
                 }
             } else {
+                // Premium repository
+                const price = repo.price ? `$${repo.price.toFixed(2)}` : '$29.99';
+                
+                // Check if user already purchased this repository
+                if (authManager.isAuthenticated()) {
+                    try {
+                        const response = await fetch(`${backendBaseUrl}/api/payment/verify-purchase/${repo.id}`, {
+                            headers: authManager.getAuthHeaders()
+                        });
+                        
+                        if (response.ok) {
+                            const purchase = await response.json();
+                            
+                            if (purchase.hasPurchased) {
+                                // User owns this repo
+                                const githubUrl = repo.githubRepoFullName ? 
+                                    `https://github.com/${repo.githubRepoFullName}` : 
+                                    repo.githubUrl;
+                                    
+                                buttons.push(`
+                                    <div style="text-align: center; width: 100%;">
+                                        <div style="background: linear-gradient(135deg, var(--success), var(--info)); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;">
+                                            <i class="fas fa-check-circle"></i> You own this repository
+                                        </div>
+                                        ${githubUrl ? `
+                                            <a href="${githubUrl}" target="_blank" class="action-btn btn-primary" style="width: 100%;">
+                                                <i class="fab fa-github"></i>
+                                                Open on GitHub
+                                            </a>
+                                        ` : '<p style="color: var(--text-muted); font-size: 0.9rem;">Check your email for GitHub invitation</p>'}
+                                    </div>
+                                `);
+                                return buttons.join('');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error checking purchase status:', error);
+                    }
+                }
+                
+                // User hasn't purchased yet
                 buttons.push(`
-                    <button class="action-btn btn-premium" onclick="contactAdmin('${repo.id}', '${repo.title}')">
-                        <i class="fas fa-envelope"></i>
-                        Contact Admin
+                    <button class="action-btn btn-premium" onclick="purchaseRepository(${repo.id}, '${repo.title}', ${repo.price || 29.99})" data-repo-id="${repo.id}">
+                        <i class="fas fa-lock"></i>
+                        Purchase ${price}
                     </button>
                 `);
             }
@@ -1491,30 +1529,91 @@
             }
         }
 
-        function contactAdmin(repositoryId, repositoryTitle) {
-            const message = `To access the premium repository "${repositoryTitle}", you need to contact our admin team.\n\nRepository: ${repositoryTitle}\nID: ${repositoryId}\n\nWould you like to send an email request?`;
+        // Purchase repository with Stripe payment integration
+        async function purchaseRepository(repositoryId, repositoryTitle, price) {
+            // Check if user is logged in
+            if (!authManager.isAuthenticated()) {
+                showNotification('Please log in to purchase repositories.', 'warning');
+                authManager.showLoginPrompt();
+                return;
+            }
             
-            if (confirm(message)) {
-                const subject = encodeURIComponent(`Premium Repository Access Request - ${repositoryTitle}`);
-                const body = encodeURIComponent(`Hello Admin,\n\nI would like to request access to the premium repository:\n\nRepository: ${repositoryTitle}\nRepository ID: ${repositoryId}\n\nPlease provide me with access instructions or pricing information.\n\nThank you!\n\nBest regards`);
-                const mailtoLink = `mailto:bc220201051aay@vu.edu.pk?subject=${subject}&body=${body}`;
+            // Prompt for GitHub username
+            const githubUsername = prompt(`Enter your GitHub username to receive repository access:\n\nRepository: ${repositoryTitle}\nPrice: $${price.toFixed(2)}\n\nYou will receive a GitHub invitation email after payment.`);
+            
+            if (!githubUsername || githubUsername.trim() === '') {
+                return; // User cancelled or entered empty string
+            }
+            
+            try {
+                showNotification('Processing payment request...', 'info');
                 
-                window.open(mailtoLink, '_blank');
+                // Verify GitHub username first
+                const verifyResponse = await fetch(`${backendBaseUrl}/api/payment/verify-github-username`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(githubUsername.trim())
+                });
                 
-                showNotification('Email client opened. Please send the request to get premium access.', 'info');
+                if (!verifyResponse.ok) {
+                    showNotification('Failed to verify GitHub username. Please try again.', 'error');
+                    return;
+                }
+                
+                const isValid = await verifyResponse.json();
+                if (!isValid) {
+                    showNotification(`GitHub username "${githubUsername}" not found. Please enter a valid username.`, 'error');
+                    return;
+                }
+                
+                // Create Stripe checkout session
+                const response = await fetch(`${backendBaseUrl}/api/payment/create-checkout-session`, {
+                    method: 'POST',
+                    headers: {
+                        ...authManager.getAuthHeaders(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        repositoryId: repositoryId,
+                        githubUsername: githubUsername.trim()
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error || 'Failed to create checkout session');
+                }
+                
+                const data = await response.json();
+                
+                // Redirect to Stripe Checkout
+                if (typeof Stripe === 'undefined') {
+                    console.error('Stripe.js not loaded. Check console for errors.');
+                    showNotification('Payment system not loaded. Please check your internet connection and refresh the page.', 'error');
+                    return;
+                }
+                
+                console.log('Initializing Stripe with publishable key...');
+                const stripe = Stripe(data.publishableKey);
+                const result = await stripe.redirectToCheckout({
+                    sessionId: data.sessionId
+                });
+                
+                if (result.error) {
+                    showNotification(result.error.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Purchase error:', error);
+                showNotification(`Purchase failed: ${error.message}`, 'error');
             }
         }
-
-        function requestPremiumAccess(repositoryId) {
-            const message = `You need premium access to download this repository. Please contact our admin team for access.\n\nRepository ID: ${repositoryId}\n\nWould you like to send an email request?`;
-            
-            if (confirm(message)) {
-                const subject = encodeURIComponent('Premium Repository Access Request');
-                const body = encodeURIComponent(`Hello,\n\nI would like to request premium access to repository ID: ${repositoryId}.\n\nThank you!`);
-                const mailtoLink = `mailto:bc220201051aay@vu.edu.pk?subject=${subject}&body=${body}`;
-                
-                window.open(mailtoLink, '_blank');
-            }
+        
+        // Legacy function kept for backwards compatibility (not used anymore)
+        function contactAdmin(repositoryId, repositoryTitle) {
+            showNotification('This repository now uses Stripe payment integration. Please use the Purchase button.', 'info');
         }
 
         function showNotification(message, type = 'info') {
@@ -1614,6 +1713,9 @@
     <!-- Footer will be loaded by JavaScript -->
     <div id="footer-placeholder"></div>
 
+    <!-- Stripe.js for payment processing -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
     <!-- Include shared components JavaScript -->
     <script src="/js/shared-components.js"></script>
 </body>

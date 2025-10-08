@@ -152,9 +152,6 @@ namespace CodeNex.Controllers
                 if (!string.IsNullOrEmpty(title))
                     query = query.Where(r => r.Title.Contains(title) || r.Description.Contains(title));
 
-                if (!string.IsNullOrEmpty(tags))
-                    query = query.Where(r => r.Tags != null && r.Tags.Contains(tags));
-
                 if (!string.IsNullOrEmpty(stack))
                     query = query.Where(r => r.TechnicalStack != null && r.TechnicalStack.Contains(stack));
 
@@ -186,14 +183,13 @@ namespace CodeNex.Controllers
                 {
                     Title = dto.Title,
                     Description = dto.Description,
-                    Tags = dto.Tags ?? string.Empty,
                     GitHubUrl = dto.GitHubUrl ?? string.Empty,
                     IsPremium = dto.IsPremium,
                     IsFree = dto.IsFree,
-                    License = dto.License ?? string.Empty,
-                    Version = dto.Version ?? string.Empty,
                     Category = dto.Category ?? string.Empty,
                     TechnicalStack = dto.TechnicalStack ?? string.Empty,
+                    Price = dto.Price,
+                    GitHubRepoFullName = dto.GitHubRepoFullName,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsActive = true,
@@ -230,22 +226,20 @@ namespace CodeNex.Controllers
                     existing.Title = dto.Title;
                 if (!string.IsNullOrEmpty(dto.Description))
                     existing.Description = dto.Description;
-                if (dto.Tags != null)
-                    existing.Tags = dto.Tags;
                 if (dto.GitHubUrl != null)
                     existing.GitHubUrl = dto.GitHubUrl;
                 if (dto.IsPremium.HasValue)
                     existing.IsPremium = dto.IsPremium.Value;
                 if (dto.IsFree.HasValue)
                     existing.IsFree = dto.IsFree.Value;
-                if (dto.License != null)
-                    existing.License = dto.License;
-                if (dto.Version != null)
-                    existing.Version = dto.Version;
                 if (dto.Category != null)
                     existing.Category = dto.Category;
                 if (dto.TechnicalStack != null)
                     existing.TechnicalStack = dto.TechnicalStack;
+                if (dto.Price.HasValue)
+                    existing.Price = dto.Price.Value;
+                if (dto.GitHubRepoFullName != null)
+                    existing.GitHubRepoFullName = dto.GitHubRepoFullName;
                 if (dto.IsActive.HasValue)
                     existing.IsActive = dto.IsActive.Value;
 
@@ -328,7 +322,7 @@ namespace CodeNex.Controllers
                 }
 
                 // Download actual repository content from GitHub
-                var fileName = $"{repository.Title.Replace(" ", "_").Replace("/", "_")}_v{repository.Version}.zip";
+                var fileName = $"{repository.Title.Replace(" ", "_").Replace("/", "_")}.zip";
                 var fileContent = await DownloadRepositoryFromGitHub(repository.GitHubUrl, repository.Title);
                 
                 if (fileContent == null || fileContent.Length == 0)
@@ -448,12 +442,6 @@ namespace CodeNex.Controllers
 
 ## Description
 {repository.Description}
-
-## Version
-{repository.Version}
-
-## License
-{repository.License}
 
 ## Technical Stack
 {repository.TechnicalStack}

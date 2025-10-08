@@ -15,9 +15,6 @@ namespace CodeNex.Models
         [StringLength(1000)]
         public required string Description { get; set; }
 
-        [StringLength(200)]
-        public required string Tags { get; set; } = string.Empty; // Comma-separated tags
-
         [StringLength(255)]
         public required string GitHubUrl { get; set; } = string.Empty;
 
@@ -26,23 +23,24 @@ namespace CodeNex.Models
         public bool IsFree { get; set; } = true;
 
         [StringLength(100)]
-        public required string License { get; set; } = string.Empty;
-
-        [StringLength(50)]
-        public required string Version { get; set; } = string.Empty;
-
-        [StringLength(100)]
         public required string Category { get; set; } = string.Empty; // Web, Mobile, Desktop, API, etc.
 
-        [StringLength(200)]
-        public required string TechnicalStack { get; set; } = string.Empty;
+    [StringLength(200)]
+    public required string TechnicalStack { get; set; } = string.Empty;
 
-        public int DownloadCount { get; set; } = 0;
+    public int DownloadCount { get; set; } = 0;
 
-        public bool IsActive { get; set; } = true;
+    // Price for premium repositories (null for free)
+    public decimal? Price { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // GitHub organization repo full name (e.g., "CodeNex-Premium/repo-name")
+    [StringLength(255)]
+    public string? GitHubRepoFullName { get; set; }
 
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsActive { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }
