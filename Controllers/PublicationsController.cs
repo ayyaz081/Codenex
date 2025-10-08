@@ -166,7 +166,7 @@ namespace CodeNex.Controllers
 
             try
             {
-                string uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "Uploads", "publications");
+                string uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "publications");
                 Directory.CreateDirectory(uploadsDir);
 
                 string? thumbnailUrl = null;
@@ -417,7 +417,7 @@ namespace CodeNex.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            return $"/Uploads/publications/{fileName}";
+            return $"/uploads/publications/{fileName}";
         }
 
     }

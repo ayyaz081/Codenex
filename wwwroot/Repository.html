@@ -1050,12 +1050,12 @@
                         throw new Error('API returned non-JSON response');
                     }
                 } else {
-                    throw new Error('API request failed');
+                    throw new Error(`API request failed with status: ${response.status}`);
                 }
             } catch (error) {
-                console.warn('Failed to load from API, using sample data:', error);
-                // Use sample data if API fails
-                repositories = getSampleRepositories();
+                console.error('Failed to load repositories from API:', error);
+                showErrorState();
+                return;
             }
             
             // Load categories for filter dropdown
@@ -1098,104 +1098,6 @@
                 option.textContent = category;
                 categoryFilter.appendChild(option);
             });
-        }
-        
-        function getSampleRepositories() {
-            return [
-                {
-                    id: '1',
-                    title: 'E-Commerce Platform',
-                    description: 'A full-featured e-commerce platform built with React and .NET Core, featuring payment integration, inventory management, and admin dashboard.',
-                    category: 'Web',
-                    isPremium: false,
-                    technicalStack: 'React, .NET Core, PostgreSQL, Redis',
-                    tags: 'ecommerce, react, dotnet, postgresql',
-                    license: 'MIT',
-                    version: '2.1.0',
-                    downloadCount: 1247,
-                    stars: 89,
-                    createdAt: '2024-01-15T00:00:00Z',
-                    updatedAt: '2024-08-10T00:00:00Z',
-                    githubUrl: 'https://github.com/example/ecommerce-platform'
-                },
-                {
-                    id: '2',
-                    title: 'Mobile Chat Application',
-                    description: 'Cross-platform mobile chat application with real-time messaging, file sharing, and group chat functionality.',
-                    category: 'Mobile',
-                    isPremium: true,
-                    technicalStack: 'React Native, Node.js, Socket.IO, MongoDB',
-                    tags: 'mobile, chat, realtime, react-native',
-                    license: 'Commercial',
-                    version: '1.5.2',
-                    downloadCount: 532,
-                    stars: 156,
-                    createdAt: '2023-11-20T00:00:00Z',
-                    updatedAt: '2024-08-15T00:00:00Z'
-                },
-                {
-                    id: '3',
-                    title: 'REST API Boilerplate',
-                    description: 'Production-ready REST API boilerplate with authentication, logging, testing, and documentation. Perfect for rapid development.',
-                    category: 'API',
-                    isPremium: false,
-                    technicalStack: 'Node.js, Express, JWT, Swagger',
-                    tags: 'api, nodejs, express, jwt, swagger',
-                    license: 'MIT',
-                    version: '3.0.1',
-                    downloadCount: 2103,
-                    stars: 234,
-                    createdAt: '2023-08-10T00:00:00Z',
-                    updatedAt: '2024-07-30T00:00:00Z',
-                    githubUrl: 'https://github.com/example/api-boilerplate'
-                },
-                {
-                    id: '4',
-                    title: 'Blockchain Voting System',
-                    description: 'Secure and transparent voting system built on Ethereum blockchain with smart contracts and decentralized verification.',
-                    category: 'Blockchain',
-                    isPremium: true,
-                    technicalStack: 'Solidity, Web3.js, React, Truffle',
-                    tags: 'blockchain, ethereum, voting, smartcontracts',
-                    license: 'GPL-3.0',
-                    version: '1.0.3',
-                    downloadCount: 87,
-                    stars: 67,
-                    createdAt: '2024-02-01T00:00:00Z',
-                    updatedAt: '2024-08-05T00:00:00Z'
-                },
-                {
-                    id: '5',
-                    title: 'ML Image Classifier',
-                    description: 'Machine learning image classification system with pre-trained models, custom training capabilities, and REST API.',
-                    category: 'Machine Learning',
-                    isPremium: false,
-                    technicalStack: 'Python, TensorFlow, Flask, OpenCV',
-                    tags: 'machine-learning, tensorflow, python, image-processing',
-                    license: 'Apache-2.0',
-                    version: '2.3.0',
-                    downloadCount: 756,
-                    stars: 178,
-                    createdAt: '2023-12-05T00:00:00Z',
-                    updatedAt: '2024-08-12T00:00:00Z',
-                    githubUrl: 'https://github.com/example/ml-image-classifier'
-                },
-                {
-                    id: '6',
-                    title: 'Task Management Dashboard',
-                    description: 'Comprehensive task management dashboard with team collaboration, time tracking, and project analytics.',
-                    category: 'Web',
-                    isPremium: true,
-                    technicalStack: 'Vue.js, Laravel, MySQL, Redis',
-                    tags: 'dashboard, task-management, vue, laravel',
-                    license: 'Commercial',
-                    version: '4.2.1',
-                    downloadCount: 423,
-                    stars: 134,
-                    createdAt: '2023-09-15T00:00:00Z',
-                    updatedAt: '2024-08-18T00:00:00Z'
-                }
-            ];
         }
 
         function updateStats() {
