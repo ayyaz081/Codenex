@@ -12,7 +12,6 @@ namespace CodeNex.Data
         // DbSet properties
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Solution> Solutions => Set<Solution>();
-        public DbSet<Domain> Domains => Set<Domain>();
         public DbSet<Publication> Publications => Set<Publication>();
         public DbSet<Repository> Repositories => Set<Repository>();
         public new DbSet<User> Users => Set<User>();
@@ -22,7 +21,6 @@ namespace CodeNex.Data
         public DbSet<CommentLike> CommentLikes => Set<CommentLike>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<UserPurchase> UserPurchases => Set<UserPurchase>();
-        // Removed About, Home, Team, Testimonial-related models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -118,9 +116,6 @@ namespace CodeNex.Data
                 .WithMany()
                 .HasForeignKey(up => up.PaymentId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
-
-            // Removed display order indexes for TeamMember, ClientTestimonial, and CarouselSlide
-
         }
     }
 }

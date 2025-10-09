@@ -70,7 +70,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
     
     options.EnableServiceProviderCaching();
-    options.EnableSensitiveDataLogging(false);
 });
 
 // Configure CORS - simplified, allow any origin for easier deployment
@@ -181,27 +180,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure Email Settings - read from environment variables first, then configuration
+// Configure Email Settings
 builder.Services.Configure<EmailSettings>(options =>
 {
-    // Bind from configuration first
     builder.Configuration.GetSection("EmailSettings").Bind(options);
     
-    // Override with environment variables if available
-    options.Host = Environment.GetEnvironmentVariable("EmailSettings__Host") ?? 
-                   builder.Configuration["EmailSettings:Host"] ?? options.Host;
-    options.Port = int.TryParse(Environment.GetEnvironmentVariable("EmailSettings__Port"), out var port) ? port : 
-                   builder.Configuration.GetValue<int>("EmailSettings:Port", options.Port);
-    options.FromEmail = Environment.GetEnvironmentVariable("EmailSettings__FromEmail") ?? 
-                        builder.Configuration["EmailSettings:FromEmail"] ?? options.FromEmail;
-    options.FromName = Environment.GetEnvironmentVariable("EmailSettings__FromName") ?? 
-                       builder.Configuration["EmailSettings:FromName"] ?? options.FromName;
-    options.Username = Environment.GetEnvironmentVariable("EmailSettings__Username") ?? 
-                       builder.Configuration["EmailSettings:Username"] ?? options.Username;
-    options.Password = Environment.GetEnvironmentVariable("EmailSettings__Password") ?? 
-                       builder.Configuration["EmailSettings:Password"] ?? options.Password;
-    options.EnableSsl = bool.TryParse(Environment.GetEnvironmentVariable("EmailSettings__EnableSsl"), out var enableSsl) ? enableSsl : 
-                        builder.Configuration.GetValue<bool>("EmailSettings:EnableSsl", options.EnableSsl);
+    options.Host = Environment.GetEnvironmentVariable("EmailSettings__Host") ?? options.Host;
+    options.Port = int.TryParse(Environment.GetEnvironmentVariable("EmailSettings__Port"), out var port) ? port : options.Port;
+    options.FromEmail = Environment.GetEnvironmentVariable("EmailSettings__FromEmail") ?? options.FromEmail;
+    options.FromName = Environment.GetEnvironmentVariable("EmailSettings__FromName") ?? options.FromName;
+    options.Username = Environment.GetEnvironmentVariable("EmailSettings__Username") ?? options.Username;
+    options.Password = Environment.GetEnvironmentVariable("EmailSettings__Password") ?? options.Password;
+    options.EnableSsl = bool.TryParse(Environment.GetEnvironmentVariable("EmailSettings__EnableSsl"), out var enableSsl) ? enableSsl : options.EnableSsl;
 });
 
 
@@ -210,17 +200,13 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGitHubService, GitHubService>();
 
-// Add HttpClient for repository downloads and external API calls
 builder.Services.AddHttpClient<RepositoryController>(client =>
 {
-    client.Timeout = TimeSpan.FromMinutes(5); // Set timeout for large repository downloads
+    client.Timeout = TimeSpan.FromMinutes(5);
     client.DefaultRequestHeaders.Add("User-Agent", "CodeNex-App/1.0");
 });
 
-// Also add general HttpClient for other controllers that might need it
 builder.Services.AddHttpClient();
-
-// Security headers will be added in middleware, but no HSTS configuration
 
 // Add comprehensive health checks
 builder.Services.AddHealthChecks()
@@ -271,15 +257,11 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-// Enable Swagger in all environments for easier debugging
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Custom security headers for both dev and production
 app.Use((context, next) =>
 {
-    // Apply basic security headers in all environments
     if (!app.Environment.IsDevelopment())
     {
         context.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -290,7 +272,6 @@ app.Use((context, next) =>
         context.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
     }
     
-    // Apply CSP in all environments to test Google Maps
     var cspDirectives = Environment.GetEnvironmentVariable("CSP_DIRECTIVES") ??
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js.stripe.com; " +
@@ -313,16 +294,9 @@ app.Use((context, next) =>
     return next();
 });
 
-// Disable HTTPS redirection - let deployment/reverse proxy handle HTTPS
-// No HTTPS redirection in application
-
-// Enable CORS
 app.UseCors("DefaultCorsPolicy");
-
-// Enable response caching middleware
 app.UseResponseCaching();
 
-// Clean URL mapping for HTML pages (moved here for middleware access)
 var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 {
     { "/About", "About.html" },
@@ -338,21 +312,11 @@ var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgno
     { "/Privacy-Policy", "Privacy-Policy.html" }
 };
 
-// Configure default files (index.html, default.html)
 app.UseDefaultFiles();
-
-
-// Serve static files from wwwroot
 app.UseStaticFiles();
-
-// Authentication and Authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
-
-// Add explicit route for root path to serve index.html
 app.MapGet("/", async (HttpContext context) =>
 {
     var filePath = Path.Combine(app.Environment.WebRootPath, "index.html");
