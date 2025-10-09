@@ -27,11 +27,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- Copy .env file to output directory -->
-    <None Include=".env">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
+  <!-- .env file should NOT be copied to output or committed to repository -->
+  <!-- In production, use environment variables via hosting platform (Azure, Docker, etc.) -->
+  
 </Project>
