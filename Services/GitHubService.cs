@@ -64,7 +64,7 @@ namespace CodeNex.Services
             catch (ApiException ex)
             {
                 _logger.LogError(ex, $"❌ GitHub API error while inviting user '{githubUsername}': {ex.Message}");
-                _logger.LogError($"API Status Code: {ex.StatusCode}, Response: {ex.HttpResponse?.Body?.ToString() ?? "No response body"}");
+                _logger.LogError($"API Status Code: {ex.StatusCode}");
                 return false;
             }
             catch (Exception ex)
