@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableStaticWebAssetsOptimization>false</EnableStaticWebAssetsOptimization>
     <DisableStaticWebAssetsOptimization>true</DisableStaticWebAssetsOptimization>
+    <!-- Suppress harmless warnings -->
+    <NoWarn>$(NoWarn);CS8981;CS7022</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
