@@ -258,7 +258,8 @@ namespace CodeNex.Controllers
                 }
 
                 // Get metadata from session
-                if (!session.Metadata.TryGetValue("userId", out var userId) ||
+                if (session.Metadata == null ||
+                    !session.Metadata.TryGetValue("userId", out var userId) ||
                     !session.Metadata.TryGetValue("repositoryId", out var repoIdStr) ||
                     !session.Metadata.TryGetValue("githubUsername", out var githubUsername))
                 {
