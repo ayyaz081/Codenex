@@ -116,6 +116,29 @@ namespace CodeNex.Data
                 .WithMany()
                 .HasForeignKey(up => up.PaymentId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
+
+            // Configure Product-Repository relationship
+            modelBuilder.Entity<Repository>()
+                .HasOne(r => r.Product)
+                .WithMany(p => p.Repositories)
+                .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Solution-Publication relationship
+            modelBuilder.Entity<Publication>()
+                .HasOne(p => p.Solution)
+                .WithMany(s => s.Publications)
+                .HasForeignKey(p => p.SolutionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure decimal precision
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Repository>()
+                .Property(r => r.Price)
+                .HasPrecision(18, 2);
         }
     }
 }

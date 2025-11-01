@@ -41,6 +41,7 @@ namespace CodeNex.Controllers
                 }
 
                 var products = await query
+                    .Include(p => p.Repositories)
                     .OrderByDescending(p => p.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -61,7 +62,9 @@ namespace CodeNex.Controllers
         {
             try
             {
-                var product = await _context.Products.FindAsync(id);
+                var product = await _context.Products
+                    .Include(p => p.Repositories)
+                    .FirstOrDefaultAsync(p => p.Id == id);
                 if (product == null) return NotFound();
                 return product;
             }
@@ -170,6 +173,31 @@ namespace CodeNex.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error updating product with id {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/Products/list (for admin dropdowns)
+        [HttpGet("list")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<ActionResult<IEnumerable<object>>> GetProductsList()
+        {
+            try
+            {
+                var products = await _context.Products
+                    .Select(p => new
+                    {
+                        id = p.Id,
+                        title = p.Title
+                    })
+                    .OrderBy(p => p.title)
+                    .ToListAsync();
+
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting products list");
                 return StatusCode(500, "Internal server error");
             }
         }

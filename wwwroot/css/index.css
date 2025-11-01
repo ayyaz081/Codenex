@@ -1,0 +1,543 @@
+/* Index Page Specific Styles */
+
+.carousel {
+    position: relative;
+    overflow: hidden;
+    height: 500px;
+    margin-bottom: 40px;
+}
+
+.carousel-slides {
+    display: flex;
+    width: 300%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-slide {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.carousel-slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+    z-index: 1;
+}
+
+.carousel-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    padding: 40px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    text-align: center;
+    transform: translateY(20px);
+    opacity: 0;
+    animation: slideIn 0.8s forwards;
+}
+
+@keyframes slideIn {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.carousel-content h2 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-content p {
+    font-size: 1.25rem;
+    margin-bottom: 24px;
+    color: #fff;
+    opacity: 0.9;
+}
+
+.carousel-content a {
+    background-color: var(--primary);
+    color: var(--bg-light);
+    padding: 14px 28px;
+    text-decoration: none !important;
+    border-radius: 24px;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.2s;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel-content a::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(rgba(255,255,255,0.2), transparent);
+    transform: rotate(30deg);
+    transition: all 0.5s;
+}
+
+.carousel-content a:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.carousel-content a:hover::before {
+    transform: rotate(30deg) translate(50%, 50%);
+}
+
+.carousel-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 3;
+}
+
+.carousel-dot {
+    width: 14px;
+    height: 14px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.carousel-dot.active {
+    background-color: var(--primary);
+    transform: scale(1.2);
+}
+
+.intro-section {
+    padding: 0 16px;
+    position: relative;
+    min-height: auto;
+}
+
+#footer-placeholder {
+    margin-top: 40px;
+}
+
+.intro-content {
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+.overview-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    will-change: transform;
+    opacity: 0;
+    transform: translateX(100px);
+    animation: slideInRight 1s ease-out forwards;
+    box-shadow: var(--glass-shadow);
+    width: 100%;
+}
+
+@keyframes slideInRight {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.overview-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    z-index: -1;
+}
+
+.overview-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.overview-card h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    margin-bottom: 24px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transform: translateZ(0);
+}
+
+.overview-card p {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    margin-bottom: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s forwards 0.2s;
+}
+
+.overview-card[data-parallax] {
+    transform: perspective(1000px) translateZ(0);
+}
+
+.overview-card[data-parallax] h1 {
+    transform: translateZ(20px);
+}
+
+.overview-card[data-parallax] p {
+    transform: translateZ(10px);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.divider {
+    position: relative;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-light), var(--accent));
+    border-radius: 2px;
+    margin: 40px auto;
+    width: 120px;
+    overflow: hidden;
+    clear: both;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    animation: shine 2s infinite;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+.feature-container-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    padding: 40px;
+    box-sizing: border-box;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: var(--glass-shadow);
+}
+
+.feature-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 24px;
+    margin-bottom: 0;
+    overflow-x: hidden;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
+    width: 100%;
+}
+
+.feature-scroller {
+    display: flex;
+    gap: 32px;
+    transition: transform 0.5s ease;
+    will-change: transform;
+    padding: 0;
+}
+
+.feature-card {
+    flex: 0 0 280px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    scroll-snap-align: start;
+    box-shadow: var(--glass-shadow);
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    z-index: -1;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px) rotateX(2deg) rotateY(2deg);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card img {
+    width: 100%;
+    max-width: 240px;
+    height: 140px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover img {
+    transform: scale(1.05);
+}
+
+.feature-card h3 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+.feature-card p {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    opacity: 0.9;
+}
+
+
+@media (max-width: 1280px) {
+    .feature-container {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+    .feature-container::-webkit-scrollbar {
+        height: 4px;
+    }
+    .feature-container::-webkit-scrollbar-track {
+        background: var(--glass-bg);
+        border-radius: 2px;
+    }
+    .feature-container::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 2px;
+    }
+    .feature-scroller {
+        width: max-content;
+    }
+    .feature-card {
+        flex: 0 0 45%;
+        max-width: 300px;
+        scroll-snap-align: start;
+    }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    /* Tablet styles */
+    .carousel {
+        height: 450px;
+    }
+    .carousel-content {
+        padding: 40px 30px;
+        max-width: 700px;
+    }
+    .carousel-content h2 {
+        font-size: 2.8rem;
+    }
+    .carousel-content p {
+        font-size: 1.2rem;
+    }
+    .overview-card {
+        padding: 35px;
+    }
+    .overview-card h1 {
+        font-size: 2.8rem;
+    }
+    .feature-container-wrapper {
+        padding: 32px;
+    }
+    .feature-card {
+        flex: 0 0 48%;
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .carousel {
+        height: 350px;
+        margin-bottom: 30px;
+    }
+    .carousel-content {
+        padding: 30px 20px;
+        max-width: 90%;
+    }
+    .carousel-content h2 {
+        font-size: 2.4rem;
+        margin-bottom: 12px;
+    }
+    .carousel-content p {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    .overview-card {
+        padding: 30px 20px;
+        margin: 20px 0;
+    }
+    .overview-card h1 {
+        font-size: 2.4rem;
+        margin-bottom: 20px;
+    }
+    .overview-card p {
+        font-size: 1.1rem;
+    }
+    .feature-container-wrapper {
+        padding: 24px;
+        margin: 20px 0;
+    }
+    .feature-card {
+        flex: 0 0 90%;
+        max-width: 320px;
+        margin-bottom: 16px;
+    }
+    .feature-scroller {
+        gap: 20px;
+        padding: 0 8px;
+    }
+    .feature-card h3 {
+        font-size: 1.4rem;
+    }
+    .divider {
+        margin: 32px auto;
+        width: 100px;
+    }
+    .intro-section {
+        padding: 0 16px;
+        margin-top: 20px;
+    }
+    .container {
+        padding: 0 16px;
+    }
+    #footer-placeholder {
+        margin-top: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel {
+        height: 300px;
+        margin-bottom: 24px;
+    }
+    .carousel-content {
+        padding: 20px 16px;
+        max-width: 95%;
+    }
+    .carousel-content h2 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    .carousel-content p {
+        font-size: 1rem;
+        margin-bottom: 16px;
+    }
+    .carousel-content a {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+    .overview-card {
+        padding: 24px 16px;
+        margin: 16px 0;
+    }
+    .overview-card h1 {
+        font-size: 2rem;
+        margin-bottom: 16px;
+    }
+    .overview-card p {
+        font-size: 1.1rem;
+    }
+    .feature-container-wrapper {
+        padding: 16px;
+        margin: 16px 0;
+    }
+    .feature-card {
+        flex: 0 0 100%;
+        max-width: 280px;
+        margin-bottom: 12px;
+    }
+    .feature-scroller {
+        gap: 16px;
+        padding: 0 4px;
+    }
+    .feature-card h3 {
+        font-size: 1.3rem;
+    }
+    .feature-card img {
+        max-width: 200px;
+        height: 120px;
+    }
+    .divider {
+        margin: 24px auto;
+        width: 80px;
+    }
+    .intro-section {
+        padding: 0 12px;
+        margin-top: 16px;
+    }
+    .container {
+        padding: 0 12px;
+    }
+    #footer-placeholder {
+        margin-top: 32px;
+    }
+}
