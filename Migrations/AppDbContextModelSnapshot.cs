@@ -104,32 +104,6 @@ namespace CodeNex.Migrations
                     b.ToTable("ContactForms");
                 });
 
-            modelBuilder.Entity("CodeNex.Models.Domain", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("IconCssClass")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Domains");
-                });
-
             modelBuilder.Entity("CodeNex.Models.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -267,6 +241,9 @@ namespace CodeNex.Migrations
                     b.Property<int>("RatingCount")
                         .HasColumnType("int");
 
+                    b.Property<int>("SolutionId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ThumbnailUrl")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -281,6 +258,8 @@ namespace CodeNex.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SolutionId");
 
                     b.ToTable("Publications");
                 });
@@ -402,6 +381,9 @@ namespace CodeNex.Migrations
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TechnicalStack")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -416,6 +398,8 @@ namespace CodeNex.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
 
                     b.ToTable("Repositories");
                 });
@@ -794,6 +778,17 @@ namespace CodeNex.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CodeNex.Models.Publication", b =>
+                {
+                    b.HasOne("CodeNex.Models.Solution", "Solution")
+                        .WithMany("Publications")
+                        .HasForeignKey("SolutionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Solution");
+                });
+
             modelBuilder.Entity("CodeNex.Models.PublicationComment", b =>
                 {
                     b.HasOne("CodeNex.Models.Publication", "Publication")
@@ -830,6 +825,17 @@ namespace CodeNex.Migrations
                     b.Navigation("Publication");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CodeNex.Models.Repository", b =>
+                {
+                    b.HasOne("CodeNex.Models.Product", "Product")
+                        .WithMany("Repositories")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("CodeNex.Models.UserPurchase", b =>
@@ -910,6 +916,11 @@ namespace CodeNex.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CodeNex.Models.Product", b =>
+                {
+                    b.Navigation("Repositories");
+                });
+
             modelBuilder.Entity("CodeNex.Models.Publication", b =>
                 {
                     b.Navigation("Comments");
@@ -920,6 +931,11 @@ namespace CodeNex.Migrations
             modelBuilder.Entity("CodeNex.Models.PublicationComment", b =>
                 {
                     b.Navigation("Likes");
+                });
+
+            modelBuilder.Entity("CodeNex.Models.Solution", b =>
+                {
+                    b.Navigation("Publications");
                 });
 
             modelBuilder.Entity("CodeNex.Models.User", b =>

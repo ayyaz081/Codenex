@@ -23,6 +23,8 @@ namespace CodeNex.DTOs
         public DateTime? PublishedDate { get; set; }
 
         public bool? IsPublished { get; set; }
+
+        public int? SolutionId { get; set; }
     }
 
     public class PublicationUploadDto
@@ -51,6 +53,9 @@ namespace CodeNex.DTOs
         public IFormFile? ThumbnailFile { get; set; }
 
         public IFormFile? DocumentFile { get; set; }
+
+        [Required]
+        public int SolutionId { get; set; }
     }
 
     public class PublicationCommentDto

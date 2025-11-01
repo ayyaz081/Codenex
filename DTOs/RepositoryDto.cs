@@ -29,6 +29,8 @@ namespace CodeNex.DTOs
         public string? GitHubRepoFullName { get; set; }
 
         public bool? IsActive { get; set; }
+
+        public int? ProductId { get; set; }
     }
 
     public class RepositoryCreateDto
@@ -58,5 +60,8 @@ namespace CodeNex.DTOs
 
         [StringLength(255)]
         public string? GitHubRepoFullName { get; set; }
+
+        [Required]
+        public int ProductId { get; set; }
     }
 }

@@ -67,6 +67,7 @@ namespace CodeNex.Controllers
                 }
 
                 var solutions = await query
+                    .Include(s => s.Publications)
                     .OrderByDescending(s => s.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -90,6 +91,7 @@ namespace CodeNex.Controllers
             try
             {
                 var solution = await _context.Solutions
+                    .Include(s => s.Publications)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.Id == id && s.IsActive);
 
@@ -174,6 +176,32 @@ namespace CodeNex.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving detailed problem areas");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/solutions/list (for admin dropdowns)
+        [HttpGet("list")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<ActionResult<IEnumerable<object>>> GetSolutionsList()
+        {
+            try
+            {
+                var solutions = await _context.Solutions
+                    .Where(s => s.IsActive)
+                    .Select(s => new
+                    {
+                        id = s.Id,
+                        title = s.Title
+                    })
+                    .OrderBy(s => s.title)
+                    .ToListAsync();
+
+                return Ok(solutions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting solutions list");
                 return StatusCode(500, "Internal server error");
             }
         }

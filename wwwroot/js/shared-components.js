@@ -71,6 +71,7 @@ class SharedComponents {
             this.initializeTheme();
             this.setActiveNavigation();
             this.updateNavigationLinks();
+            this.loadFooterSolutions();
             
             // Call page-specific initialization functions if they exist
             if (typeof initializeTheme === 'function') {
@@ -135,6 +136,56 @@ class SharedComponents {
             console.error('Error loading components:', error);
             // Create a fallback header if loading fails
             this.createFallbackHeader();
+        }
+    }
+
+    /**
+     * Load footer solutions dynamically from the database
+     */
+    async loadFooterSolutions() {
+        try {
+            const solutionsList = document.getElementById('footer-solutions-list');
+            if (!solutionsList) {
+                console.log('Footer solutions list not found, skipping...');
+                return;
+            }
+
+            // Fetch 5 solutions from the API
+            const response = await fetch(`${this.backendBaseUrl}/api/solutions?page=1&pageSize=5`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch solutions');
+            }
+
+            const solutions = await response.json();
+            
+            // Clear loading message
+            solutionsList.innerHTML = '';
+
+            // If no solutions found, show message
+            if (!solutions || solutions.length === 0) {
+                solutionsList.innerHTML = '<li>No solutions available</li>';
+                return;
+            }
+
+            // Generate solution links
+            solutions.forEach(solution => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `/solutions#solution-${solution.id}`;
+                a.innerHTML = `<i class="fas fa-lightbulb"></i> ${solution.title}`;
+                li.appendChild(a);
+                solutionsList.appendChild(li);
+            });
+
+            console.log('Footer solutions loaded successfully');
+
+        } catch (error) {
+            console.error('Error loading footer solutions:', error);
+            const solutionsList = document.getElementById('footer-solutions-list');
+            if (solutionsList) {
+                solutionsList.innerHTML = '<li><a href="/solutions"><i class="fas fa-lightbulb"></i> View All Solutions</a></li>';
+            }
         }
     }
     

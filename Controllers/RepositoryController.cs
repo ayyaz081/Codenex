@@ -33,6 +33,7 @@ namespace CodeNex.Controllers
             try
             {
                 return await _context.Repositories
+                    .Include(r => r.Product)
                     .Where(r => r.IsActive)
                     .OrderByDescending(r => r.CreatedAt)
                     .AsNoTracking()
@@ -53,6 +54,7 @@ namespace CodeNex.Controllers
             try
             {
                 var repository = await _context.Repositories
+                    .Include(r => r.Product)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(r => r.Id == id && r.IsActive);
 
@@ -84,6 +86,7 @@ namespace CodeNex.Controllers
             try
             {
                 return await _context.Repositories
+                    .Include(r => r.Product)
                     .Where(r => r.Category == category && r.IsActive)
                     .OrderByDescending(r => r.CreatedAt)
                     .AsNoTracking()
@@ -104,6 +107,7 @@ namespace CodeNex.Controllers
             try
             {
                 return await _context.Repositories
+                    .Include(r => r.Product)
                     .Where(r => r.IsFree && r.IsActive)
                     .OrderByDescending(r => r.DownloadCount)
                     .AsNoTracking()
@@ -124,6 +128,7 @@ namespace CodeNex.Controllers
             try
             {
                 return await _context.Repositories
+                    .Include(r => r.Product)
                     .Where(r => r.IsPremium && r.IsActive)
                     .OrderByDescending(r => r.CreatedAt)
                     .AsNoTracking()
@@ -179,6 +184,13 @@ namespace CodeNex.Controllers
 
             try
             {
+                // Verify product exists
+                var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId);
+                if (!productExists)
+                {
+                    return BadRequest(new { message = "Product not found" });
+                }
+
                 var repository = new Repository
                 {
                     Title = dto.Title,
@@ -190,6 +202,7 @@ namespace CodeNex.Controllers
                     TechnicalStack = dto.TechnicalStack ?? string.Empty,
                     Price = dto.Price,
                     GitHubRepoFullName = dto.GitHubRepoFullName,
+                    ProductId = dto.ProductId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsActive = true,
@@ -242,6 +255,15 @@ namespace CodeNex.Controllers
                     existing.GitHubRepoFullName = dto.GitHubRepoFullName;
                 if (dto.IsActive.HasValue)
                     existing.IsActive = dto.IsActive.Value;
+                if (dto.ProductId.HasValue)
+                {
+                    var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId.Value);
+                    if (!productExists)
+                    {
+                        return BadRequest(new { message = "Product not found" });
+                    }
+                    existing.ProductId = dto.ProductId.Value;
+                }
 
                 existing.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();

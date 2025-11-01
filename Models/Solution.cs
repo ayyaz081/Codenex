@@ -29,5 +29,8 @@ namespace CodeNex.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation property
+        public virtual ICollection<Publication> Publications { get; set; } = new List<Publication>();
     }
 }

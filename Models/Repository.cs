@@ -42,5 +42,12 @@ namespace CodeNex.Models
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Foreign key
+    [Required]
+    public int ProductId { get; set; }
+
+    // Navigation property
+    public virtual Product Product { get; set; } = null!;
     }
 }

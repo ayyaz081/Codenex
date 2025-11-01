@@ -44,6 +44,7 @@ namespace CodeNex.Controllers
                 
                 var publications = await _context.Publications
                     .Include(p => p.Ratings)
+                    .Include(p => p.Solution)
                     .Where(p => p.IsPublished)
                     .OrderByDescending(p => p.PublishedDate)
                     .AsNoTracking()
@@ -86,6 +87,7 @@ namespace CodeNex.Controllers
             try
             {
                 var publication = await _context.Publications
+                    .Include(p => p.Solution)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == id && p.IsPublished);
 
@@ -106,6 +108,7 @@ namespace CodeNex.Controllers
             try
             {
                 return await _context.Publications
+                    .Include(p => p.Solution)
                     .Where(p => p.Domain == domain && p.IsPublished)
                     .OrderByDescending(p => p.PublishedDate)
                     .AsNoTracking()
@@ -182,6 +185,13 @@ namespace CodeNex.Controllers
                     downloadUrl = await ProcessUploadedFile(dto.DocumentFile, uploadsDir, "document", AllowedDocumentExtensions);
                 }
 
+                // Verify solution exists
+                var solutionExists = await _context.Solutions.AnyAsync(s => s.Id == dto.SolutionId);
+                if (!solutionExists)
+                {
+                    return BadRequest(new { message = "Solution not found" });
+                }
+
                 var publication = new Publication
                 {
                     Title = dto.Title,
@@ -192,6 +202,7 @@ namespace CodeNex.Controllers
                     ThumbnailUrl = thumbnailUrl ?? string.Empty,
                     DownloadUrl = downloadUrl ?? string.Empty,
                     PublishedDate = dto.PublishedDate ?? DateTime.UtcNow,
+                    SolutionId = dto.SolutionId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsPublished = true
@@ -241,6 +252,15 @@ namespace CodeNex.Controllers
                     existing.PublishedDate = dto.PublishedDate.Value;
                 if (dto.IsPublished.HasValue)
                     existing.IsPublished = dto.IsPublished.Value;
+                if (dto.SolutionId.HasValue)
+                {
+                    var solutionExists = await _context.Solutions.AnyAsync(s => s.Id == dto.SolutionId.Value);
+                    if (!solutionExists)
+                    {
+                        return BadRequest(new { message = "Solution not found" });
+                    }
+                    existing.SolutionId = dto.SolutionId.Value;
+                }
 
                 existing.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();

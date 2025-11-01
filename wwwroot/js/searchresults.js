@@ -1,0 +1,429 @@
+﻿// Determine backend base URL similar to shared-components
+        const getBackendBaseUrl = () => {
+            // Check if PortfolioConfig is loaded
+            if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
+                return PortfolioConfig.api.getBaseUrl();
+            }
+            
+            // Check for API_BASE_URL from environment
+            if (window.API_BASE_URL) {
+                return window.API_BASE_URL;
+            }
+            
+            if (window.WordPressConfig) {
+                return window.WordPressConfig.getApiUrl().replace('/api', '');
+            }
+            
+            // Fallback to dynamic detection
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return 'http://localhost:7150';
+            }
+            
+            // Production: use same protocol and hostname
+            return `${window.location.protocol}//${window.location.hostname}`;
+        };
+        const backendBaseUrl = getBackendBaseUrl();
+        const globalSearchApiUrl = `${backendBaseUrl}/api/GlobalSearch`;
+        
+        let currentQuery = '';
+        let currentPage = 1;
+        let currentCategory = '';
+        let currentSort = 'relevance';
+        let searchResults = [];
+        let totalResults = 0;
+        let totalPages = 0;
+
+        // Get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Update URL parameters
+        function updateUrl() {
+            const params = new URLSearchParams();
+            if (currentQuery) params.set('q', currentQuery);
+            if (currentCategory) params.set('category', currentCategory);
+            if (currentPage > 1) params.set('page', currentPage);
+            if (currentSort !== 'relevance') params.set('sort', currentSort);
+            
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.pushState(null, '', newUrl);
+        }
+
+        // Initialize search from URL parameters
+        function initializeFromUrl() {
+            currentQuery = getUrlParameter('q') || '';
+            currentCategory = getUrlParameter('category') || '';
+            currentPage = parseInt(getUrlParameter('page')) || 1;
+            currentSort = getUrlParameter('sort') || 'relevance';
+
+            // Update UI
+            const gsInputInit = document.getElementById('global-search-input');
+            if (gsInputInit) gsInputInit.value = currentQuery;
+            const catInit = document.getElementById('category-filter');
+            if (catInit) catInit.value = currentCategory;
+            const sortInit = document.getElementById('sort-filter');
+            if (sortInit) sortInit.value = currentSort;
+
+            if (currentQuery) {
+                performSearch();
+            } else {
+                showEmptyState();
+            }
+        }
+
+        // Perform search
+        async function performSearch() {
+            if (!currentQuery.trim()) {
+                showEmptyState();
+                return;
+            }
+
+            showLoadingState();
+            updateSearchInfo();
+
+            try {
+                const params = new URLSearchParams({
+                    query: currentQuery,
+                    page: currentPage,
+                    pageSize: 12
+                });
+
+                if (currentCategory) {
+                    params.set('category', currentCategory);
+                }
+
+                const response = await fetch(`${globalSearchApiUrl}?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+
+                const data = await response.json();
+                searchResults = data.results || [];
+                totalResults = data.totalResults || 0;
+                totalPages = data.totalPages || 0;
+
+                // Sort results if needed
+                sortResults();
+                renderResults();
+                renderPagination();
+                updateSearchInfo();
+                updateUrl();
+
+            } catch (error) {
+                console.error('Search error:', error);
+                showErrorState();
+            }
+        }
+
+        // Sort results based on current sort option
+        function sortResults() {
+            searchResults.sort((a, b) => {
+                switch (currentSort) {
+                    case 'newest':
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    case 'oldest':
+                        return new Date(a.createdAt) - new Date(b.createdAt);
+                    case 'title':
+                        return a.title.localeCompare(b.title);
+                    case 'relevance':
+                    default:
+                        return b.relevance - a.relevance;
+                }
+            });
+        }
+
+        // Update search info display
+        function updateSearchInfo() {
+            const queryEl = document.getElementById('search-query');
+            const countEl = document.getElementById('results-count');
+
+            queryEl.textContent = currentQuery ? `Results for "${currentQuery}"` : 'Search Results';
+            
+            if (totalResults > 0) {
+                const start = (currentPage - 1) * 12 + 1;
+                const end = Math.min(currentPage * 12, totalResults);
+                countEl.textContent = `Showing ${start}-${end} of ${totalResults} results`;
+            } else {
+                countEl.textContent = 'No results found';
+            }
+        }
+
+        // Render search results
+        function renderResults() {
+            const container = document.getElementById('results-container');
+
+            if (searchResults.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            const resultsHtml = searchResults.map(result => {
+                const typeClass = `type-${result.type}`;
+                const typeLabel = result.type.charAt(0).toUpperCase() + result.type.slice(1);
+                
+                return `
+                    <div class="result-card" onclick="navigateToResult('${result.type}', ${result.id}, '${result.url}')">
+                        <div class="result-type ${typeClass}">${typeLabel}</div>
+                        <h3 class="result-title">${escapeHtml(result.title)}</h3>
+                        <p class="result-description">${escapeHtml(result.description)}</p>
+                        
+                        <div class="result-meta">
+                            ${result.domain ? `
+                                <div class="meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>${result.domain}</span>
+                                </div>
+                            ` : ''}
+                            ${result.category ? `
+                                <div class="meta-item">
+                                    <i class="fas fa-folder"></i>
+                                    <span>${result.category}</span>
+                                </div>
+                            ` : ''}
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>${formatDate(result.createdAt)}</span>
+                            </div>
+                        </div>
+
+                        <div class="result-actions">
+                            <button class="result-btn btn-primary" onclick="event.stopPropagation(); navigateToResult('${result.type}', ${result.id}, '${result.url}')">
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </button>
+                            ${generateSecondaryAction(result)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div class="results-grid">${resultsHtml}</div>`;
+        }
+
+        // Generate secondary action button based on result type
+        function generateSecondaryAction(result) {
+            switch (result.type) {
+                case 'product':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('product', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-external-link-alt"></i>
+                        Learn More
+                    </button>`;
+                case 'publication':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('publication', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-file-pdf"></i>
+                        View Paper
+                    </button>`;
+                case 'repository':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('repository', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-code"></i>
+                        Repository
+                    </button>`;
+                case 'solution':
+                    return `<button class="result-btn btn-outline" onclick="event.stopPropagation(); navigateToResult('solution', ${result.id}, '${result.url || ''}')">
+                        <i class="fas fa-lightbulb"></i>
+                        Solution
+                    </button>`;
+                default:
+                    return '';
+            }
+        }
+
+        // Navigate to result based on type
+        function navigateToResult(type, id, url) {
+            const useUrlDirectly = (u) => !!u && (u.startsWith('http') || u.endsWith('.html'));
+            if (useUrlDirectly(url)) {
+                window.location.href = url;
+                return;
+            }
+            switch (type) {
+                case 'product':
+                    window.location.href = `Products.html?id=${id}`;
+                    break;
+                case 'publication':
+                    window.location.href = `Publications.html?id=${id}`;
+                    break;
+                case 'repository':
+                    window.location.href = `Repository.html?id=${id}`;
+                    break;
+                case 'solution':
+                    window.location.href = `solutions.html?id=${id}`;
+                    break;
+                default:
+                    if (url) {
+                        window.open(url, '_blank');
+                    }
+            }
+        }
+
+        // View publication (for direct publication viewing)
+        function viewPublication(id) {
+            window.location.href = `Publications.html?id=${id}`;
+        }
+
+        // Render pagination
+        function renderPagination() {
+            const container = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+
+            let paginationHtml = '';
+
+            // Previous button
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                        onclick="changePage(${currentPage - 1})"
+                        ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+            if (endPage - startPage + 1 < maxVisible) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                paginationHtml += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    paginationHtml += `<span class="pagination-btn disabled">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `
+                    <button class="pagination-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">${i}</button>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHtml += `<span class="pagination-btn disabled">...</span>`;
+                }
+                paginationHtml += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+
+            // Next button
+            paginationHtml += `
+                <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                        onclick="changePage(${currentPage + 1})"
+                        ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+
+            container.innerHTML = paginationHtml;
+        }
+
+        // Change page
+        function changePage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            currentPage = page;
+            performSearch();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Show different states
+        function showLoadingState() {
+            document.getElementById('results-container').innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div class="state-title">Searching...</div>
+                    <div class="state-description">Finding the best matches for your query</div>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('results-container').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <div class="state-title">No Results Found</div>
+                    <div class="state-description">
+                        ${currentQuery ? 
+                            `We couldn't find any results for "${currentQuery}". Try different keywords or remove filters.` :
+                            'Enter a search query to find content across our platform.'
+                        }
+                    </div>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+            updateSearchInfo();
+        }
+
+        function showErrorState() {
+            document.getElementById('results-container').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="state-title">Search Error</div>
+                    <div class="state-description">Something went wrong. Please try again later.</div>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const gsInput = document.getElementById('global-search-input');
+            if (gsInput) {
+                gsInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        currentQuery = e.target.value.trim();
+                        currentPage = 1;
+                        performSearch();
+                    }
+                });
+            }
+
+            const catSelect = document.getElementById('category-filter');
+            if (catSelect) {
+                catSelect.addEventListener('change', (e) => {
+                    currentCategory = e.target.value;
+                    currentPage = 1;
+                    performSearch();
+                });
+            }
+
+            const sortSelect = document.getElementById('sort-filter');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', (e) => {
+                    currentSort = e.target.value;
+                    sortResults();
+                    renderResults();
+                    updateUrl();
+                });
+            }
+        });
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Theme toggle is handled by shared components
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', initializeFromUrl);

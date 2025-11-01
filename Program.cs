@@ -39,7 +39,14 @@ else
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Handle circular references in navigation properties
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        // Make JSON more readable
+        options.JsonSerializerOptions.WriteIndented = false;
+    });
 
 // Enable response caching
 builder.Services.AddResponseCaching();
