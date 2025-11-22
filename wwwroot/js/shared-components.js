@@ -199,7 +199,7 @@ class SharedComponents {
                 <div class="nav-container">
                     <div class="nav-left">
                         <a href="/" class="nav-logo">
-                            <span class="nav-logo-text">Codenex Solutions</span>
+                            <span class="nav-logo-text">Neelsol Technologies</span>
                         </a>
                     </div>
                     <div class="nav-center">

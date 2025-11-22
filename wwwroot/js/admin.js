@@ -444,7 +444,7 @@
                         role: 'Admin',
                         firstName: localStorage.getItem('adminUsername') || 'Admin',
                         lastName: '',
-                        email: localStorage.getItem('adminEmail') || 'admin@codenex.solutions'
+                        email: localStorage.getItem('adminEmail') || 'admin@neelsol.tech'
                     };
                     return;
                 }
@@ -469,7 +469,7 @@
             if (!localStorage.getItem('authToken') && !localStorage.getItem('adminLoggedIn')) {
                 localStorage.setItem('adminLoggedIn', 'true');
                 localStorage.setItem('adminUsername', 'Admin');
-                localStorage.setItem('adminEmail', 'admin@codenex.solutions');
+                localStorage.setItem('adminEmail', 'admin@neelsol.tech');
                 console.log('Set up temporary admin access for testing');
             }
             
@@ -4759,12 +4759,12 @@ ${contact.message}
                     
                     // Populate form fields
                     if (document.getElementById('companyName')) {
-                        document.getElementById('companyName').value = aboutData.companyName || 'Codenex Solutions';
+                        document.getElementById('companyName').value = aboutData.companyName || 'Neelsol Technologies';
                         document.getElementById('foundedYear').value = aboutData.foundedYear || '2020';
                         document.getElementById('companyLocation').value = aboutData.companyLocation || 'Global';
                         document.getElementById('missionStatement').value = aboutData.missionStatement || 'To empower businesses through innovative technology solutions that drive growth, efficiency, and digital transformation.';
                         document.getElementById('visionStatement').value = aboutData.visionStatement || 'To be the leading technology partner that transforms businesses and creates lasting value through cutting-edge solutions and exceptional service.';
-                        document.getElementById('companyDescription').value = aboutData.companyDescription || 'Codenex Solutions is a premier technology company specializing in cloud migration, cybersecurity, and data analytics. With a team of experienced professionals and a commitment to excellence, we help organizations navigate the digital landscape and achieve their strategic objectives.';
+                        document.getElementById('companyDescription').value = aboutData.companyDescription || 'Neelsol Technologies is a premier technology company specializing in cloud migration, cybersecurity, and data analytics. With a team of experienced professionals and a commitment to excellence, we help organizations navigate the digital landscape and achieve their strategic objectives.';
                         document.getElementById('valuesTitle').value = aboutData.valuesTitle || 'Our Core Values';
                         document.getElementById('value1Title').value = aboutData.value1Title || 'Innovation';
                         document.getElementById('value1Description').value = aboutData.value1Description || 'We continuously push boundaries and embrace new technologies to deliver innovative solutions.';
