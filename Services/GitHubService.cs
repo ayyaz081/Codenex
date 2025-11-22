@@ -1,6 +1,6 @@
 using Octokit;
 
-namespace CodeNex.Services
+namespace Neelsol.Services
 {
     public class GitHubService : IGitHubService
     {

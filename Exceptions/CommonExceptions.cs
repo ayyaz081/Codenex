@@ -1,4 +1,4 @@
-namespace CodeNex.Exceptions
+namespace Neelsol.Exceptions
 {
     // Custom exception for file validation errors
     public class FileValidationException : Exception

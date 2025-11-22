@@ -2,9 +2,9 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using CodeNex.Models;
+using Neelsol.Models;
 
-namespace CodeNex.Services
+namespace Neelsol.Services
 {
     public class EmailService : IEmailService
     {

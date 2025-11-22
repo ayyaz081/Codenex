@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
-using CodeNex.Data;
-using CodeNex.DTOs;
-using CodeNex.Services;
+using Neelsol.Data;
+using Neelsol.DTOs;
+using Neelsol.Services;
 using System.Security.Claims;
 
-namespace CodeNex.Controllers
+namespace Neelsol.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

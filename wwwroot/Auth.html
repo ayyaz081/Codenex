@@ -112,27 +112,27 @@
             </button>
         </form>
 
-        <!-- Forgot Password Form -->
+        <!-- Forgot Password Form (Request Reset Link) -->
         <form id="forgot-form" class="auth-form">
-            <div class="form-group">
-                <label class="form-label" for="forgot-email">Email Address</label>
-                <input type="email" id="forgot-email" class="form-input" placeholder="Enter your email" required>
-                <div class="field-error" id="forgot-email-error"></div>
+            <div id="forgot-email-section">
+                <div class="form-group">
+                    <label class="form-label" for="forgot-email">Email Address</label>
+                    <input type="email" id="forgot-email" class="form-input" placeholder="Enter your email" required>
+                    <div class="field-error" id="forgot-email-error"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="forgot-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Reset Link
+                </button>
             </div>
 
-            <button type="submit" class="btn btn-primary" id="forgot-btn">
-                <i class="fas fa-paper-plane"></i>
-                Send Reset Link
-            </button>
-
-            <!-- Reset Password Section -->
+            <!-- Reset Password Section (shown when user clicks email link) -->
             <div id="reset-section" style="display: none;">
-                <hr style="margin: 30px 0; border: none; height: 1px; background: var(--glass-border);">
-                <h4 style="margin-bottom: 20px; color: var(--text);">Reset Your Password</h4>
-                
-                <div class="form-group">
-                    <label class="form-label" for="reset-token">Reset Token</label>
-                    <input type="text" id="reset-token" class="form-input" placeholder="Enter reset token from email">
+                <div style="text-align: center; padding: 20px 0;">
+                    <i class="fas fa-key" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 15px;"></i>
+                    <h4 style="margin-bottom: 10px; color: var(--text);">Reset Your Password</h4>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 25px;">Enter your new password below</p>
                 </div>
 
                 <div class="form-group">
@@ -151,8 +151,8 @@
                     <input type="password" id="reset-confirm" class="form-input" placeholder="Confirm new password">
                 </div>
 
-                <button type="button" class="btn btn-secondary" id="reset-password-btn">
-                    <i class="fas fa-key"></i>
+                <button type="button" class="btn btn-primary" id="reset-password-btn">
+                    <i class="fas fa-check"></i>
                     Reset Password
                 </button>
             </div>
@@ -160,16 +160,14 @@
 
         <!-- Email Verification Form -->
         <form id="verify-form" class="auth-form">
-            <div class="form-group">
-                <label class="form-label" for="verify-token">Verification Token</label>
-                <input type="text" id="verify-token" class="form-input" placeholder="Enter verification token from email" required>
-                <div class="field-error" id="verify-token-error"></div>
+            <div style="text-align: center; padding: 20px;">
+                <i class="fas fa-envelope-open-text" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3 style="margin-bottom: 16px; color: var(--text);">Check Your Email</h3>
+                <p style="color: var(--text-light); margin-bottom: 30px; line-height: 1.6;">
+                    We've sent a verification link to your email address. 
+                    <strong>Click the link in the email</strong> to verify your account automatically.
+                </p>
             </div>
-
-            <button type="submit" class="btn btn-primary" id="verify-btn">
-                <i class="fas fa-check-circle"></i>
-                Verify Email
-            </button>
             
             <!-- Resend Verification Section -->
             <div id="resend-section" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--glass-border);">

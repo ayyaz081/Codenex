@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CodeNex.DTOs;
-using CodeNex.Models;
-using CodeNex.Services;
+using Neelsol.DTOs;
+using Neelsol.Models;
+using Neelsol.Services;
 using System.Security.Claims;
 
-namespace CodeNex.Controllers
+namespace Neelsol.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -205,11 +205,11 @@ namespace CodeNex.Controllers
 
                 var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                 
-                // Construct the reset URL (frontend page with token) - configurable
+                // Construct the reset URL pointing to frontend page with auto-populated token
                 var baseUrl = Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? 
                              $"{Request.Scheme}://{Request.Host}";
-                var resetPath = Environment.GetEnvironmentVariable("PASSWORD_RESET_PATH") ?? "/auth/reset";
-                var resetUrl = $"{baseUrl.TrimEnd('/')}{resetPath}?userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
+                var resetPath = Environment.GetEnvironmentVariable("PASSWORD_RESET_PATH") ?? "/Auth";
+                var resetUrl = $"{baseUrl.TrimEnd('/')}{resetPath}?action=reset&userId={user.Id}&token={Uri.EscapeDataString(resetToken)}";
                 
                 // Send password reset email
                 var emailSent = await _emailService.SendPasswordResetAsync(user.Email!, user.FirstName, resetUrl);
@@ -448,6 +448,7 @@ namespace CodeNex.Controllers
             }
         }
 
+        [HttpGet("verify-email")]
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string userId, [FromQuery] string token)
         {
@@ -470,7 +471,8 @@ namespace CodeNex.Controllers
                     return BadRequest(new { message = "Email verification failed.", errors = result.Errors });
                 }
 
-                return Ok(new { message = "Email verified successfully." });
+                _logger.LogInformation("Email verified successfully for user: {Email}", user.Email);
+                return Ok(new { message = "Email verified successfully.", success = true });
             }
             catch (Exception ex)
             {

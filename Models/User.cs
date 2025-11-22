@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
-namespace CodeNex.Models
+namespace Neelsol.Models
 {
     public class User : IdentityUser
     {

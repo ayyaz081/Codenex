@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CodeNex.Data;
-using CodeNex.Models;
-using CodeNex.DTOs;
-using CodeNex.Services;
+using Neelsol.Data;
+using Neelsol.Models;
+using Neelsol.DTOs;
+using Neelsol.Services;
 using Microsoft.Extensions.Options;
 
-namespace CodeNex.Controllers
+namespace Neelsol.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

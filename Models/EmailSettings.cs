@@ -1,4 +1,4 @@
-namespace CodeNex.Models
+namespace Neelsol.Models
 {
     public class EmailSettings
     {

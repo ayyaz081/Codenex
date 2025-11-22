@@ -38,8 +38,9 @@ class AuthManager {
         document.addEventListener('DOMContentLoaded', () => {
             this.setupTabs();
             this.setupEventListeners();
-            this.checkAuthState();
+            // Handle URL params FIRST (for reset/verify links), then check auth
             this.handleUrlParams();
+            this.checkAuthState();
         });
     }
 
@@ -93,6 +94,11 @@ class AuthManager {
         const token = localStorage.getItem('authToken');
         const userInfo = localStorage.getItem('userInfo');
         
+        // Check if we have URL actions (reset/verify) - don't override those
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlAction = urlParams.get('action');
+        const hasUrlAction = ['reset', 'verify'].includes(urlAction);
+        
         if (token && userInfo) {
             try {
                 const user = JSON.parse(userInfo);
@@ -101,7 +107,10 @@ class AuthManager {
                 if (expiresAt > new Date()) {
                     await this.loadUserProfile();
                     this.showAuthenticatedTabs();
-                    this.switchTab('profile');
+                    // Don't switch to profile if we have a URL action (reset/verify)
+                    if (!hasUrlAction) {
+                        this.switchTab('profile');
+                    }
                     return true;
                 } else {
                     this.clearAuthData();
@@ -213,12 +222,16 @@ class AuthManager {
             sessionStorage.setItem('verifyUserId', userId);
             this.showMessage('Click "Verify Email" to confirm your email address', 'info');
         } else if (action === 'reset' && userId && token) {
+            console.log('Password reset URL detected - userId:', userId, 'token length:', token.length);
             this.switchTab('forgot');
+            // Hide the email section, show the reset password section
+            const emailSection = document.getElementById('forgot-email-section');
             const resetSection = document.getElementById('reset-section');
-            const tokenInput = document.getElementById('reset-token');
+            if (emailSection) emailSection.style.display = 'none';
             if (resetSection) resetSection.style.display = 'block';
-            if (tokenInput) tokenInput.value = token;
             sessionStorage.setItem('resetUserId', userId);
+            sessionStorage.setItem('resetToken', token);
+            console.log('Stored reset credentials in sessionStorage');
             this.showMessage('Enter your new password below', 'info');
         } else if (returnUrl && ['download', 'comment', 'rate'].includes(action)) {
             const actionText = {
@@ -375,8 +388,7 @@ class AuthManager {
 
             if (response.ok) {
                 this.showMessage(result.message, 'success');
-                const resetSection = document.getElementById('reset-section');
-                if (resetSection) resetSection.style.display = 'block';
+                // Don't show reset section here - user must click email link
             } else {
                 this.showMessage(result.message || 'Failed to send reset email', 'error');
             }
@@ -391,13 +403,25 @@ class AuthManager {
     }
 
     async handleResetPassword() {
-        const token = document.getElementById('reset-token')?.value.trim();
+        const token = sessionStorage.getItem('resetToken');
         const newPassword = document.getElementById('reset-password')?.value;
         const confirmPassword = document.getElementById('reset-confirm')?.value;
         const resetUserId = sessionStorage.getItem('resetUserId');
 
-        if (!token || !newPassword || newPassword !== confirmPassword) {
-            this.showMessage('Please fill all fields and ensure passwords match', 'error');
+        console.log('Reset password attempt - token present:', !!token, 'userId:', resetUserId);
+
+        if (!token) {
+            this.showMessage('Reset token is missing. Please use the link from your email.', 'error');
+            return;
+        }
+
+        if (!newPassword || !confirmPassword) {
+            this.showMessage('Please enter and confirm your new password', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            this.showMessage('Passwords do not match', 'error');
             return;
         }
 
@@ -425,9 +449,13 @@ class AuthManager {
 
             if (response.ok) {
                 this.showMessage('Password reset successfully! You can now log in.', 'success');
+                // Reset the form sections back to default state
+                const emailSection = document.getElementById('forgot-email-section');
                 const resetSection = document.getElementById('reset-section');
+                if (emailSection) emailSection.style.display = 'block';
                 if (resetSection) resetSection.style.display = 'none';
                 sessionStorage.removeItem('resetUserId');
+                sessionStorage.removeItem('resetToken');
                 this.switchTab('login');
             } else {
                 this.showMessage(result.message || 'Failed to reset password', 'error');

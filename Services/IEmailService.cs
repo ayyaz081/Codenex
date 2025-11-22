@@ -1,4 +1,4 @@
-namespace CodeNex.Services
+namespace Neelsol.Services
 {
     public interface IEmailService
     {

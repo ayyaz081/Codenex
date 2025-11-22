@@ -5,35 +5,71 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using CodeNex.Data;
-using CodeNex.Models;
-using CodeNex.Services;
-using CodeNex.Controllers;
+using Neelsol.Data;
+using Neelsol.Models;
+using Neelsol.Services;
+using Neelsol.Controllers;
 using System.Security.Claims;
 using System.Text;
 using DotNetEnv;
 
-// Load .env file automatically at startup
-// Use the application's base directory to ensure .env is found in production
-var envFilePath = Path.Combine(AppContext.BaseDirectory, ".env");
-if (File.Exists(envFilePath))
+// Load environment-specific .env file automatically at startup
+// Priority: .env.{environment} > .env > appsettings
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+var baseDirectory = AppContext.BaseDirectory;
+var currentDirectory = Directory.GetCurrentDirectory();
+
+// Try to load environment-specific .env file first
+var envSpecificFileName = $".env.{environment.ToLower()}";
+string? loadedEnvFile = null;
+
+// Try base directory first (for published apps)
+var envSpecificPath = Path.Combine(baseDirectory, envSpecificFileName);
+if (File.Exists(envSpecificPath))
 {
-    Env.Load(envFilePath);
-    Console.WriteLine($"Loaded .env file from: {envFilePath}");
+    Env.Load(envSpecificPath);
+    loadedEnvFile = envSpecificPath;
 }
 else
 {
-    // Fallback: try current directory (for development)
-    var currentDirEnvPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-    if (File.Exists(currentDirEnvPath))
+    // Try current directory (for development)
+    envSpecificPath = Path.Combine(currentDirectory, envSpecificFileName);
+    if (File.Exists(envSpecificPath))
     {
-        Env.Load(currentDirEnvPath);
-        Console.WriteLine($"Loaded .env file from: {currentDirEnvPath}");
+        Env.Load(envSpecificPath);
+        loadedEnvFile = envSpecificPath;
+    }
+}
+
+// If environment-specific file not found, try generic .env
+if (loadedEnvFile == null)
+{
+    var genericEnvPath = Path.Combine(baseDirectory, ".env");
+    if (File.Exists(genericEnvPath))
+    {
+        Env.Load(genericEnvPath);
+        loadedEnvFile = genericEnvPath;
     }
     else
     {
-        Console.WriteLine("Warning: No .env file found. Using appsettings and environment variables only.");
+        genericEnvPath = Path.Combine(currentDirectory, ".env");
+        if (File.Exists(genericEnvPath))
+        {
+            Env.Load(genericEnvPath);
+            loadedEnvFile = genericEnvPath;
+        }
     }
+}
+
+if (loadedEnvFile != null)
+{
+    Console.WriteLine($"✅ Loaded environment file: {loadedEnvFile}");
+    Console.WriteLine($"🌍 Running in {environment} mode");
+}
+else
+{
+    Console.WriteLine($"⚠️  No .env file found for '{environment}' environment.");
+    Console.WriteLine("   Using appsettings and existing environment variables only.");
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -423,22 +459,24 @@ static async Task ServeHtmlWithApiInjection(HttpContext context, string htmlPath
     context.Response.ContentType = "text/html";
     var htmlContent = await File.ReadAllTextAsync(htmlPath);
     
-    // Inject API_BASE_URL - smart production detection
+    // Inject API_BASE_URL - smart environment detection
     var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
                      configuration["API_BASE_URL"];
     
+    // If running on localhost, always use localhost URL
+    if (context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+        context.Request.Host.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+    {
+        // Development: use current request's scheme and host
+        apiBaseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
+    }
     // Override localhost URLs in production with current origin
-    if (!string.IsNullOrEmpty(apiBaseUrl) && 
-        apiBaseUrl.Contains("localhost") && 
-        !context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+    else if (!string.IsNullOrEmpty(apiBaseUrl) && 
+        apiBaseUrl.Contains("localhost"))
     {
         // We're in production but API_BASE_URL is set to localhost - use current origin instead
         // Force HTTPS in production for security and CSP compliance
-        var scheme = context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) 
-                     ? context.Request.Scheme 
-                     : "https";
-        var host = context.Request.Host;
-        apiBaseUrl = $"{scheme}://{host}";
+        apiBaseUrl = $"https://{context.Request.Host}";
     }
     
     if (!string.IsNullOrEmpty(apiBaseUrl))
@@ -566,17 +604,7 @@ static async Task CreateDefaultAdminUserAsync(IServiceProvider serviceProvider, 
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         
-        // Check if admin user already exists
-        var existingAdmin = await userManager.Users
-            .FirstOrDefaultAsync(u => u.Role == "Admin");
-            
-        if (existingAdmin != null)
-        {
-            logger.LogInformation("Admin user already exists: {Email}", existingAdmin.Email);
-            return;
-        }
-        
-        // Read admin user from environment variables (required)
+        // Read admin credentials from environment variables (required)
         var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
         var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
         
@@ -586,11 +614,6 @@ static async Task CreateDefaultAdminUserAsync(IServiceProvider serviceProvider, 
             logger.LogWarning("Admin credentials not configured. Set ADMIN_EMAIL and ADMIN_PASSWORD environment variables to create admin user.");
             return;
         }
-        
-        var adminFirstName = "Admin";
-        var adminLastName = "User";
-        
-        logger.LogInformation("Creating default admin user with email: {Email}", adminEmail);
         
         // Validate email format
         if (!IsValidEmail(adminEmail))
@@ -605,6 +628,55 @@ static async Task CreateDefaultAdminUserAsync(IServiceProvider serviceProvider, 
             logger.LogError("Admin password must be at least 8 characters long.");
             return;
         }
+        
+        // Check if admin user already exists
+        var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
+            
+        if (existingAdmin != null)
+        {
+            logger.LogInformation("Admin user already exists: {Email}", existingAdmin.Email);
+            
+            // Check if password needs to be updated (if env password is different)
+            var passwordValid = await userManager.CheckPasswordAsync(existingAdmin, adminPassword);
+            
+            if (!passwordValid)
+            {
+                logger.LogInformation("Admin password in environment variables has changed. Updating password...");
+                
+                // Remove old password and set new one
+                var removePasswordResult = await userManager.RemovePasswordAsync(existingAdmin);
+                if (removePasswordResult.Succeeded)
+                {
+                    var addPasswordResult = await userManager.AddPasswordAsync(existingAdmin, adminPassword);
+                    if (addPasswordResult.Succeeded)
+                    {
+                        logger.LogInformation("Admin password updated successfully from environment variables.");
+                    }
+                    else
+                    {
+                        logger.LogError("Failed to update admin password: {Errors}", 
+                            string.Join(", ", addPasswordResult.Errors.Select(e => e.Description)));
+                    }
+                }
+                else
+                {
+                    logger.LogError("Failed to remove old admin password: {Errors}", 
+                        string.Join(", ", removePasswordResult.Errors.Select(e => e.Description)));
+                }
+            }
+            else
+            {
+                logger.LogInformation("Admin password is already in sync with environment variables.");
+            }
+            
+            return;
+        }
+        
+        // Admin doesn't exist, create new admin user
+        var adminFirstName = "Admin";
+        var adminLastName = "User";
+        
+        logger.LogInformation("Creating default admin user with email: {Email}", adminEmail);
         
         // Create admin user
         var adminUser = new User

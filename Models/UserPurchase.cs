@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CodeNex.Models
+namespace Neelsol.Models
 {
     public class UserPurchase
     {

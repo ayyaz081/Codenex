@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CodeNex.DTOs
+namespace Neelsol.DTOs
 {
     public class CreateAdminDto
     {
