@@ -947,10 +947,18 @@ class SharedComponents {
     }
     
     /**
-     * Load navigation dropdown data from API
+     * Load navigation dropdown data from API with caching
      */
     async loadNavigationData() {
         try {
+            // Check cache first (session storage, expires when tab closes)
+            const cached = sessionStorage.getItem('navigationData');
+            if (cached) {
+                const data = JSON.parse(cached);
+                this.populateDropdowns(data);
+                return;
+            }
+            
             const response = await fetch(`${this.backendBaseUrl}/api/Navigation/all`);
             if (!response.ok) {
                 console.warn('Navigation API not available, using fallback');
@@ -959,6 +967,8 @@ class SharedComponents {
             }
             
             const data = await response.json();
+            // Cache the response
+            sessionStorage.setItem('navigationData', JSON.stringify(data));
             this.populateDropdowns(data);
             
         } catch (error) {
