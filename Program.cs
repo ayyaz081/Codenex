@@ -184,9 +184,9 @@ var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ??
              builder.Configuration["Jwt:Key"] ?? 
              throw new InvalidOperationException("JWT_KEY must be configured in environment variables or appsettings");
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
-                builder.Configuration["Jwt:Issuer"] ?? "CodeNexAPI";
+                builder.Configuration["Jwt:Issuer"] ?? "NeelsolAPI";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
-                  builder.Configuration["Jwt:Audience"] ?? "CodeNexAPI";
+                  builder.Configuration["Jwt:Audience"] ?? "NeelsolAPI";
 var jwtExpiryHoursStr = Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?? 
                          builder.Configuration["Jwt:ExpiryHours"];
 var jwtExpiryHours = !string.IsNullOrEmpty(jwtExpiryHoursStr) && int.TryParse(jwtExpiryHoursStr, out var hours) ? hours : 24;
@@ -263,7 +263,7 @@ builder.Services.AddHttpClient<ICaptchaService, CaptchaService>();
 builder.Services.AddHttpClient<RepositoryController>(client =>
 {
     client.Timeout = TimeSpan.FromMinutes(5);
-    client.DefaultRequestHeaders.Add("User-Agent", "CodeNex-App/1.0");
+    client.DefaultRequestHeaders.Add("User-Agent", "Neelsol-App/1.0");
 });
 
 builder.Services.AddHttpClient();

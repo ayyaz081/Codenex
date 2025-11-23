@@ -33,7 +33,7 @@ namespace Neelsol.Models
     // Price for premium repositories (null for free)
     public decimal? Price { get; set; }
 
-    // GitHub organization repo full name (e.g., "CodeNex-Premium/repo-name")
+    // GitHub organization repo full name (e.g., "neelsoltechnologies/repo-name")
     [StringLength(255)]
     public string? GitHubRepoFullName { get; set; }
 

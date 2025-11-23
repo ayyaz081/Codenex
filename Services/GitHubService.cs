@@ -18,7 +18,7 @@ namespace Neelsol.Services
             
             _organizationName = Environment.GetEnvironmentVariable("GITHUB_ORGANIZATION_NAME") ??
                               configuration["GitHub:OrganizationName"] ??
-                              "CodeNex-Premium";
+                              "neelsoltechnologies";
 
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -26,7 +26,7 @@ namespace Neelsol.Services
             }
 
             // Initialize GitHub client
-            _githubClient = new GitHubClient(new ProductHeaderValue("CodeNex-App"))
+            _githubClient = new GitHubClient(new ProductHeaderValue("Neelsol-App"))
             {
                 Credentials = new Credentials(accessToken)
             };
