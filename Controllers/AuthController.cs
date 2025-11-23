@@ -756,44 +756,34 @@ namespace Neelsol.Controllers
                     _logger.LogInformation("Deleting {Count} payments", payments.Count);
                 }
 
-                // Delete or nullify CommentLikes
+                // Delete CommentLikes (must delete before comments due to FK)
                 var commentLikes = await _context.CommentLikes
                     .Where(cl => cl.UserId == id)
                     .ToListAsync();
                 if (commentLikes.Any())
                 {
-                    // Try to set to null first, if that fails, delete them
-                    foreach (var like in commentLikes)
-                    {
-                        like.UserId = null;
-                    }
-                    _logger.LogInformation("Nullifying {Count} comment likes", commentLikes.Count);
+                    _context.CommentLikes.RemoveRange(commentLikes);
+                    _logger.LogInformation("Deleting {Count} comment likes", commentLikes.Count);
                 }
 
-                // Delete or nullify PublicationComments
+                // Delete PublicationComments
                 var comments = await _context.PublicationComments
                     .Where(pc => pc.UserId == id)
                     .ToListAsync();
                 if (comments.Any())
                 {
-                    foreach (var comment in comments)
-                    {
-                        comment.UserId = null;
-                    }
-                    _logger.LogInformation("Nullifying {Count} comments", comments.Count);
+                    _context.PublicationComments.RemoveRange(comments);
+                    _logger.LogInformation("Deleting {Count} comments", comments.Count);
                 }
 
-                // Delete or nullify PublicationRatings
+                // Delete PublicationRatings
                 var ratings = await _context.PublicationRatings
                     .Where(pr => pr.UserId == id)
                     .ToListAsync();
                 if (ratings.Any())
                 {
-                    foreach (var rating in ratings)
-                    {
-                        rating.UserId = null;
-                    }
-                    _logger.LogInformation("Nullifying {Count} ratings", ratings.Count);
+                    _context.PublicationRatings.RemoveRange(ratings);
+                    _logger.LogInformation("Deleting {Count} ratings", ratings.Count);
                 }
 
                 // Nullify ContactForms UserId
