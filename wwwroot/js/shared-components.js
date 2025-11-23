@@ -121,16 +121,39 @@ class SharedComponents {
                 console.log('Replacing header placeholder...');
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
-                headerPlaceholder.replaceWith(headerContainer.firstElementChild);
+                
+                // Debug: Check what we're inserting
+                console.log('Header HTML length:', headerHtml.length);
+                console.log('Header container children:', headerContainer.children.length);
+                console.log('First element:', headerContainer.firstElementChild);
+                
+                // Insert all children from the container
+                while (headerContainer.firstChild) {
+                    headerPlaceholder.parentNode.insertBefore(headerContainer.firstChild, headerPlaceholder);
+                }
+                headerPlaceholder.remove();
             } else {
                 console.log('Header placeholder not found, inserting at body start...');
                 // Fallback: Insert header at the beginning of body
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
-                document.body.insertBefore(headerContainer.firstElementChild, document.body.firstChild);
+                
+                while (headerContainer.firstChild) {
+                    document.body.insertBefore(headerContainer.firstChild, document.body.firstChild);
+                }
             }
             
             console.log('Header component loaded successfully');
+            
+            // Verify critical elements exist
+            setTimeout(() => {
+                console.log('Verifying header elements:');
+                console.log('  - publications-dropdown:', document.getElementById('publications-dropdown'));
+                console.log('  - repository-dropdown:', document.getElementById('repository-dropdown'));
+                console.log('  - theme-toggle:', document.getElementById('theme-toggle'));
+                console.log('  - logout-btn:', document.getElementById('logout-btn'));
+                console.log('  - nav-toggle:', document.getElementById('nav-toggle'));
+            }, 100);
 
         } catch (error) {
             console.error('Error loading components:', error);
