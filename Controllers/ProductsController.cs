@@ -241,7 +241,7 @@ namespace Neelsol.Controllers
         {
             try
             {
-                var product = await _context.Products
+var product = await _context.Products
                     .Include(p => p.Repositories)
                     .FirstOrDefaultAsync(p => p.Id == id);
                     
@@ -249,11 +249,27 @@ namespace Neelsol.Controllers
 
                 _logger.LogInformation("Deleting product {ProductId} with {RepoCount} repositories", id, product.Repositories.Count);
 
-                // Delete associated repositories first (they have FK to product)
+                // Delete the entire chain: UserPurchases -> Payments -> Repositories -> Product
                 if (product.Repositories.Any())
                 {
-                    _logger.LogInformation("Deleting {Count} repositories for product {ProductId}", product.Repositories.Count, id);
+                    var repositoryIds = product.Repositories.Select(r => r.Id).ToList();
+                    _logger.LogInformation("Deleting data for {Count} repositories: {RepoIds}", repositoryIds.Count, string.Join(", ", repositoryIds));
+
+                    // 1. Delete UserPurchases for these repositories
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM UserPurchases WHERE RepositoryId IN ({0})", 
+                        string.Join(",", repositoryIds));
+                    _logger.LogInformation("Deleted UserPurchases for repositories");
+
+                    // 2. Delete Payments for these repositories
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM Payments WHERE RepositoryId IN ({0})", 
+                        string.Join(",", repositoryIds));
+                    _logger.LogInformation("Deleted Payments for repositories");
+
+                    // 3. Now delete the repositories
                     _context.Repositories.RemoveRange(product.Repositories);
+                    _logger.LogInformation("Marked {Count} repositories for deletion", product.Repositories.Count);
                 }
 
                 // Delete associated image
