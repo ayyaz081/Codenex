@@ -1,0 +1,26 @@
+# robots.txt for Neelsol Technologies
+# https://neelsol.com
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /api/
+Disallow: /Admin
+Disallow: /Auth
+
+# Allow public pages
+Allow: /
+Allow: /About
+Allow: /Contact
+Allow: /Products
+Allow: /solutions
+Allow: /Publications
+Allow: /Repository
+Allow: /Privacy-Policy
+
+# Sitemaps
+Sitemap: https://neelsol.com/sitemap.xml
+
+# Crawl-delay (optional, in seconds)
+Crawl-delay: 1
