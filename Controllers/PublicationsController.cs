@@ -399,6 +399,27 @@ namespace Neelsol.Controllers
                 if (publication == null)
                     return NotFound();
 
+                // Delete associated files
+                if (!string.IsNullOrEmpty(publication.ThumbnailUrl))
+                {
+                    var thumbnailPath = Path.Combine(_env.WebRootPath, publication.ThumbnailUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(thumbnailPath))
+                    {
+                        System.IO.File.Delete(thumbnailPath);
+                        _logger.LogInformation("Deleted publication thumbnail: {ThumbnailPath}", thumbnailPath);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(publication.FileUrl))
+                {
+                    var filePath = Path.Combine(_env.WebRootPath, publication.FileUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                        _logger.LogInformation("Deleted publication file: {FilePath}", filePath);
+                    }
+                }
+
                 // Soft delete
                 publication.IsPublished = false;
                 publication.UpdatedAt = DateTime.UtcNow;

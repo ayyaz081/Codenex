@@ -376,6 +376,17 @@ namespace Neelsol.Controllers
                 if (solution == null || !solution.IsActive)
                     return NotFound();
 
+                // Delete associated files
+                if (!string.IsNullOrEmpty(solution.DemoImageUrl))
+                {
+                    var imagePath = Path.Combine(_env.WebRootPath, solution.DemoImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        System.IO.File.Delete(imagePath);
+                        _logger.LogInformation("Deleted solution image file: {ImagePath}", imagePath);
+                    }
+                }
+
                 solution.IsActive = false;
                 solution.UpdatedAt = DateTime.UtcNow;
 
