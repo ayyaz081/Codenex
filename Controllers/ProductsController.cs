@@ -241,8 +241,20 @@ namespace Neelsol.Controllers
         {
             try
             {
-                var product = await _context.Products.FindAsync(id);
+                var product = await _context.Products
+                    .Include(p => p.Repositories)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+                    
                 if (product == null) return NotFound();
+
+                _logger.LogInformation("Deleting product {ProductId} with {RepoCount} repositories", id, product.Repositories.Count);
+
+                // Delete associated repositories first (they have FK to product)
+                if (product.Repositories.Any())
+                {
+                    _logger.LogInformation("Deleting {Count} repositories for product {ProductId}", product.Repositories.Count, id);
+                    _context.Repositories.RemoveRange(product.Repositories);
+                }
 
                 // Delete associated image
                 if (!string.IsNullOrEmpty(product.ImageUrl))
@@ -251,18 +263,31 @@ namespace Neelsol.Controllers
                     if (System.IO.File.Exists(imagePath))
                     {
                         System.IO.File.Delete(imagePath);
+                        _logger.LogInformation("Deleted image file: {ImagePath}", imagePath);
                     }
                 }
 
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
 
+                _logger.LogInformation("Successfully deleted product {ProductId}", id);
                 return NoContent();
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "Database error deleting product {ProductId}. Inner: {Inner}", id, dbEx.InnerException?.Message);
+                return StatusCode(500, new { 
+                    message = "Database constraint error while deleting product.",
+                    details = dbEx.InnerException?.Message ?? dbEx.Message
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error deleting product with id {id}");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, "Error deleting product {ProductId}", id);
+                return StatusCode(500, new { 
+                    message = "Internal server error",
+                    details = ex.Message
+                });
             }
         }
     }
