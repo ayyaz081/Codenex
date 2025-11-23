@@ -186,8 +186,9 @@ var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ??
                 builder.Configuration["Jwt:Issuer"] ?? "CodeNexAPI";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
                   builder.Configuration["Jwt:Audience"] ?? "CodeNexAPI";
-var jwtExpiryHours = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?? 
-                              builder.Configuration["Jwt:ExpiryHours"] ?? "24");
+var jwtExpiryHoursStr = Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?? 
+                         builder.Configuration["Jwt:ExpiryHours"];
+var jwtExpiryHours = !string.IsNullOrEmpty(jwtExpiryHoursStr) && int.TryParse(jwtExpiryHoursStr, out var hours) ? hours : 24;
 
 builder.Services.AddAuthentication(options =>
 {
