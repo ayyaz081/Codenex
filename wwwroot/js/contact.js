@@ -138,28 +138,28 @@ document.getElementById('message').addEventListener('input', function() {
     this.style.height = Math.max(140, this.scrollHeight) + 'px';
 });
 
-// Load the Google Maps embed focused on Virtual University Gojra campus
+// Load the Google Maps embed focused on Lahore, Pakistan
 setTimeout(() => {
     const mapContainer = document.getElementById('map-container');
-    // Updated coordinates for Virtual University Gojra, Punjab, Pakistan
+    // Updated coordinates for Lahore, Pakistan
     mapContainer.innerHTML = `
         <iframe 
-            src="https://maps.google.com/maps?q=Virtual+University+Gojra+Punjab+Pakistan+PGJR002&hl=en&z=16&output=embed" 
+            src="https://maps.google.com/maps?q=Lahore,+Pakistan&hl=en&z=12&output=embed" 
             width="100%" 
             height="100%" 
             style="border:0; border-radius: 8px;" 
             allowfullscreen="" 
             loading="lazy" 
             referrerpolicy="no-referrer-when-downgrade" 
-            title="Virtual University Gojra Campus Location">
+            title="Lahore, Pakistan Location">
         </iframe>
         <div style="margin-top: 16px; text-align: center;">
-            <a href="https://maps.app.goo.gl/zf8LwNbv4wSxDRBT9" 
+            <a href="https://maps.google.com/?q=Lahore,Pakistan" 
                target="_blank" 
                style="color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; background: var(--glass-bg); border: 1px solid var(--glass-border); transition: all 0.3s ease;" 
                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.3)';" 
                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <i class="fas fa-map-marker-alt"></i> View Virtual University Gojra Campus
+                <i class="fas fa-map-marker-alt"></i> View Lahore, Pakistan
             </a>
         </div>
     `;
