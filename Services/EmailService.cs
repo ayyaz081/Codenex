@@ -46,8 +46,8 @@ namespace Neelsol.Services
             try
             {
                 _logger.LogInformation("Attempting to send email to {Email} from {FromEmail}", to, _emailSettings.FromEmail);
-                _logger.LogDebug("SMTP Config - Host: {Host}, Port: {Port}, Username: {Username}, PasswordLength: {PasswordLength}", 
-                    _emailSettings.Host, _emailSettings.Port, _emailSettings.Username, _emailSettings.Password.Length);
+                _logger.LogDebug("SMTP Config - Host: {Host}, Port: {Port}, Username: {Username}", 
+                    _emailSettings.Host, _emailSettings.Port, _emailSettings.Username);
 
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.FromEmail));

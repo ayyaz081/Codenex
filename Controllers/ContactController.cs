@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Neelsol.Data;
 using Neelsol.Models;
@@ -34,6 +36,7 @@ namespace Neelsol.Controllers
 
         // POST: api/contact
         [HttpPost]
+        [EnableRateLimiting("contact")]
         public async Task<ActionResult<ContactForm>> SubmitContactForm([FromBody] ContactFormDto dto)
         {
             if (!ModelState.IsValid)
@@ -52,19 +55,30 @@ namespace Neelsol.Controllers
 
             try
             {
-                // Get admin email from configuration
-                var adminEmail = _configuration["ADMIN_EMAIL"] ?? "bc220201051aay@vu.edu.pk";
+                // Get admin email from environment variable or configuration
+                var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ??
+                               _configuration["ADMIN_EMAIL"];
+                
+                if (string.IsNullOrEmpty(adminEmail))
+                {
+                    _logger.LogError("Admin email is not configured for contact form notifications");
+                    // Continue without sending notification - still save to database
+                }
                 
                 _logger.LogInformation($"Processing contact form submission from {dto.Email}: {dto.Subject}");
 
-                // Send email notification to admin
-                var emailSent = await _emailService.SendContactFormNotificationAsync(
-                    adminEmail,
-                    dto.Name,
-                    dto.Email,
-                    dto.Subject,
-                    dto.Message
-                );
+                // Send email notification to admin (if admin email is configured)
+                bool emailSent = false;
+                if (!string.IsNullOrEmpty(adminEmail))
+                {
+                    emailSent = await _emailService.SendContactFormNotificationAsync(
+                        adminEmail,
+                        dto.Name,
+                        dto.Email,
+                        dto.Subject,
+                        dto.Message
+                    );
+                }
 
                 if (emailSent)
                 {
@@ -136,6 +150,7 @@ namespace Neelsol.Controllers
 
         // GET: api/contact (Admin only)
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<ContactForm>>> GetContactForms(
             [FromQuery] bool? isRead = null,
             [FromQuery] bool? isReplied = null)
@@ -164,6 +179,7 @@ namespace Neelsol.Controllers
 
         // GET: api/contact/5
         [HttpGet("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ContactForm>> GetContactForm([FromRoute] int id)
         {
             try
@@ -194,6 +210,7 @@ namespace Neelsol.Controllers
 
         // PUT: api/contact/5/reply
         [HttpPut("{id:int}/reply")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ReplyToContactForm(
             [FromRoute] int id,
             [FromBody] string reply)
@@ -224,6 +241,7 @@ namespace Neelsol.Controllers
 
         // DELETE: api/contact/5
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteContactForm([FromRoute] int id)
         {
             try
@@ -246,6 +264,7 @@ namespace Neelsol.Controllers
 
         // PUT: api/contact/{id}/read - Mark contact as read
         [HttpPut("{id:int}/read")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> MarkContactAsRead([FromRoute] int id)
         {
             try
@@ -272,6 +291,7 @@ namespace Neelsol.Controllers
 
         // PUT: api/contact/mark-all-read - Mark all contacts as read
         [HttpPut("mark-all-read")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> MarkAllContactsAsRead()
         {
             try
@@ -301,6 +321,7 @@ namespace Neelsol.Controllers
 
         // DELETE: api/contact/delete-read - Delete all read contacts
         [HttpDelete("delete-read")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteReadContacts()
         {
             try
@@ -325,6 +346,7 @@ namespace Neelsol.Controllers
 
         // POST: api/contact/seed-dummy-data - Add dummy contact data for testing (Development only)
         [HttpPost("seed-dummy-data")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SeedDummyContactData()
         {
             try

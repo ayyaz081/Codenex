@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Neelsol.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,26 +9,31 @@ namespace Neelsol.Services
 {
     public class TokenService
     {
-        private readonly IConfiguration _configuration;
+        private readonly JwtSettings _jwtSettings;
         private readonly ILogger<TokenService> _logger;
 
-        public TokenService(IConfiguration configuration, ILogger<TokenService> logger)
+        public TokenService(IOptions<JwtSettings> jwtSettings, ILogger<TokenService> logger)
         {
-            _configuration = configuration;
+            _jwtSettings = jwtSettings.Value;
             _logger = logger;
+            
+            // Validate that JWT key is configured - no fallback allowed
+            if (string.IsNullOrEmpty(_jwtSettings.Key))
+            {
+                throw new InvalidOperationException(
+                    "JWT Key is not configured. Set JWT_KEY environment variable or configure Jwt:Key in appsettings.");
+            }
+            
+            if (_jwtSettings.Key.Length < 32)
+            {
+                throw new InvalidOperationException(
+                    "JWT Key must be at least 32 characters long for security.");
+            }
         }
 
         public string CreateToken(User user)
         {
-            var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
-                         _configuration["Jwt:Key"] ?? 
-                         "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
-            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
-                            _configuration["Jwt:Issuer"] ?? "CodeNexAPI";
-            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
-                              _configuration["Jwt:Audience"] ?? "CodeNexAPI";
-            
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
@@ -43,11 +49,12 @@ namespace Neelsol.Services
                 new("emailVerified", user.EmailConfirmed.ToString().ToLower())
             };
 
-            var expiresAt = DateTime.UtcNow.AddHours(24); // Token expires in 24 hours
+            // Use configured expiry hours from JwtSettings
+            var expiresAt = DateTime.UtcNow.AddHours(_jwtSettings.ExpiryHours);
 
             var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
                 claims: claims,
                 expires: expiresAt,
                 signingCredentials: credentials
@@ -60,10 +67,7 @@ namespace Neelsol.Services
         {
             try
             {
-                var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
-                             _configuration["Jwt:Key"] ?? 
-                             "your-secure-jwt-key-at-least-256-bits-long-replace-this-in-production";
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
 
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var validationParameters = new TokenValidationParameters
@@ -71,11 +75,9 @@ namespace Neelsol.Services
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = key,
                     ValidateIssuer = true,
-                    ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
-                                  _configuration["Jwt:Issuer"] ?? "CodeNexAPI",
+                    ValidIssuer = _jwtSettings.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
-                                    _configuration["Jwt:Audience"] ?? "CodeNexAPI",
+                    ValidAudience = _jwtSettings.Audience,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
@@ -89,5 +91,10 @@ namespace Neelsol.Services
                 return null;
             }
         }
+        
+        /// <summary>
+        /// Get the configured token expiry time in hours
+        /// </summary>
+        public int GetExpiryHours() => _jwtSettings.ExpiryHours;
     }
 }

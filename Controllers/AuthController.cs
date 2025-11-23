@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Neelsol.DTOs;
 using Neelsol.Models;
@@ -18,22 +19,26 @@ namespace Neelsol.Controllers
         private readonly TokenService _tokenService;
         private readonly IEmailService _emailService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IConfiguration _configuration;
 
         public AuthController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             TokenService tokenService,
             IEmailService emailService,
-            ILogger<AuthController> logger)
+            ILogger<AuthController> logger,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _emailService = emailService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             try
@@ -102,7 +107,7 @@ namespace Neelsol.Controllers
                     Role = user.Role,
                     UserId = user.Id,
                     EmailVerified = user.EmailConfirmed,
-                    ExpiresAt = DateTime.UtcNow.AddHours(24)
+                    ExpiresAt = DateTime.UtcNow.AddHours(_tokenService.GetExpiryHours())
                 };
 
                 return Ok(response);
@@ -115,6 +120,7 @@ namespace Neelsol.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             try
@@ -158,7 +164,7 @@ namespace Neelsol.Controllers
                     Role = user.Role,
                     UserId = user.Id,
                     EmailVerified = user.EmailConfirmed,
-                    ExpiresAt = DateTime.UtcNow.AddHours(24)
+                    ExpiresAt = DateTime.UtcNow.AddHours(_tokenService.GetExpiryHours())
                 };
 
                 return Ok(response);
@@ -187,6 +193,7 @@ namespace Neelsol.Controllers
         }
 
         [HttpPost("forgot-password")]
+        [EnableRateLimiting("password-reset")]
         public async Task<IActionResult> ForgotPassword([FromBody] EmailDto forgotPasswordDto)
         {
             try
@@ -315,13 +322,34 @@ namespace Neelsol.Controllers
         }
 
         [HttpPost("create-admin")]
-        public async Task<IActionResult> CreateAdmin([FromBody] CreateAdminDto createAdminDto)
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> CreateAdmin(
+            [FromBody] CreateAdminDto createAdminDto,
+            [FromHeader(Name = "X-Admin-Secret")] string? adminSecret)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+                
+                // SECURITY: Require admin secret for admin creation
+                // This prevents unauthorized admin account creation
+                var requiredSecret = Environment.GetEnvironmentVariable("ADMIN_CREATION_SECRET") ??
+                                   _configuration["AdminCreationSecret"];
+                
+                if (string.IsNullOrEmpty(requiredSecret))
+                {
+                    _logger.LogError("Admin creation attempted but ADMIN_CREATION_SECRET is not configured");
+                    return StatusCode(500, new { message = "Admin creation is not properly configured." });
+                }
+                
+                if (string.IsNullOrEmpty(adminSecret) || adminSecret != requiredSecret)
+                {
+                    _logger.LogWarning("Unauthorized admin creation attempt from IP: {IP}", 
+                        HttpContext.Connection.RemoteIpAddress);
+                    return Unauthorized(new { message = "Invalid admin creation credentials." });
                 }
 
                 // Check if any admin already exists
@@ -374,7 +402,7 @@ namespace Neelsol.Controllers
                     Role = adminUser.Role,
                     UserId = adminUser.Id,
                     EmailVerified = adminUser.EmailConfirmed,
-                    ExpiresAt = DateTime.UtcNow.AddHours(24)
+                    ExpiresAt = DateTime.UtcNow.AddHours(_tokenService.GetExpiryHours())
                 };
 
                 return Ok(new { 
@@ -390,6 +418,7 @@ namespace Neelsol.Controllers
         }
 
         [HttpPost("resend-verification")]
+        [EnableRateLimiting("password-reset")]
         public async Task<IActionResult> ResendVerificationEmail([FromBody] EmailDto resendDto)
         {
             try
