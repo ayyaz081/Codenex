@@ -713,125 +713,89 @@ namespace Neelsol.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
+                _logger.LogInformation("Attempting to delete user: {UserId}", id);
+                
                 var user = await _userManager.FindByIdAsync(id);
                 if (user == null)
                 {
+                    _logger.LogWarning("User not found: {UserId}", id);
                     return NotFound(new { message = "User not found." });
                 }
 
                 // Don't allow deleting the last admin
                 if (user.Role == "Admin")
                 {
-                    var adminCount = await _userManager.Users
-                        .CountAsync(u => u.Role == "Admin");
+                    var adminCount = await _userManager.Users.CountAsync(u => u.Role == "Admin");
                     if (adminCount <= 1)
                     {
                         return BadRequest(new { message = "Cannot delete the last admin user." });
                     }
                 }
 
-                _logger.LogInformation("Starting deletion of related data for user: {UserId}", id);
-
-                // Delete UserPurchases first (they have FK to Payments)
-                var purchases = await _context.UserPurchases
-                    .Where(up => up.UserId == id)
-                    .ToListAsync();
-                if (purchases.Any())
-                {
-                    _context.UserPurchases.RemoveRange(purchases);
-                    _logger.LogInformation("Deleting {Count} user purchases", purchases.Count);
-                }
-
-                // Delete Payments
-                var payments = await _context.Payments
-                    .Where(p => p.UserId == id)
-                    .ToListAsync();
-                if (payments.Any())
-                {
-                    _context.Payments.RemoveRange(payments);
-                    _logger.LogInformation("Deleting {Count} payments", payments.Count);
-                }
-
-                // Delete CommentLikes (must delete before comments due to FK)
-                var commentLikes = await _context.CommentLikes
-                    .Where(cl => cl.UserId == id)
-                    .ToListAsync();
-                if (commentLikes.Any())
-                {
-                    _context.CommentLikes.RemoveRange(commentLikes);
-                    _logger.LogInformation("Deleting {Count} comment likes", commentLikes.Count);
-                }
-
-                // Delete PublicationComments
-                var comments = await _context.PublicationComments
-                    .Where(pc => pc.UserId == id)
-                    .ToListAsync();
-                if (comments.Any())
-                {
-                    _context.PublicationComments.RemoveRange(comments);
-                    _logger.LogInformation("Deleting {Count} comments", comments.Count);
-                }
-
-                // Delete PublicationRatings
-                var ratings = await _context.PublicationRatings
-                    .Where(pr => pr.UserId == id)
-                    .ToListAsync();
-                if (ratings.Any())
-                {
-                    _context.PublicationRatings.RemoveRange(ratings);
-                    _logger.LogInformation("Deleting {Count} ratings", ratings.Count);
-                }
-
-                // Nullify ContactForms UserId
-                var contactForms = await _context.ContactForms
-                    .Where(cf => cf.UserId == id)
-                    .ToListAsync();
-                if (contactForms.Any())
-                {
-                    foreach (var cf in contactForms)
-                    {
-                        cf.UserId = null;
-                    }
-                    _logger.LogInformation("Nullifying {Count} contact forms", contactForms.Count);
-                }
-
+                // Delete related data manually (in correct order to avoid FK violations)
                 try
                 {
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation("Successfully saved changes for related data");
+                    // 1. Delete UserPurchases first (they reference Payments)
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM UserPurchases WHERE UserId = {0}", id);
+                    _logger.LogInformation("Deleted UserPurchases for user {UserId}", id);
+
+                    // 2. Delete Payments
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM Payments WHERE UserId = {0}", id);
+                    _logger.LogInformation("Deleted Payments for user {UserId}", id);
+
+                    // 3. Delete CommentLikes (they reference PublicationComments)
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM CommentLikes WHERE UserId = {0}", id);
+                    _logger.LogInformation("Deleted CommentLikes for user {UserId}", id);
+
+                    // 4. Delete PublicationComments
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM PublicationComments WHERE UserId = {0}", id);
+                    _logger.LogInformation("Deleted PublicationComments for user {UserId}", id);
+
+                    // 5. Delete PublicationRatings
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM PublicationRatings WHERE UserId = {0}", id);
+                    _logger.LogInformation("Deleted PublicationRatings for user {UserId}", id);
+
+                    // 6. Nullify ContactForms
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "UPDATE ContactForms SET UserId = NULL WHERE UserId = {0}", id);
+                    _logger.LogInformation("Nullified ContactForms for user {UserId}", id);
                 }
-                catch (DbUpdateException dbEx)
+                catch (Exception ex)
                 {
-                    _logger.LogError(dbEx, "Database error while deleting related data. Inner exception: {Inner}", dbEx.InnerException?.Message);
-                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error deleting related data for user {UserId}. Details: {Message}", id, ex.Message);
                     return StatusCode(500, new { 
-                        message = "Database constraint error. The migration may not have been applied yet.", 
-                        details = dbEx.InnerException?.Message ?? dbEx.Message 
+                        message = "Failed to delete user's related data.", 
+                        details = ex.Message 
                     });
                 }
 
-                // Now delete the user
+                // Now delete the user (Identity will handle its own tables)
                 var result = await _userManager.DeleteAsync(user);
                 if (!result.Succeeded)
                 {
-                    await transaction.RollbackAsync();
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.LogError("Failed to delete user {UserId}. Errors: {Errors}", id, errors);
                     return BadRequest(new { message = "Failed to delete user.", errors = result.Errors });
                 }
 
-                await transaction.CommitAsync();
-
-                _logger.LogInformation("User deleted successfully: {UserId}", id);
+                _logger.LogInformation("Successfully deleted user: {UserId}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error deleting user {UserId}", id);
-                return StatusCode(500, new { message = "An error occurred while deleting user.", details = ex.Message });
+                _logger.LogError(ex, "Unexpected error deleting user {UserId}. Message: {Message}", id, ex.Message);
+                return StatusCode(500, new { 
+                    message = "An unexpected error occurred while deleting user.", 
+                    details = ex.Message,
+                    innerException = ex.InnerException?.Message
+                });
             }
         }
     }
