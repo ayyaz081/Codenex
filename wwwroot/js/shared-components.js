@@ -574,17 +574,91 @@ class SharedComponents {
         const navLinks = document.createElement('ul');
         navLinks.className = 'mobile-nav-links';
         
-        // Get navigation links from desktop menu
-        const desktopNavLinks = document.querySelectorAll('.nav-links a');
-        desktopNavLinks.forEach(link => {
+        // Get navigation items from desktop menu (including dropdowns)
+        const desktopNavItems = document.querySelectorAll('.nav-links > li');
+        desktopNavItems.forEach(navItem => {
             const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = link.href;
-            a.innerHTML = link.innerHTML;
-            a.addEventListener('click', () => {
-                this.closeMobileMenu();
-            });
-            li.appendChild(a);
+            
+            // Check if this is a dropdown
+            const isDropdown = navItem.classList.contains('nav-dropdown');
+            
+            if (isDropdown) {
+                // Handle dropdown as collapsible accordion
+                const dropdownToggle = navItem.querySelector('.nav-dropdown-toggle');
+                const dropdownMenu = navItem.querySelector('.nav-dropdown-menu');
+                
+                if (dropdownToggle && dropdownMenu) {
+                    // Create accordion toggle button
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.className = 'mobile-dropdown-toggle';
+                    toggleBtn.type = 'button';
+                    
+                    // Extract icon and text from dropdown toggle
+                    const icon = dropdownToggle.querySelector('i:not(.dropdown-arrow)');
+                    const textContent = Array.from(dropdownToggle.childNodes)
+                        .filter(node => node.nodeType === Node.TEXT_NODE)
+                        .map(node => node.textContent.trim())
+                        .join(' ');
+                    
+                    // Build button content with proper spacing
+                    if (icon) {
+                        const iconClone = icon.cloneNode(true);
+                        toggleBtn.appendChild(iconClone);
+                    }
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = textContent;
+                    textSpan.style.flex = '1';
+                    toggleBtn.appendChild(textSpan);
+                    
+                    // Add arrow
+                    const arrow = document.createElement('i');
+                    arrow.className = 'fas fa-chevron-down dropdown-arrow';
+                    toggleBtn.appendChild(arrow);
+                    
+                    // Create submenu container
+                    const submenu = document.createElement('div');
+                    submenu.className = 'mobile-submenu';
+                    submenu.style.display = 'none';
+                    
+                    // Copy dropdown items to submenu
+                    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+                    dropdownItems.forEach(item => {
+                        const subLink = document.createElement('a');
+                        subLink.href = item.href;
+                        subLink.textContent = item.textContent;
+                        subLink.className = 'mobile-submenu-item';
+                        subLink.addEventListener('click', () => {
+                            this.closeMobileMenu();
+                        });
+                        submenu.appendChild(subLink);
+                    });
+                    
+                    // Toggle submenu on click
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const isOpen = submenu.style.display === 'block';
+                        submenu.style.display = isOpen ? 'none' : 'block';
+                        toggleBtn.classList.toggle('open', !isOpen);
+                    });
+                    
+                    li.appendChild(toggleBtn);
+                    li.appendChild(submenu);
+                }
+            } else {
+                // Regular link
+                const link = navItem.querySelector('a');
+                if (link) {
+                    const a = document.createElement('a');
+                    a.href = link.href;
+                    a.innerHTML = link.innerHTML;
+                    a.addEventListener('click', () => {
+                        this.closeMobileMenu();
+                    });
+                    li.appendChild(a);
+                }
+            }
+            
             navLinks.appendChild(li);
         });
         
