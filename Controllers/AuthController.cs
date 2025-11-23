@@ -483,30 +483,53 @@ namespace Neelsol.Controllers
         {
             try
             {
+                _logger.LogInformation("Email verification attempt - UserId: {UserId}, Token length: {TokenLength}", 
+                    userId ?? "null", token?.Length ?? 0);
+
                 if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
                 {
+                    _logger.LogWarning("Invalid verification parameters - UserId: {UserId}, Token: {HasToken}", 
+                        userId ?? "null", !string.IsNullOrEmpty(token));
                     return BadRequest(new { message = "Invalid verification link." });
                 }
 
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
                 {
+                    _logger.LogWarning("User not found for verification - UserId: {UserId}", userId);
                     return BadRequest(new { message = "Invalid verification link." });
                 }
 
-                var result = await _userManager.ConfirmEmailAsync(user, token);
+                if (user.EmailConfirmed)
+                {
+                    _logger.LogInformation("Email already verified for user: {Email}", user.Email);
+                    return Ok(new { message = "Email is already verified.", success = true });
+                }
+
+                // URL decode the token (in case it wasn't decoded by the framework)
+                var decodedToken = Uri.UnescapeDataString(token);
+                
+                var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
                 if (!result.Succeeded)
                 {
-                    return BadRequest(new { message = "Email verification failed.", errors = result.Errors });
+                    _logger.LogWarning("Email verification failed for user: {Email}. Errors: {Errors}", 
+                        user.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+                    return BadRequest(new { 
+                        message = "Email verification failed. The link may have expired or is invalid.", 
+                        errors = result.Errors.Select(e => e.Description) 
+                    });
                 }
 
                 _logger.LogInformation("Email verified successfully for user: {Email}", user.Email);
-                return Ok(new { message = "Email verified successfully.", success = true });
+                return Ok(new { message = "Email verified successfully! You can now log in.", success = true });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during email verification");
-                return StatusCode(500, new { message = "An error occurred during email verification." });
+                _logger.LogError(ex, "Error during email verification for UserId: {UserId}", userId ?? "null");
+                return StatusCode(500, new { 
+                    message = "An error occurred during email verification.",
+                    details = ex.Message 
+                });
             }
         }
 
