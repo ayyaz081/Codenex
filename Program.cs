@@ -178,6 +178,8 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
+// TEMPORARY: JWT Configuration commented out for testing
+/*
 // Configure JWT Authentication - read from environment first
 var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? 
              builder.Configuration["Jwt:Key"] ?? 
@@ -228,6 +230,8 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+*/
+Console.WriteLine("⚠️ JWT Authentication disabled for testing");
 
 // Configure Email Settings
 builder.Services.Configure<EmailSettings>(options =>
