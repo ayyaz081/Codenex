@@ -4,9 +4,19 @@
 let recaptchaSiteKey = null;
 let recaptchaLoaded = false;
 
-// Get site key from environment or fallback
-function getRecaptchaSiteKey() {
-    // Try to get from data attribute
+// Get site key from API
+async function getRecaptchaSiteKey() {
+    try {
+        const response = await fetch(`${backendBaseUrl}/api/config/recaptcha-site-key`);
+        if (response.ok) {
+            const data = await response.json();
+            return data.siteKey || null;
+        }
+    } catch (error) {
+        console.warn('Failed to fetch reCAPTCHA site key:', error);
+    }
+    
+    // Fallback to data attribute
     const configScript = document.getElementById('recaptcha-config');
     if (configScript && configScript.dataset.siteKey) {
         return configScript.dataset.siteKey;
@@ -20,14 +30,16 @@ function getRecaptchaSiteKey() {
     return null;
 }
 
-function loadRecaptcha() {
-    recaptchaSiteKey = getRecaptchaSiteKey();
+async function loadRecaptcha() {
+    recaptchaSiteKey = await getRecaptchaSiteKey();
     
     if (!recaptchaSiteKey) {
         console.warn('reCAPTCHA site key not configured - CAPTCHA will be disabled');
         recaptchaLoaded = false;
         return;
     }
+    
+    console.log('reCAPTCHA site key loaded, initializing...');
     
     // Load reCAPTCHA script
     const script = document.createElement('script');
