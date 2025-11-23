@@ -61,8 +61,8 @@ class SharedComponents {
         try {
             await this.loadComponents();
             
-            // Increased delay to ensure DOM is ready after header loading
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // Small delay to ensure DOM is ready after header loading
+            await new Promise(resolve => setTimeout(resolve, 50));
             
             this.initializeEventHandlers();
             this.checkAuthState();
@@ -121,39 +121,16 @@ class SharedComponents {
                 console.log('Replacing header placeholder...');
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
-                
-                // Debug: Check what we're inserting
-                console.log('Header HTML length:', headerHtml.length);
-                console.log('Header container children:', headerContainer.children.length);
-                console.log('First element:', headerContainer.firstElementChild);
-                
-                // Insert all children from the container
-                while (headerContainer.firstChild) {
-                    headerPlaceholder.parentNode.insertBefore(headerContainer.firstChild, headerPlaceholder);
-                }
-                headerPlaceholder.remove();
+                headerPlaceholder.replaceWith(headerContainer.firstElementChild);
             } else {
                 console.log('Header placeholder not found, inserting at body start...');
                 // Fallback: Insert header at the beginning of body
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
-                
-                while (headerContainer.firstChild) {
-                    document.body.insertBefore(headerContainer.firstChild, document.body.firstChild);
-                }
+                document.body.insertBefore(headerContainer.firstElementChild, document.body.firstChild);
             }
             
             console.log('Header component loaded successfully');
-            
-            // Verify critical elements exist
-            setTimeout(() => {
-                console.log('Verifying header elements:');
-                console.log('  - publications-dropdown:', document.getElementById('publications-dropdown'));
-                console.log('  - repository-dropdown:', document.getElementById('repository-dropdown'));
-                console.log('  - theme-toggle:', document.getElementById('theme-toggle'));
-                console.log('  - logout-btn:', document.getElementById('logout-btn'));
-                console.log('  - nav-toggle:', document.getElementById('nav-toggle'));
-            }, 100);
 
         } catch (error) {
             console.error('Error loading components:', error);
@@ -1018,21 +995,8 @@ class SharedComponents {
      * Populate publications dropdown
      */
     populatePublicationsDropdown(domains) {
-        console.log('📚 populatePublicationsDropdown called with:', domains);
         const dropdown = document.getElementById('publications-dropdown');
-        console.log('📚 Publications dropdown element:', dropdown);
-        if (!dropdown) {
-            console.error('❌ Publications dropdown element not found!');
-            // Retry after a short delay
-            setTimeout(() => {
-                const retryDropdown = document.getElementById('publications-dropdown');
-                if (retryDropdown) {
-                    console.log('✅ Publications dropdown found on retry');
-                    this.populatePublicationsDropdown(domains);
-                }
-            }, 500);
-            return;
-        }
+        if (!dropdown) return;
         
         if (domains.length === 0) {
             console.log('📚 Publications: No domains available');
@@ -1088,21 +1052,8 @@ class SharedComponents {
      * Populate repository dropdown
      */
     populateRepositoryDropdown(categories) {
-        console.log('📁 populateRepositoryDropdown called with:', categories);
         const dropdown = document.getElementById('repository-dropdown');
-        console.log('📁 Repository dropdown element:', dropdown);
-        if (!dropdown) {
-            console.error('❌ Repository dropdown element not found!');
-            // Retry after a short delay
-            setTimeout(() => {
-                const retryDropdown = document.getElementById('repository-dropdown');
-                if (retryDropdown) {
-                    console.log('✅ Repository dropdown found on retry');
-                    this.populateRepositoryDropdown(categories);
-                }
-            }, 500);
-            return;
-        }
+        if (!dropdown) return;
         
         if (categories.length === 0) {
             console.log('📁 Repository: No categories available');
