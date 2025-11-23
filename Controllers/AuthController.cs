@@ -20,6 +20,7 @@ namespace Neelsol.Controllers
         private readonly IEmailService _emailService;
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly Neelsol.Data.AppDbContext _context;
 
         public AuthController(
             UserManager<User> userManager,
@@ -27,7 +28,8 @@ namespace Neelsol.Controllers
             TokenService tokenService,
             IEmailService emailService,
             ILogger<AuthController> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            Neelsol.Data.AppDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -35,6 +37,7 @@ namespace Neelsol.Controllers
             _emailService = emailService;
             _logger = logger;
             _configuration = configuration;
+            _context = context;
         }
 
         [HttpPost("register")]
@@ -710,6 +713,8 @@ namespace Neelsol.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(string id)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
                 var user = await _userManager.FindByIdAsync(id);
@@ -729,18 +734,65 @@ namespace Neelsol.Controllers
                     }
                 }
 
+                // Delete related CommentLikes first (they depend on comments)
+                var commentLikes = await _context.CommentLikes
+                    .Where(cl => cl.UserId == id)
+                    .ToListAsync();
+                _context.CommentLikes.RemoveRange(commentLikes);
+
+                // Delete PublicationComments
+                var comments = await _context.PublicationComments
+                    .Where(pc => pc.UserId == id)
+                    .ToListAsync();
+                _context.PublicationComments.RemoveRange(comments);
+
+                // Delete PublicationRatings
+                var ratings = await _context.PublicationRatings
+                    .Where(pr => pr.UserId == id)
+                    .ToListAsync();
+                _context.PublicationRatings.RemoveRange(ratings);
+
+                // Delete Payments
+                var payments = await _context.Payments
+                    .Where(p => p.UserId == id)
+                    .ToListAsync();
+                _context.Payments.RemoveRange(payments);
+
+                // Delete UserPurchases
+                var purchases = await _context.UserPurchases
+                    .Where(up => up.UserId == id)
+                    .ToListAsync();
+                _context.UserPurchases.RemoveRange(purchases);
+
+                // Nullify ContactForms UserId (they use SetNull)
+                var contactForms = await _context.ContactForms
+                    .Where(cf => cf.UserId == id)
+                    .ToListAsync();
+                foreach (var cf in contactForms)
+                {
+                    cf.UserId = null;
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Now delete the user
                 var result = await _userManager.DeleteAsync(user);
                 if (!result.Succeeded)
                 {
+                    await transaction.RollbackAsync();
                     return BadRequest(new { message = "Failed to delete user.", errors = result.Errors });
                 }
 
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("User deleted successfully: {UserId}", id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error deleting user {id}");
-                return StatusCode(500, new { message = "An error occurred while deleting user." });
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error deleting user {UserId}", id);
+                return StatusCode(500, new { message = "An error occurred while deleting user.", details = ex.Message });
             }
         }
     }
