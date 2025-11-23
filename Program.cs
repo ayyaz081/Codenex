@@ -87,33 +87,6 @@ builder.Services.AddControllers()
 // Enable response caching
 builder.Services.AddResponseCaching();
 
-// Enable response compression
-builder.Services.AddResponseCompression(options =>
-{
-    options.EnableForHttps = true;
-    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
-    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
-    options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes.Concat(new[]
-    {
-        "application/json",
-        "application/javascript",
-        "text/css",
-        "text/html",
-        "text/plain",
-        "image/svg+xml"
-    });
-});
-
-builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(options =>
-{
-    options.Level = System.IO.Compression.CompressionLevel.Fastest;
-});
-
-builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(options =>
-{
-    options.Level = System.IO.Compression.CompressionLevel.Optimal;
-});
-
 // Configure DbContext - get connection string from environment first
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? 
                       Environment.GetEnvironmentVariable("CONNECTION_STRING") ??
@@ -463,7 +436,6 @@ app.Use((context, next) =>
 });
 
 app.UseCors("DefaultCorsPolicy");
-app.UseResponseCompression();
 app.UseResponseCaching();
 
 var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
