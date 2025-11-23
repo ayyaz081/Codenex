@@ -21,6 +21,8 @@ namespace Neelsol.Data
         public DbSet<CommentLike> CommentLikes => Set<CommentLike>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<UserPurchase> UserPurchases => Set<UserPurchase>();
+        public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
+        public DbSet<ClientTestimonial> ClientTestimonials => Set<ClientTestimonial>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -87,6 +87,33 @@ builder.Services.AddControllers()
 // Enable response caching
 builder.Services.AddResponseCaching();
 
+// Enable response compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+    options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "application/json",
+        "application/javascript",
+        "text/css",
+        "text/html",
+        "text/plain",
+        "image/svg+xml"
+    });
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Optimal;
+});
+
 // Configure DbContext - get connection string from environment first
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? 
                       Environment.GetEnvironmentVariable("CONNECTION_STRING") ??
@@ -367,6 +394,40 @@ if (app.Environment.IsProduction())
 app.UseSwagger();
 app.UseSwaggerUI();
 
+// Global exception handler for API routes - ensures JSON responses
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Unhandled exception occurred for path: {Path}", context.Request.Path);
+        
+        // Only handle API routes
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+            
+            var errorResponse = new
+            {
+                error = "Internal server error",
+                message = app.Environment.IsDevelopment() ? ex.Message : "An unexpected error occurred",
+                path = context.Request.Path.ToString()
+            };
+            
+            await context.Response.WriteAsJsonAsync(errorResponse);
+        }
+        else
+        {
+            throw; // Re-throw for non-API routes
+        }
+    }
+});
+
 app.Use((context, next) =>
 {
     if (!app.Environment.IsDevelopment())
@@ -402,6 +463,7 @@ app.Use((context, next) =>
 });
 
 app.UseCors("DefaultCorsPolicy");
+app.UseResponseCompression();
 app.UseResponseCaching();
 
 var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -420,7 +482,36 @@ var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgno
 };
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+
+// Configure static files with caching
+var staticFileOptions = new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Cache static assets for 1 year (immutable assets)
+        if (ctx.File.Name.EndsWith(".css") || 
+            ctx.File.Name.EndsWith(".js") || 
+            ctx.File.Name.EndsWith(".woff2") || 
+            ctx.File.Name.EndsWith(".woff") || 
+            ctx.File.Name.EndsWith(".ttf") ||
+            ctx.File.Name.EndsWith(".jpg") || 
+            ctx.File.Name.EndsWith(".jpeg") || 
+            ctx.File.Name.EndsWith(".png") || 
+            ctx.File.Name.EndsWith(".gif") || 
+            ctx.File.Name.EndsWith(".svg") ||
+            ctx.File.Name.EndsWith(".webp"))
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=31536000,immutable";
+        }
+        // Cache HTML files for shorter duration
+        else if (ctx.File.Name.EndsWith(".html"))
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=3600";
+        }
+    }
+};
+
+app.UseStaticFiles(staticFileOptions);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

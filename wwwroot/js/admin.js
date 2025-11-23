@@ -329,13 +329,49 @@
                         headers['Authorization'] = `Bearer ${token}`;
                     }
                     
+                    console.log('📧 Fetching contacts with token:', token ? 'present' : 'missing');
                     const response = await fetch(url, { headers });
                     
+                    console.log('📧 Contact API response status:', response.status);
+                    
                     if (!response.ok) {
-                        throw new Error(`Failed to fetch contacts: ${response.status}`);
+                        // Try to get response body for better error message
+                        const contentType = response.headers.get('content-type');
+                        let errorMessage = `HTTP ${response.status}`;
+                        
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = await response.json();
+                                errorMessage = errorData.message || errorMessage;
+                            } catch (e) {
+                                // Ignore JSON parse error
+                            }
+                        } else {
+                            // Non-JSON response (likely HTML error page)
+                            const text = await response.text();
+                            console.error('📧 Server returned non-JSON response:', text.substring(0, 200));
+                            
+                            if (response.status === 401) {
+                                errorMessage = 'Unauthorized. Please log in again.';
+                            } else if (response.status === 403) {
+                                errorMessage = 'Access denied. Admin privileges required.';
+                            } else if (response.status === 500) {
+                                errorMessage = 'Server error. The Contact table might not exist or there is a database issue.';
+                            }
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    // Check if response is JSON before parsing
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.error('📧 Expected JSON but got:', contentType);
+                        throw new Error('Server returned non-JSON response');
                     }
                     
                     let contacts = await response.json();
+                    console.log('📧 Successfully fetched contacts:', contacts.length);
                     
                     // Client-side search filtering with enhanced search
                     if (search) {
@@ -698,6 +734,12 @@
                     break;
                 case 'users':
                     if (typeof loadUsers === 'function') loadUsers();
+                    break;
+                case 'team':
+                    if (typeof loadTeamMembers === 'function') loadTeamMembers();
+                    break;
+                case 'testimonials':
+                    if (typeof loadTestimonials === 'function') loadTestimonials();
                     break;
                 case 'homepage':
                     if (typeof loadCarousel === 'function') loadCarousel();
@@ -5152,7 +5194,7 @@ ${contact.message}
         async function loadTeamMembers() {
             try {
                 console.log('Loading team members...');
-                const response = await fetch(`${API_BASE_URL}/TeamMembers`);
+                const response = await fetch(`${API_BASE_URL}/About/team`);
                 if (!response.ok) {
                     console.error('Team members API error:', response.status, response.statusText);
                     return;
@@ -5320,7 +5362,7 @@ ${contact.message}
         
         async function editTeamMember(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/TeamMembers/${id}`);
+                const response = await fetch(`${API_BASE_URL}/About/team/${id}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch team member: ${response.status}`);
                 }
@@ -5400,12 +5442,16 @@ ${contact.message}
                 
                 console.log(`${isEditing ? 'Updating' : 'Creating'} team member with data:`, formData);
                 
+                // Fix boolean values for checkboxes
+                const isActive = formData.get('isActive') === 'on';
+                formData.set('isActive', isActive.toString());
+                
                 let apiUrl, method;
                 if (isEditing) {
                     apiUrl = `${API_BASE_URL}/About/team/${memberId}`;
                     method = 'PUT';
                 } else {
-                    apiUrl = `${API_BASE_URL}/About/team/upload`;
+                    apiUrl = `${API_BASE_URL}/About/team`;
                     method = 'POST';
                 }
                 
@@ -5468,7 +5514,15 @@ ${contact.message}
                 
                 tbody.innerHTML = testimonials.map(testimonial => {
                     const fullImageUrl = getFullImageUrl(testimonial.clientPhotoUrl);
-                    const stars = 'Ã¢Ëœâ€¦'.repeat(testimonial.rating) + 'Ã¢Ëœâ€ '.repeat(5 - testimonial.rating);
+                    // Build star rating HTML using FontAwesome icons
+                    let starsHtml = '';
+                    for (let i = 0; i < 5; i++) {
+                        if (i < testimonial.rating) {
+                            starsHtml += '<i class="fas fa-star"></i>';
+                        } else {
+                            starsHtml += '<i class="far fa-star"></i>';
+                        }
+                    }
                     return `
                     <tr>
                         <td><span class="table-cell-content">#${testimonial.id}</span></td>
@@ -5495,7 +5549,7 @@ ${contact.message}
                         </td>
                         <td><span style="color: var(--info); font-weight: 500;">${testimonial.companyName}</span></td>
                         <td><span style="color: var(--text-light);">${testimonial.message.length > 50 ? testimonial.message.substring(0, 50) + '...' : testimonial.message}</span></td>
-                        <td><span style="color: var(--warning); font-size: 1.1rem;" title="${testimonial.rating}/5 stars">${stars}</span></td>
+                        <td><span style="color: var(--warning); font-size: 1.1rem;" title="${testimonial.rating}/5 stars">${starsHtml}</span></td>
                         <td><span class="status-badge ${testimonial.isActive ? 'status-active' : 'status-inactive'}">${testimonial.isActive ? 'Active' : 'Inactive'}</span></td>
                         <td>
                             <div class="table-actions">
@@ -5538,7 +5592,15 @@ ${contact.message}
                 const testimonial = await response.json();
                 const fullImageUrl = getFullImageUrl(testimonial.clientPhotoUrl);
                 const companyLogoUrl = getFullImageUrl(testimonial.companyLogoUrl);
-                const stars = 'Ã¢Ëœâ€¦'.repeat(testimonial.rating) + 'Ã¢Ëœâ€ '.repeat(5 - testimonial.rating);
+                // Build star rating HTML using FontAwesome icons
+                let starsHtml = '';
+                for (let i = 0; i < 5; i++) {
+                    if (i < testimonial.rating) {
+                        starsHtml += '<i class="fas fa-star"></i>';
+                    } else {
+                        starsHtml += '<i class="far fa-star"></i>';
+                    }
+                }
                 
                 const imageDisplay = fullImageUrl ? 
                     `<div style="margin-bottom: 20px; text-align: center;">
@@ -5570,7 +5632,7 @@ ${contact.message}
                         
                         <div style="background: var(--glass-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
                             <div style="text-align: center; margin-bottom: 15px;">
-                                <span style="color: var(--warning); font-size: 1.5rem;" title="${testimonial.rating}/5 stars">${stars}</span>
+                                <span style="color: var(--warning); font-size: 1.5rem;" title="${testimonial.rating}/5 stars">${starsHtml}</span>
                                 <span style="margin-left: 10px; color: var(--text-light);">(${testimonial.rating}/5)</span>
                             </div>
                             
