@@ -29,7 +29,12 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.2" />
   </ItemGroup>
 
-  <!-- .env file should NOT be copied to output or committed to repository -->
-  <!-- In production, use environment variables via hosting platform (Azure, Docker, etc.) -->
+  <!-- Copy .env.production to output for site4now hosting -->
+  <ItemGroup>
+    <None Update=".env.production">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
   
 </Project>
