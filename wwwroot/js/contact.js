@@ -1,5 +1,29 @@
 // Contact Page Specific JavaScript
 
+// Backend API Configuration
+function getBackendBaseUrl() {
+    // Check if PortfolioConfig is loaded
+    if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
+        return PortfolioConfig.api.getBaseUrl();
+    }
+    
+    // Check for API_BASE_URL from environment
+    if (window.API_BASE_URL) {
+        return window.API_BASE_URL;
+    }
+    
+    // Fallback to dynamic detection
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:7150';
+    }
+    
+    // Production: use same protocol and hostname
+    return `${window.location.protocol}//${window.location.hostname}`;
+}
+
+const backendBaseUrl = getBackendBaseUrl();
+const contactApiUrl = `${backendBaseUrl}/api/contact`;
+
 // Load reCAPTCHA dynamically
 let recaptchaSiteKey = null;
 let recaptchaLoaded = false;
@@ -59,30 +83,6 @@ async function loadRecaptcha() {
 
 // Initialize reCAPTCHA when page loads
 loadRecaptcha();
-
-// Backend API Configuration
-function getBackendBaseUrl() {
-    // Check if PortfolioConfig is loaded
-    if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
-        return PortfolioConfig.api.getBaseUrl();
-    }
-    
-    // Check for API_BASE_URL from environment
-    if (window.API_BASE_URL) {
-        return window.API_BASE_URL;
-    }
-    
-    // Fallback to dynamic detection
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:7150';
-    }
-    
-    // Production: use same protocol and hostname
-    return `${window.location.protocol}//${window.location.hostname}`;
-}
-
-const backendBaseUrl = getBackendBaseUrl();
-const contactApiUrl = `${backendBaseUrl}/api/contact`;
 
 // Theme is handled by shared components now
 const htmlElement = document.documentElement;
