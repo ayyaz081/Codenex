@@ -517,6 +517,22 @@ app.MapGet("/Privacy-Policy", async (HttpContext context) =>
     }
 });
 
+// Add route for email verification to use verification page
+app.MapGet("/auth/verify", async (HttpContext context) =>
+{
+    var filePath = Path.Combine(app.Environment.WebRootPath, "verify-email.html");
+    if (File.Exists(filePath))
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(filePath);
+    }
+    else
+    {
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Email verification page not found");
+    }
+});
+
 // Configure health check endpoints
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
