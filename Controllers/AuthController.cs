@@ -734,31 +734,95 @@ namespace Neelsol.Controllers
                     }
                 }
 
-                // Note: Comments, Ratings, and CommentLikes will have their UserId set to NULL
-                // automatically due to SetNull cascade behavior (preserves the data)
+                _logger.LogInformation("Starting deletion of related data for user: {UserId}", id);
+
+                // Delete UserPurchases first (they have FK to Payments)
+                var purchases = await _context.UserPurchases
+                    .Where(up => up.UserId == id)
+                    .ToListAsync();
+                if (purchases.Any())
+                {
+                    _context.UserPurchases.RemoveRange(purchases);
+                    _logger.LogInformation("Deleting {Count} user purchases", purchases.Count);
+                }
 
                 // Delete Payments
                 var payments = await _context.Payments
                     .Where(p => p.UserId == id)
                     .ToListAsync();
-                _context.Payments.RemoveRange(payments);
+                if (payments.Any())
+                {
+                    _context.Payments.RemoveRange(payments);
+                    _logger.LogInformation("Deleting {Count} payments", payments.Count);
+                }
 
-                // Delete UserPurchases
-                var purchases = await _context.UserPurchases
-                    .Where(up => up.UserId == id)
+                // Delete or nullify CommentLikes
+                var commentLikes = await _context.CommentLikes
+                    .Where(cl => cl.UserId == id)
                     .ToListAsync();
-                _context.UserPurchases.RemoveRange(purchases);
+                if (commentLikes.Any())
+                {
+                    // Try to set to null first, if that fails, delete them
+                    foreach (var like in commentLikes)
+                    {
+                        like.UserId = null;
+                    }
+                    _logger.LogInformation("Nullifying {Count} comment likes", commentLikes.Count);
+                }
 
-                // Nullify ContactForms UserId (they use SetNull)
+                // Delete or nullify PublicationComments
+                var comments = await _context.PublicationComments
+                    .Where(pc => pc.UserId == id)
+                    .ToListAsync();
+                if (comments.Any())
+                {
+                    foreach (var comment in comments)
+                    {
+                        comment.UserId = null;
+                    }
+                    _logger.LogInformation("Nullifying {Count} comments", comments.Count);
+                }
+
+                // Delete or nullify PublicationRatings
+                var ratings = await _context.PublicationRatings
+                    .Where(pr => pr.UserId == id)
+                    .ToListAsync();
+                if (ratings.Any())
+                {
+                    foreach (var rating in ratings)
+                    {
+                        rating.UserId = null;
+                    }
+                    _logger.LogInformation("Nullifying {Count} ratings", ratings.Count);
+                }
+
+                // Nullify ContactForms UserId
                 var contactForms = await _context.ContactForms
                     .Where(cf => cf.UserId == id)
                     .ToListAsync();
-                foreach (var cf in contactForms)
+                if (contactForms.Any())
                 {
-                    cf.UserId = null;
+                    foreach (var cf in contactForms)
+                    {
+                        cf.UserId = null;
+                    }
+                    _logger.LogInformation("Nullifying {Count} contact forms", contactForms.Count);
                 }
 
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Successfully saved changes for related data");
+                }
+                catch (DbUpdateException dbEx)
+                {
+                    _logger.LogError(dbEx, "Database error while deleting related data. Inner exception: {Inner}", dbEx.InnerException?.Message);
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, new { 
+                        message = "Database constraint error. The migration may not have been applied yet.", 
+                        details = dbEx.InnerException?.Message ?? dbEx.Message 
+                    });
+                }
 
                 // Now delete the user
                 var result = await _userManager.DeleteAsync(user);
