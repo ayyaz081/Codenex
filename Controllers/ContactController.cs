@@ -157,6 +157,16 @@ namespace Neelsol.Controllers
         {
             try
             {
+                _logger.LogInformation("Fetching contact forms - isRead: {IsRead}, isReplied: {IsReplied}", isRead, isReplied);
+                
+                // Check if table exists by attempting a simple query
+                var tableExists = await _context.Database.CanConnectAsync();
+                if (!tableExists)
+                {
+                    _logger.LogError("Cannot connect to database");
+                    return StatusCode(500, new { error = "Database connection failed" });
+                }
+                
                 var query = _context.ContactForms.AsQueryable();
 
                 if (isRead.HasValue)
@@ -165,15 +175,18 @@ namespace Neelsol.Controllers
                 if (isReplied.HasValue)
                     query = query.Where(cf => cf.IsReplied == isReplied.Value);
 
-                return await query
+                var result = await query
                     .OrderByDescending(cf => cf.CreatedAt)
                     .AsNoTracking()
                     .ToListAsync();
+                    
+                _logger.LogInformation("Successfully fetched {Count} contact forms", result.Count);
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving contact forms");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, "Error retrieving contact forms. Message: {Message}, StackTrace: {StackTrace}", ex.Message, ex.StackTrace);
+                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
             }
         }
 
