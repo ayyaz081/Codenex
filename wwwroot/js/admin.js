@@ -323,7 +323,18 @@
                     
                     if (params.toString()) url += '?' + params.toString();
                     
-                    const response = await fetch(url);
+                    const token = getAuthToken();
+                    const headers = {};
+                    if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                    }
+                    
+                    const response = await fetch(url, { headers });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch contacts: ${response.status}`);
+                    }
+                    
                     let contacts = await response.json();
                     
                     // Client-side search filtering with enhanced search
