@@ -235,6 +235,23 @@ builder.Services.AddAuthentication(options =>
             logger.LogDebug("JWT token validated successfully for user: {UserId}", 
                 context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            // Suppress redirect for API requests - return 401 JSON instead
+            context.HandleResponse();
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            var result = System.Text.Json.JsonSerializer.Serialize(new { message = "Unauthorized. Please log in." });
+            return context.Response.WriteAsync(result);
+        },
+        OnForbidden = context =>
+        {
+            // Return 403 JSON for forbidden requests
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            var result = System.Text.Json.JsonSerializer.Serialize(new { message = "Access denied. Insufficient permissions." });
+            return context.Response.WriteAsync(result);
         }
     };
 });
