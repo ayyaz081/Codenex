@@ -61,8 +61,8 @@ class SharedComponents {
         try {
             await this.loadComponents();
             
-            // Small delay to ensure DOM is ready after header loading
-            await new Promise(resolve => setTimeout(resolve, 50));
+            // Increased delay to ensure DOM is ready after header loading
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             this.initializeEventHandlers();
             this.checkAuthState();
@@ -1000,6 +1000,14 @@ class SharedComponents {
         console.log('📚 Publications dropdown element:', dropdown);
         if (!dropdown) {
             console.error('❌ Publications dropdown element not found!');
+            // Retry after a short delay
+            setTimeout(() => {
+                const retryDropdown = document.getElementById('publications-dropdown');
+                if (retryDropdown) {
+                    console.log('✅ Publications dropdown found on retry');
+                    this.populatePublicationsDropdown(domains);
+                }
+            }, 500);
             return;
         }
         
@@ -1062,6 +1070,14 @@ class SharedComponents {
         console.log('📁 Repository dropdown element:', dropdown);
         if (!dropdown) {
             console.error('❌ Repository dropdown element not found!');
+            // Retry after a short delay
+            setTimeout(() => {
+                const retryDropdown = document.getElementById('repository-dropdown');
+                if (retryDropdown) {
+                    console.log('✅ Repository dropdown found on retry');
+                    this.populateRepositoryDropdown(categories);
+                }
+            }, 500);
             return;
         }
         
