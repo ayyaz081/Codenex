@@ -5413,7 +5413,7 @@ ${contact.message}
             if (confirm('Are you sure you want to delete this team member?')) {
                 try {
                     const token = getAuthToken();
-                const response = await fetch(`${API_BASE_URL}/About/team/${id}`, {
+                    const response = await fetch(`${API_BASE_URL}/About/team/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -5423,7 +5423,13 @@ ${contact.message}
                     
                     if (response.ok) {
                         showNotification('Team member deleted successfully', 'success');
-                        loadTeamMembers();
+                        // Remove the row immediately for better UX
+                        const row = document.querySelector(`#teamTable tbody tr button[onclick="deleteTeamMember(${id})"]`)?.closest('tr');
+                        if (row) {
+                            row.remove();
+                        }
+                        // Reload to ensure consistency
+                        await loadTeamMembers();
                     } else {
                         const error = await response.text();
                         showNotification(`Failed to delete team member: ${error}`, 'error');
