@@ -334,6 +334,36 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
+// Apply pending migrations automatically on startup (Production only)
+if (app.Environment.IsProduction())
+{
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        
+        logger.LogInformation("Checking for pending database migrations...");
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        
+        if (pendingMigrations.Any())
+        {
+            logger.LogWarning($"Applying {pendingMigrations.Count()} pending migrations: {string.Join(", ", pendingMigrations)}");
+            await dbContext.Database.MigrateAsync();
+            logger.LogInformation("✅ Database migrations applied successfully");
+        }
+        else
+        {
+            logger.LogInformation("✅ Database is up to date");
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "❌ Error applying database migrations. The application will continue, but database may be out of date.");
+    }
+}
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
