@@ -132,9 +132,11 @@ window.PortfolioConfig = {
     init: function() {
         // Set up environment-specific settings
         console.log('🌍 Environment Detection:');
+        console.log('  - Config Version: 2025-11-23-v2');
         console.log('  - Hostname:', window.location.hostname);
         console.log('  - Environment:', this.environment);
         console.log('  - API Base URL:', this.api.getBaseUrl());
+        console.log('  - Full URL:', window.location.href);
         
         if (this.environment === 'production') {
             // Production settings
