@@ -16,17 +16,20 @@ namespace Neelsol.Controllers
         private readonly ILogger<ContactController> _logger;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly ICaptchaService _captchaService;
 
         public ContactController(
             AppDbContext context,
             ILogger<ContactController> logger,
             IEmailService emailService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ICaptchaService captchaService)
         {
             _context = context;
             _logger = logger;
             _emailService = emailService;
             _configuration = configuration;
+            _captchaService = captchaService;
         }
 
         // POST: api/contact
@@ -37,6 +40,15 @@ namespace Neelsol.Controllers
             {
                 return BadRequest(ModelState);
             }
+
+            // Verify reCAPTCHA token
+            var (isValid, score) = await _captchaService.VerifyTokenAsync(dto.RecaptchaToken ?? string.Empty);
+            if (!isValid)
+            {
+                _logger.LogWarning($"Contact form submission blocked - low reCAPTCHA score: {score} from {dto.Email}");
+                return BadRequest(new { message = "Security verification failed. Please try again." });
+            }
+            _logger.LogInformation($"reCAPTCHA verified (score: {score}) for contact form from {dto.Email}");
 
             try
             {

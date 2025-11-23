@@ -20,6 +20,9 @@ namespace Neelsol.DTOs
         [Required]
         [StringLength(2000)]
         public required string Message { get; set; }
+
+        // reCAPTCHA token from frontend
+        public string? RecaptchaToken { get; set; }
     }
 
     public class UserRegistrationDto

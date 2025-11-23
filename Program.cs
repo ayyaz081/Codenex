@@ -247,6 +247,7 @@ builder.Services.Configure<EmailSettings>(options =>
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGitHubService, GitHubService>();
+builder.Services.AddHttpClient<ICaptchaService, CaptchaService>();
 
 builder.Services.AddHttpClient<RepositoryController>(client =>
 {
@@ -322,7 +323,7 @@ app.Use((context, next) =>
     
     var cspDirectives = Environment.GetEnvironmentVariable("CSP_DIRECTIVES") ??
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js.stripe.com; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js.stripe.com https://www.google.com https://www.gstatic.com; " +
         "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
         "style-src-elem 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
         "img-src 'self' data: https: blob:; " +

@@ -1,5 +1,53 @@
 // Contact Page Specific JavaScript
 
+// Load reCAPTCHA dynamically
+let recaptchaSiteKey = null;
+let recaptchaLoaded = false;
+
+// Get site key from environment or fallback
+function getRecaptchaSiteKey() {
+    // Try to get from data attribute
+    const configScript = document.getElementById('recaptcha-config');
+    if (configScript && configScript.dataset.siteKey) {
+        return configScript.dataset.siteKey;
+    }
+    
+    // Try from window config
+    if (window.RECAPTCHA_SITE_KEY) {
+        return window.RECAPTCHA_SITE_KEY;
+    }
+    
+    return null;
+}
+
+function loadRecaptcha() {
+    recaptchaSiteKey = getRecaptchaSiteKey();
+    
+    if (!recaptchaSiteKey) {
+        console.warn('reCAPTCHA site key not configured - CAPTCHA will be disabled');
+        recaptchaLoaded = false;
+        return;
+    }
+    
+    // Load reCAPTCHA script
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+        recaptchaLoaded = true;
+        console.log('reCAPTCHA loaded successfully');
+    };
+    script.onerror = () => {
+        console.error('Failed to load reCAPTCHA');
+        recaptchaLoaded = false;
+    };
+    document.head.appendChild(script);
+}
+
+// Initialize reCAPTCHA when page loads
+loadRecaptcha();
+
 // Backend API Configuration
 function getBackendBaseUrl() {
     // Check if PortfolioConfig is loaded
@@ -55,6 +103,16 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
         subject: formData.get('subject'),
         message: formData.get('message')
     };
+    
+    // Get reCAPTCHA token if available
+    if (recaptchaLoaded && recaptchaSiteKey && typeof grecaptcha !== 'undefined') {
+        try {
+            contactData.recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, { action: 'contact_submit' });
+        } catch (error) {
+            console.error('reCAPTCHA execution failed:', error);
+            // Continue without token - backend will handle it
+        }
+    }
     
     try {
         const response = await fetch(contactApiUrl, {
