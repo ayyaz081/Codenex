@@ -55,14 +55,10 @@ window.PortfolioConfig = {
                 const hostname = window.location.hostname;
                 const port = window.location.port;
                 
-                // Check if we're on the production domain without the API subdomain
-                if (hostname === 'neelsol.com' || hostname === 'www.neelsol.com') {
-                    // Use HTTP for the actual deployment URL
-                    return 'http://neelsol-002-site1.anytempurl.com';
-                }
-                
-                // For other domains (like anytempurl.com), use same origin
-                const protocol = window.location.protocol;
+                // Force HTTPS for production domains (non-localhost)
+                const protocol = hostname === 'localhost' || hostname === '127.0.0.1' 
+                                ? window.location.protocol 
+                                : 'https:';
                 
                 // For Azure Web Apps and most cloud platforms, API is served from same origin
                 let baseUrl;
@@ -132,11 +128,9 @@ window.PortfolioConfig = {
     init: function() {
         // Set up environment-specific settings
         console.log('🌍 Environment Detection:');
-        console.log('  - Config Version: 2025-11-23-v2');
         console.log('  - Hostname:', window.location.hostname);
         console.log('  - Environment:', this.environment);
         console.log('  - API Base URL:', this.api.getBaseUrl());
-        console.log('  - Full URL:', window.location.href);
         
         if (this.environment === 'production') {
             // Production settings
