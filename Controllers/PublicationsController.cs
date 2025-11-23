@@ -410,9 +410,9 @@ namespace Neelsol.Controllers
                     }
                 }
 
-                if (!string.IsNullOrEmpty(publication.FileUrl))
+                if (!string.IsNullOrEmpty(publication.DownloadUrl))
                 {
-                    var filePath = Path.Combine(_env.WebRootPath, publication.FileUrl.TrimStart('/'));
+                    var filePath = Path.Combine(_env.WebRootPath, publication.DownloadUrl.TrimStart('/'));
                     if (System.IO.File.Exists(filePath))
                     {
                         System.IO.File.Delete(filePath);
