@@ -30,5 +30,23 @@ namespace Neelsol.Services
         /// Verifies if a GitHub username exists
         /// </summary>
         Task<bool> VerifyGitHubUsernameAsync(string githubUsername);
+
+        /// <summary>
+        /// Fetches repository details from GitHub (supports private repos)
+        /// </summary>
+        Task<GitHubRepositoryDetails?> GetRepositoryDetailsAsync(string owner, string repo);
+    }
+
+    public class GitHubRepositoryDetails
+    {
+        public string Description { get; set; } = string.Empty;
+        public List<string> Topics { get; set; } = new();
+        public string? License { get; set; }
+        public string? PrimaryLanguage { get; set; }
+        public Dictionary<string, long> Languages { get; set; } = new();
+        public string DefaultBranch { get; set; } = "main";
+        public int Stars { get; set; }
+        public int Forks { get; set; }
+        public string? LatestRelease { get; set; }
     }
 }

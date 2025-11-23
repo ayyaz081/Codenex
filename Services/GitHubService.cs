@@ -159,5 +159,57 @@ namespace Neelsol.Services
                 return false;
             }
         }
+
+        public async Task<GitHubRepositoryDetails?> GetRepositoryDetailsAsync(string owner, string repo)
+        {
+            try
+            {
+                _logger.LogInformation($"Fetching repository details for '{owner}/{repo}'");
+
+                // Fetch repository details
+                var repository = await _githubClient.Repository.Get(owner, repo);
+
+                // Fetch languages
+                var languages = await _githubClient.Repository.GetAllLanguages(owner, repo);
+
+                // Try to fetch latest release (optional)
+                string? latestRelease = null;
+                try
+                {
+                    var release = await _githubClient.Repository.Release.GetLatest(owner, repo);
+                    latestRelease = release?.TagName ?? release?.Name;
+                }
+                catch
+                {
+                    // No releases available, that's okay
+                }
+
+                var details = new GitHubRepositoryDetails
+                {
+                    Description = repository.Description ?? string.Empty,
+                    Topics = repository.Topics?.ToList() ?? new List<string>(),
+                    License = repository.License?.SpdxId,
+                    PrimaryLanguage = repository.Language,
+                    Languages = languages.ToDictionary(kvp => kvp.Name, kvp => kvp.NumberOfBytes),
+                    DefaultBranch = repository.DefaultBranch ?? "main",
+                    Stars = repository.StargazersCount,
+                    Forks = repository.ForksCount,
+                    LatestRelease = latestRelease
+                };
+
+                _logger.LogInformation($"Successfully fetched details for '{owner}/{repo}'");
+                return details;
+            }
+            catch (NotFoundException)
+            {
+                _logger.LogWarning($"Repository '{owner}/{repo}' not found");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching repository details for '{owner}/{repo}'");
+                return null;
+            }
+        }
     }
 }

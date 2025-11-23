@@ -583,8 +583,8 @@
                 }
             }
             
-            // Open Google Calendar booking page
-            const bookingUrl = 'https://calendar.app.google/xta6b1fwfCN2Bkgc9';
+            // Get booking URL from environment or use fallback
+            const bookingUrl = window.BOOKING_CALENDAR_URL || 'https://calendar.app.google/xta6b1fwfCN2Bkgc9';
             
             try {
                 // Open in new tab/window

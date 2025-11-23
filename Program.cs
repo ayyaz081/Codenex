@@ -324,7 +324,7 @@ app.Use((context, next) =>
         "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
         "connect-src 'self' https: wss: https://api.stripe.com https://r.stripe.com https://errors.stripe.com; " +
         "media-src 'self' https:; " +
-        "object-src 'none'; " +
+        "object-src 'self'; " +
         "child-src https://*.google.com https://*.googleapis.com https://*.gstatic.com; " +
         "frame-src 'self' https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.youtube.com https://www.youtube.com https://js.stripe.com https://checkout.stripe.com; " +
         "frame-ancestors 'none'; " +
@@ -484,6 +484,15 @@ static async Task ServeHtmlWithApiInjection(HttpContext context, string htmlPath
         var scriptInjection = $"<script>window.API_BASE_URL = '{apiBaseUrl}';</script>";
         // Inject before closing head tag
         htmlContent = htmlContent.Replace("</head>", scriptInjection + "</head>");
+    }
+    
+    // Inject BOOKING_CALENDAR_URL
+    var bookingUrl = Environment.GetEnvironmentVariable("BOOKING_CALENDAR_URL") ?? 
+                     configuration["BOOKING_CALENDAR_URL"];
+    if (!string.IsNullOrEmpty(bookingUrl))
+    {
+        var bookingScriptInjection = $"<script>window.BOOKING_CALENDAR_URL = '{bookingUrl}';</script>";
+        htmlContent = htmlContent.Replace("</head>", bookingScriptInjection + "</head>");
     }
     
     await context.Response.WriteAsync(htmlContent);

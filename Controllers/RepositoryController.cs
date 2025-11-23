@@ -184,11 +184,14 @@ namespace Neelsol.Controllers
 
             try
             {
-                // Verify product exists
-                var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId);
-                if (!productExists)
+                // Verify product exists if ProductId is provided
+                if (dto.ProductId.HasValue)
                 {
-                    return BadRequest(new { message = "Product not found" });
+                    var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId.Value);
+                    if (!productExists)
+                    {
+                        return BadRequest(new { message = "Product not found" });
+                    }
                 }
 
                 var repository = new Repository

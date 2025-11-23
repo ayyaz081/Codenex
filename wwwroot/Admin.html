@@ -549,6 +549,14 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Filter by Verification</label>
+                        <select class="form-control" id="userVerificationFilter" onchange="loadUsers()">
+                            <option value="">All Users</option>
+                            <option value="verified">Verified Only</option>
+                            <option value="unverified">Unverified Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Search Users</label>
                         <input type="text" class="form-control" id="userSearch" placeholder="Search by name, email...">
                     </div>
@@ -562,6 +570,7 @@
                             <th><i class="fas fa-envelope table-cell-icon"></i> Email</th>
                             <th><i class="fas fa-user-tag table-cell-icon"></i> Role</th>
                             <th><i class="fas fa-toggle-on table-cell-icon"></i> Status</th>
+                            <th><i class="fas fa-check-circle table-cell-icon"></i> Verified</th>
                             <th><i class="fas fa-clock table-cell-icon"></i> Last Login</th>
                             <th><i class="fas fa-cogs table-cell-icon"></i> Actions</th>
                         </tr>
@@ -1014,24 +1023,20 @@ list="productDomainList" style="padding-right: 35px;">
                     <label class="form-label">Description *</label>
                     <textarea name="description" id="repositoryDescription" class="form-control" rows="5" required maxlength="1000"></textarea>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Technical Stack</label>
-                        <input type="text" name="technicalStack" id="repositoryTechnicalStack" class="form-control" maxlength="200" placeholder="React, Node.js, MongoDB">
-                    </div>
-                    <div class="form-group" id="githubUrlGroup">
-                        <label class="form-label">GitHub URL</label>
-                        <input type="url" name="githubUrl" id="repositoryGithubUrl" class="form-control" maxlength="255" placeholder="https://github.com/username/repo">
-                        <div id="githubFetchStatus" style="display: none; margin-top: 8px; padding: 8px; border-radius: 8px; font-size: 0.85rem;">
-                            <i class="fas fa-spinner fa-spin"></i> Fetching repository information...
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Technical Stack</label>
+                    <input type="text" name="technicalStack" id="repositoryTechnicalStack" class="form-control" maxlength="200" placeholder="React, Node.js, MongoDB">
                 </div>
-                <div style="margin-bottom: 20px;">
-                    <small class="form-hint">
+                <div class="form-group" id="githubUrlGroup">
+                    <label class="form-label" id="githubUrlLabel">GitHub Repository URL *</label>
+                    <input type="url" name="githubUrl" id="repositoryGithubUrl" class="form-control" maxlength="255" placeholder="https://github.com/username/repo" required>
+                    <small class="form-hint" id="githubUrlHint">
                         <i class="fas fa-magic" style="color: var(--success);"></i>
                         Paste a GitHub URL to auto-fetch repository details
                     </small>
+                    <div id="githubFetchStatus" style="display: none; margin-top: 8px; padding: 8px; border-radius: 8px; font-size: 0.85rem;">
+                        <i class="fas fa-spinner fa-spin"></i> Fetching repository information...
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Pricing</label>
@@ -1046,48 +1051,25 @@ list="productDomainList" style="padding-right: 35px;">
                 </div>
                 <!-- Premium Repository Fields (shown only when Premium is selected) -->
                 <div id="premiumFields" style="display: none;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Company Name *</label>
-                            <input type="text" name="companyName" id="repositoryCompanyName" class="form-control" maxlength="200" placeholder="Microsoft">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Price (USD) *</label>
-                            <input type="number" name="price" id="repositoryPrice" class="form-control" min="0.01" step="0.01" placeholder="29.99">
-                        </div>
-                    </div>
-                    <div class="form-row" style="margin-bottom: 20px;">
-                        <div style="flex: 1;">
-                            <small class="form-hint">
-                                <i class="fas fa-magic" style="color: var(--success);"></i>
-                                Enter company name to auto-fill other fields (e.g., Microsoft, Google, Apple)
-                            </small>
-                        </div>
-                        <div style="flex: 1;">
-                            <small class="form-hint">
-                                <i class="fas fa-info-circle" style="color: var(--info);"></i>
-                                Price in US Dollars (e.g., 29.99 for $29.99)
-                            </small>
-                        </div>
-                    </div>
                     <div class="form-group">
-                        <label class="form-label">GitHub Repo Full Name *</label>
-                        <input type="text" name="githubRepoFullName" id="repositoryGithubRepoFullName" class="form-control" maxlength="255" placeholder="OrgName/RepoName">
+                        <label class="form-label">Price (USD) *</label>
+                        <input type="number" name="price" id="repositoryPrice" class="form-control" min="0.01" step="0.01" placeholder="29.99" required>
                         <small class="form-hint">
                             <i class="fas fa-info-circle" style="color: var(--info);"></i>
-                            Format: OrganizationName/RepositoryName (e.g., CodeNex-Premium/crm-system)
+                            Price in US Dollars (e.g., 29.99 for $29.99)
                         </small>
                     </div>
                     <div class="form-group">
-                        <div style="background: var(--glass-bg); border: 1px solid var(--info); border-radius: 8px; padding: 12px; margin-top: 8px;">
+                        <div style="background: var(--glass-bg); border: 1px solid var(--info); border-radius: 8px; padding: 12px;">
                             <p style="margin: 0; color: var(--text); font-size: 0.9rem;">
                                 <i class="fas fa-lock" style="color: var(--premium); margin-right: 6px;"></i>
                                 <strong>Premium Repository Setup:</strong>
                             </p>
                             <ul style="margin: 8px 0 0 24px; color: var(--text-light); font-size: 0.85rem; line-height: 1.6;">
-                                <li>Repository must be <strong>private</strong> in your GitHub organization</li>
+                                <li>Paste your <strong>private</strong> GitHub repository URL above</li>
+                                <li>Repository details will be auto-fetched using your PAT</li>
+                                <li>Organization and repo name will be extracted automatically</li>
                                 <li>Users will receive GitHub invitation after payment</li>
-                                <li>Access is granted automatically via GitHub API</li>
                             </ul>
                         </div>
                     </div>

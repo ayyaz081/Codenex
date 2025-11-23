@@ -17,6 +17,7 @@ namespace Neelsol.Controllers
         private readonly AppDbContext _context;
         private readonly IGitHubService _githubService;
         private readonly ILogger<PaymentController> _logger;
+        private readonly IWebHostEnvironment _environment;
         private readonly string _stripeSecretKey;
         private readonly string _stripePublishableKey;
         private readonly string _stripeWebhookSecret;
@@ -27,11 +28,13 @@ namespace Neelsol.Controllers
             AppDbContext context,
             IGitHubService githubService,
             ILogger<PaymentController> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IWebHostEnvironment environment)
         {
             _context = context;
             _githubService = githubService;
             _logger = logger;
+            _environment = environment;
 
             // Get Stripe configuration from environment
             _stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY") ??
@@ -57,7 +60,9 @@ namespace Neelsol.Controllers
             // Set Stripe API key
             StripeConfiguration.ApiKey = _stripeSecretKey;
 
-            _logger.LogInformation("Payment Controller initialized with Stripe integration");
+            _logger.LogInformation($"Payment Controller initialized - Environment: {_environment.EnvironmentName}");
+            _logger.LogInformation($"Stripe Success URL: {_successUrl}");
+            _logger.LogInformation($"Stripe Cancel URL: {_cancelUrl}");
         }
 
         // POST: api/payment/create-checkout-session
@@ -487,6 +492,45 @@ namespace Neelsol.Controllers
             }
         }
         
+        // POST: api/payment/test-complete-checkout/{sessionId}
+        // Test endpoint to simulate successful checkout (Development only)
+        [HttpPost("test-complete-checkout/{sessionId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> TestCompleteCheckout(string sessionId)
+        {
+            if (!_environment.IsDevelopment())
+            {
+                return BadRequest("This endpoint is only available in Development mode");
+            }
+
+            try
+            {
+                _logger.LogInformation($"=== TEST CHECKOUT COMPLETION ===");
+                _logger.LogInformation($"Session ID: {sessionId}");
+
+                // Fetch session from Stripe
+                var sessionService = new Stripe.Checkout.SessionService();
+                var session = await sessionService.GetAsync(sessionId);
+
+                if (session == null)
+                {
+                    return NotFound($"Session {sessionId} not found");
+                }
+
+                _logger.LogInformation($"Session found - Payment Status: {session.PaymentStatus}");
+
+                // Simulate webhook processing
+                await HandleCheckoutSessionCompleted(session);
+
+                return Ok(new { success = true, message = "Checkout completion simulated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error simulating checkout completion for session {sessionId}");
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
+
         // POST: api/payment/manual-grant-access/{purchaseId}
         // Manual endpoint to grant GitHub access for testing/troubleshooting
         [HttpPost("manual-grant-access/{purchaseId}")]

@@ -61,7 +61,6 @@ namespace Neelsol.DTOs
         [StringLength(255)]
         public string? GitHubRepoFullName { get; set; }
 
-        [Required]
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
     }
 }

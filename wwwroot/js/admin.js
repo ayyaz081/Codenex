@@ -2812,7 +2812,7 @@
                 const isPremium = formData.get('pricing') === 'premium';
                 const productId = formData.get('productId');
                 
-                // ProductId is now optional - no validation required
+                // ProductId is now optional
                 console.log('ProductId (optional):', productId);
                 
                 const data = {
@@ -2824,7 +2824,7 @@
                     Version: formData.get('version') || '',
                     Category: formData.get('category') || '',
                     TechnicalStack: formData.get('technicalStack') || '',
-                    ProductId: productId && productId !== '' ? parseInt(productId) : null,
+                    ProductId: productId && productId !== '' ? parseInt(productId, 10) : null,
                     IsFree: formData.get('pricing') === 'free',
                     IsPremium: isPremium
                 };
@@ -2832,20 +2832,28 @@
                 // Add premium-specific fields if premium is selected
                 if (isPremium) {
                     const price = formData.get('price');
-                    const githubRepoFullName = formData.get('githubRepoFullName');
+                    const githubUrl = formData.get('githubUrl');
                     
                     if (!price || parseFloat(price) <= 0) {
                         showNotification('Please enter a valid price for premium repository', 'error');
                         return false;
                     }
                     
-                    if (!githubRepoFullName || !githubRepoFullName.includes('/')) {
-                        showNotification('Please enter GitHub Repo Full Name in format: OrgName/RepoName', 'error');
+                    if (!githubUrl) {
+                        showNotification('Please enter GitHub repository URL', 'error');
+                        return false;
+                    }
+                    
+                    // Extract org/repo from GitHub URL
+                    const repoInfo = parseGitHubUrl(githubUrl);
+                    if (!repoInfo) {
+                        showNotification('Invalid GitHub URL format. Expected: https://github.com/organization/repo', 'error');
                         return false;
                     }
                     
                     data.Price = parseFloat(price);
-                    data.GitHubRepoFullName = githubRepoFullName;
+                    data.GitHubRepoFullName = `${repoInfo.owner}/${repoInfo.repo}`;
+                    console.log('Extracted GitHubRepoFullName:', data.GitHubRepoFullName);
                 }
                 
                 let apiUrl, method;
@@ -5768,8 +5776,16 @@ ${contact.message}
                     throw new Error(`Failed to fetch users: ${response.status}`);
                 }
                 
-                const users = await response.json();
+                let users = await response.json();
                 console.log('Users loaded:', users);
+                
+                // Apply verification filter client-side
+                const verificationFilter = document.getElementById('userVerificationFilter')?.value || '';
+                if (verificationFilter === 'verified') {
+                    users = users.filter(u => u.emailConfirmed === true);
+                } else if (verificationFilter === 'unverified') {
+                    users = users.filter(u => u.emailConfirmed !== true);
+                }
                 
                 const tbody = document.querySelector('#usersTable tbody');
                 if (!tbody) {
@@ -5778,7 +5794,7 @@ ${contact.message}
                 }
                 
                 if (users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No users found. Create the first user account!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-muted);">No users found. Create the first user account!</td></tr>';
                     return;
                 }
                 
@@ -5810,6 +5826,9 @@ ${contact.message}
                         <td><span class="table-cell-content"><i class="fas fa-envelope table-cell-icon"></i> ${user.email}</span></td>
                         <td><span class="status-badge status-active" style="background: var(--info); color: white;">${user.role || 'User'}</span></td>
                         <td><span class="status-badge ${user.isActive ? 'status-active' : 'status-inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
+                        <td><span class="status-badge ${user.emailConfirmed ? 'status-active' : 'status-pending'}" style="${user.emailConfirmed ? '' : 'background: var(--warning); color: white;'}">
+                            <i class="fas fa-${user.emailConfirmed ? 'check-circle' : 'exclamation-triangle'}"></i> ${user.emailConfirmed ? 'Verified' : 'Unverified'}
+                        </span></td>
                         <td><span class="table-cell-content"><i class="fas fa-clock table-cell-icon"></i> ${lastLogin}</span></td>
                         <td>
                             <div class="table-actions">
@@ -5924,6 +5943,13 @@ ${contact.message}
                                     <strong style="color: var(--primary); display: block; margin-bottom: 5px;">Status:</strong>
                                     <span class="status-badge ${user.isActive ? 'status-active' : 'status-inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span>
                                 </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <strong style="color: var(--primary); display: block; margin-bottom: 5px;">Email Verification:</strong>
+                                <span class="status-badge ${user.emailConfirmed ? 'status-active' : 'status-pending'}" style="${user.emailConfirmed ? '' : 'background: var(--warning); color: white;'}">
+                                    <i class="fas fa-${user.emailConfirmed ? 'check-circle' : 'exclamation-triangle'}"></i> ${user.emailConfirmed ? 'Verified' : 'Unverified'}
+                                </span>
                             </div>
                             
                             <div style="margin-bottom: 20px;">
@@ -6986,6 +7012,12 @@ ${contact.message}
             document.getElementById('repositoryModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add New Repository Item';
             document.getElementById('repositorySubmitBtn').innerHTML = '<i class="fas fa-save"></i> Create Repository Item';
             
+            // Initialize premium fields toggle (default is free)
+            togglePremiumFields();
+            
+            // Setup pricing radio button listeners
+            setupPricingListeners();
+            
             // Show modal
             document.getElementById('repositoryModal').style.display = 'flex';
             
@@ -6994,6 +7026,17 @@ ${contact.message}
                 const productSelect = document.getElementById('repositoryProductId');
                 if (productSelect) productSelect.focus();
             }, 100);
+        }
+        
+        // Setup event listeners for pricing radio buttons
+        function setupPricingListeners() {
+            const pricingRadios = document.querySelectorAll('input[name="pricing"]');
+            pricingRadios.forEach(radio => {
+                // Remove existing listeners to avoid duplicates
+                radio.removeEventListener('change', togglePremiumFields);
+                // Add new listener
+                radio.addEventListener('change', togglePremiumFields);
+            });
         }
         
         // Generic modal close function
@@ -7324,29 +7367,41 @@ ${contact.message}
         function togglePremiumFields() {
             const premiumRadio = document.querySelector('input[name="pricing"][value="premium"]');
             const premiumFields = document.getElementById('premiumFields');
-            const githubUrlGroup = document.getElementById('githubUrlGroup');
+            const githubUrlLabel = document.getElementById('githubUrlLabel');
+            const githubUrlHint = document.getElementById('githubUrlHint');
+            const githubUrlInput = document.getElementById('repositoryGithubUrl');
             const priceInput = document.getElementById('repositoryPrice');
-            const githubRepoInput = document.getElementById('repositoryGithubRepoFullName');
-            const companyNameInput = document.getElementById('repositoryCompanyName');
             
             if (premiumRadio && premiumRadio.checked) {
                 // Show premium fields
                 premiumFields.style.display = 'block';
                 if (priceInput) priceInput.setAttribute('required', 'required');
-                if (githubRepoInput) githubRepoInput.setAttribute('required', 'required');
-                if (companyNameInput) companyNameInput.setAttribute('required', 'required');
                 
-                // Hide GitHub URL field for premium repos
-                if (githubUrlGroup) githubUrlGroup.style.display = 'none';
+                // Update label and hint for premium repos
+                if (githubUrlLabel) {
+                    githubUrlLabel.innerHTML = '<i class="fas fa-lock"></i> Private GitHub Repository URL *';
+                }
+                if (githubUrlHint) {
+                    githubUrlHint.innerHTML = '<i class="fas fa-magic" style="color: var(--premium);"></i> Paste your private repo URL - details will be auto-fetched with your PAT';
+                }
+                if (githubUrlInput) {
+                    githubUrlInput.placeholder = 'https://github.com/your-org/private-repo';
+                }
             } else {
                 // Hide premium fields
                 premiumFields.style.display = 'none';
                 if (priceInput) priceInput.removeAttribute('required');
-                if (githubRepoInput) githubRepoInput.removeAttribute('required');
-                if (companyNameInput) companyNameInput.removeAttribute('required');
                 
-                // Show GitHub URL field for free repos
-                if (githubUrlGroup) githubUrlGroup.style.display = 'block';
+                // Update label and hint for free repos
+                if (githubUrlLabel) {
+                    githubUrlLabel.innerHTML = 'GitHub Repository URL *';
+                }
+                if (githubUrlHint) {
+                    githubUrlHint.innerHTML = '<i class="fas fa-magic" style="color: var(--success);"></i> Paste a GitHub URL to auto-fetch repository details';
+                }
+                if (githubUrlInput) {
+                    githubUrlInput.placeholder = 'https://github.com/username/repo';
+                }
             }
         }
         
@@ -7367,85 +7422,58 @@ ${contact.message}
             return null;
         }
         
-        // Fetch repository details from GitHub API
+        // Fetch repository details using backend API (supports private repos with PAT)
         async function fetchGitHubRepoDetails(owner, repo) {
             try {
-                const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
-                console.log('Fetching from GitHub API:', apiUrl);
+                const apiUrl = `${API_BASE_URL}/GitHub/repository/${owner}/${repo}`;
+                console.log('Fetching from backend API:', apiUrl);
+                
+                const token = getAuthToken();
+                const headers = {
+                    'Accept': 'application/json'
+                };
+                
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
                 
                 const response = await fetch(apiUrl, {
-                    headers: {
-                        'Accept': 'application/vnd.github+json'
-                    }
+                    headers: headers
                 });
                 
                 if (!response.ok) {
                     if (response.status === 404) {
-                        throw new Error('Repository not found');
+                        throw new Error('Repository not found or you do not have access');
                     } else if (response.status === 403) {
-                        throw new Error('API rate limit exceeded. Please try again later.');
+                        throw new Error('Access denied. Check your GitHub PAT permissions.');
+                    } else if (response.status === 401) {
+                        throw new Error('Authentication required');
                     }
-                    throw new Error(`GitHub API error: ${response.status}`);
+                    throw new Error(`API error: ${response.status}`);
                 }
                 
                 const data = await response.json();
                 console.log('GitHub API response:', data);
                 
+                // Extract languages as array sorted by usage
+                const languagesArray = Object.keys(data.languages || {})
+                    .sort((a, b) => (data.languages[b] || 0) - (data.languages[a] || 0));
+                
                 return {
                     description: data.description || '',
                     topics: data.topics || [],
-                    license: data.license?.spdx_id || '',
-                    language: data.language || '',
-                    languages: null, // Will fetch separately if needed
-                    defaultBranch: data.default_branch || 'main',
-                    stars: data.stargazers_count || 0,
-                    forks: data.forks_count || 0
+                    license: data.license || '',
+                    language: data.primaryLanguage || '',
+                    languages: languagesArray,
+                    defaultBranch: data.defaultBranch || 'main',
+                    stars: data.stars || 0,
+                    forks: data.forks || 0,
+                    version: data.latestRelease || ''
                 };
             } catch (error) {
                 console.error('Error fetching GitHub repo details:', error);
                 throw error;
             }
-        }
-        
-        // Fetch programming languages used in the repository
-        async function fetchGitHubRepoLanguages(owner, repo) {
-            try {
-                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/languages`;
-                const response = await fetch(apiUrl, {
-                    headers: {
-                        'Accept': 'application/vnd.github+json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const languages = await response.json();
-                    // Return languages sorted by usage (bytes of code)
-                    return Object.keys(languages).sort((a, b) => languages[b] - languages[a]);
-                }
-            } catch (error) {
-                console.warn('Could not fetch repository languages:', error);
-            }
-            return [];
-        }
-        
-        // Get latest release/tag to determine version
-        async function fetchGitHubRepoVersion(owner, repo) {
-            try {
-                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
-                const response = await fetch(apiUrl, {
-                    headers: {
-                        'Accept': 'application/vnd.github+json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const release = await response.json();
-                    return release.tag_name || release.name || '';
-                }
-            } catch (error) {
-                console.warn('Could not fetch repository version:', error);
-            }
-            return '';
         }
         
         // Auto-fill form fields with GitHub repository data
@@ -7467,14 +7495,10 @@ ${contact.message}
             statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching repository information from GitHub...';
             
             try {
-                // Fetch all data concurrently
-                const [repoDetails, languages, version] = await Promise.all([
-                    fetchGitHubRepoDetails(repoInfo.owner, repoInfo.repo),
-                    fetchGitHubRepoLanguages(repoInfo.owner, repoInfo.repo),
-                    fetchGitHubRepoVersion(repoInfo.owner, repoInfo.repo)
-                ]);
+                // Fetch repository details from backend (includes all data)
+                const repoDetails = await fetchGitHubRepoDetails(repoInfo.owner, repoInfo.repo);
                 
-                console.log('Fetched data:', { repoDetails, languages, version });
+                console.log('Fetched data:', repoDetails);
                 
                 // Auto-fill description if empty
                 const descField = document.getElementById('repositoryDescription');
@@ -7483,12 +7507,10 @@ ${contact.message}
                     console.log('âœ“ Description filled:', descField.value);
                 }
                 
-                // Tags, Version, and License fields have been removed from the form
-                
                 // Auto-fill technical stack from languages
                 const stackField = document.getElementById('repositoryTechnicalStack');
-                if (stackField && (!stackField.value || stackField.value.trim() === '') && languages.length > 0) {
-                    stackField.value = languages.slice(0, 5).join(', ');
+                if (stackField && (!stackField.value || stackField.value.trim() === '') && repoDetails.languages.length > 0) {
+                    stackField.value = repoDetails.languages.slice(0, 5).join(', ');
                 }
                 
                 // Auto-fill title if empty (use repo name)
@@ -7502,17 +7524,13 @@ ${contact.message}
                     titleField.value = title;
                 }
                 
-                // Auto-fill GitHub Repo Full Name for premium repos
-                const githubRepoFullNameField = document.getElementById('repositoryGithubRepoFullName');
-                if (githubRepoFullNameField && (!githubRepoFullNameField.value || githubRepoFullNameField.value.trim() === '')) {
-                    githubRepoFullNameField.value = `${repoInfo.owner}/${repoInfo.repo}`;
-                }
+                // GitHubRepoFullName will be extracted from URL during form submission
                 
                 // Show success message
                 statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
                 statusDiv.style.border = '1px solid var(--success)';
                 statusDiv.style.color = 'var(--success)';
-                statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> Repository details fetched successfully! (â˜…${repoDetails.stars} | ${languages.length ? languages[0] : 'Unknown'})`;
+                statusDiv.innerHTML = `<i class=\"fas fa-check-circle\"></i> Repository details fetched successfully! (â˜…${repoDetails.stars} | ${repoDetails.languages.length ? repoDetails.languages[0] : 'Unknown'})`;
                 
                 // Hide success message after 5 seconds
                 setTimeout(() => {
@@ -7525,7 +7543,7 @@ ${contact.message}
                 console.log('Description:', document.getElementById('repositoryDescription')?.value || '(not filled)');
                 console.log('Technical Stack:', document.getElementById('repositoryTechnicalStack')?.value || '(not filled)');
                 console.log('Stars:', repoDetails.stars);
-                console.log('Languages:', languages.join(', '));
+                console.log('Languages:', repoDetails.languages.join(', '));
                 console.log('%c========================', 'color: green; font-weight: bold;');
                 
             } catch (error) {
@@ -7542,45 +7560,8 @@ ${contact.message}
             }
         }
         
-        // Auto-fill premium repository fields based on company name
-        async function autoFillPremiumRepoFromCompany(companyName) {
-            console.log('Auto-filling premium repo for company:', companyName);
-            
-            // Auto-fill title if empty
-            const titleField = document.getElementById('repositoryTitle');
-            if (titleField && (!titleField.value || titleField.value.trim() === '')) {
-                titleField.value = `${companyName} Enterprise Solution`;
-            }
-            
-            // Auto-fill description if empty
-            const descField = document.getElementById('repositoryDescription');
-            if (descField && (!descField.value || descField.value.trim() === '')) {
-                descField.value = `Premium enterprise solution from ${companyName}. This repository contains proprietary code and tools designed for ${companyName} customers.`;
-            }
-            
-            // Auto-fill technical stack based on common technologies
-            const stackField = document.getElementById('repositoryTechnicalStack');
-            if (stackField && (!stackField.value || stackField.value.trim() === '')) {
-                stackField.value = 'Enterprise, Cloud, Security, Scalable';
-            }
-            
-            // Auto-fill category if empty
-            const categoryField = document.getElementById('repositoryCategory');
-            if (categoryField && (!categoryField.value || categoryField.value.trim() === '')) {
-                categoryField.value = 'Enterprise Solutions';
-            }
-            
-            // Auto-fill GitHub Repo Full Name if empty
-            const githubRepoFullNameField = document.getElementById('repositoryGithubRepoFullName');
-            if (githubRepoFullNameField && (!githubRepoFullNameField.value || githubRepoFullNameField.value.trim() === '')) {
-                const repoName = companyName.replace(/\s+/g, '-').toLowerCase();
-                githubRepoFullNameField.value = `${companyName.replace(/\s+/g, '')}-Premium/${repoName}-enterprise`;
-            }
-            
-            console.log('âœ“ Premium repo fields auto-filled successfully');
-        }
         
-        // Setup GitHub URL input listener for auto-fetch (free repos only)
+        // Setup GitHub URL input listener for auto-fetch (works for both free and premium repos)
         function setupGitHubAutoFetch() {
             const githubUrlInput = document.getElementById('repositoryGithubUrl');
             if (!githubUrlInput) {
@@ -7633,29 +7614,7 @@ ${contact.message}
             // Mark as initialized
             githubUrlInput.dataset.autoFetchInitialized = 'true';
             
-            console.log('âœ“ GitHub auto-fetch listener attached successfully');
-            
-            // Setup company name auto-fill for premium repos
-            const companyNameInput = document.getElementById('repositoryCompanyName');
-            if (companyNameInput && companyNameInput.dataset.autoFillInitialized !== 'true') {
-                let companyDebounceTimer;
-                
-                companyNameInput.addEventListener('input', (e) => {
-                    clearTimeout(companyDebounceTimer);
-                    const companyName = e.target.value.trim();
-                    
-                    if (companyName && companyName.length >= 3) {
-                        console.log('Company name detected, will auto-fill in 800ms...');
-                        companyDebounceTimer = setTimeout(() => {
-                            console.log('Triggering auto-fill for company:', companyName);
-                            autoFillPremiumRepoFromCompany(companyName);
-                        }, 800);
-                    }
-                });
-                
-                companyNameInput.dataset.autoFillInitialized = 'true';
-                console.log('âœ“ Company name auto-fill listener attached successfully');
-            }
+            console.log('âœ“ GitHub auto-fetch listener attached for both free and premium repos');
         }
         
         // Initialize theme and header for shared components

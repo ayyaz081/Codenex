@@ -309,6 +309,7 @@
                     <h3 class="repository-title">
                         <i class="fab fa-github"></i>
                         ${repo.title}
+                        ${repo.product ? `<span class="product-badge">${repo.product.title}</span>` : ''}
                     </h3>
                     
                     <p class="repository-description">${repo.description}</p>
@@ -454,6 +455,10 @@
             const categoryFilter = document.getElementById('category-filter').value;
             const typeFilter = document.getElementById('type-filter').value;
             const sortFilter = document.getElementById('sort-filter').value;
+            
+            // Check for productId filter from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productIdFilter = urlParams.get('productId');
 
             filteredRepositories = repositories.filter(repo => {
                 const matchesSearch = !searchTerm || 
@@ -463,11 +468,13 @@
                 
                 const matchesCategory = !categoryFilter || repo.category === categoryFilter;
                 
+                const matchesProduct = !productIdFilter || (repo.productId && repo.productId.toString() === productIdFilter);
+                
                 const matchesType = !typeFilter || 
                     (typeFilter === 'free' && !repo.isPremium) ||
                     (typeFilter === 'premium' && repo.isPremium);
 
-                return matchesSearch && matchesCategory && matchesType;
+                return matchesSearch && matchesCategory && matchesType && matchesProduct;
             });
 
             filteredRepositories.sort((a, b) => {
@@ -560,18 +567,20 @@
                                     repo.githubUrl;
                                     
                                 buttons.push(`
-                                    <div style="text-align: center; width: 100%;">
-                                        <div style="background: linear-gradient(135deg, var(--success), var(--info)); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;">
-                                            <i class="fas fa-check-circle"></i> You own this repository
-                                        </div>
-                                        ${githubUrl ? `
-                                            <a href="${githubUrl}" target="_blank" class="action-btn btn-primary" style="width: 100%;">
-                                                <i class="fab fa-github"></i>
-                                                Open on GitHub
-                                            </a>
-                                        ` : '<p style="color: var(--text-muted); font-size: 0.9rem;">Check your email for GitHub invitation</p>'}
-                                    </div>
+                                    <button class="action-btn btn-success" disabled style="cursor: default;">
+                                        <i class="fas fa-check-circle"></i> You Own This Repo
+                                    </button>
                                 `);
+                                
+                                if (githubUrl) {
+                                    buttons.push(`
+                                        <a href="${githubUrl}" target="_blank" class="action-btn btn-primary">
+                                            <i class="fab fa-github"></i>
+                                            Open on GitHub
+                                        </a>
+                                    `);
+                                }
+                                
                                 return buttons.join('');
                             }
                         }
@@ -688,8 +697,8 @@
                 return;
             }
             
-            // Prompt for GitHub username
-            const githubUsername = prompt(`Enter your GitHub username to receive repository access:\n\nRepository: ${repositoryTitle}\nPrice: $${price.toFixed(2)}\n\nYou will receive a GitHub invitation email after payment.`);
+            // Show themed modal for GitHub username input
+            const githubUsername = await showGitHubUsernameModal(repositoryTitle, price);
             
             if (!githubUsername || githubUsername.trim() === '') {
                 return; // User cancelled or entered empty string
@@ -837,6 +846,322 @@
             }
         }
 
+        // Handle payment success and trigger webhook in development
+        async function handlePaymentSuccess() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const payment = urlParams.get('payment');
+            const sessionId = urlParams.get('session_id');
+            
+            if (payment === 'success' && sessionId) {
+                console.log('Payment success detected, triggering webhook...');
+                showNotification('Processing your payment and sending GitHub invite...', 'info');
+                
+                try {
+                    // In development, manually trigger the webhook simulation
+                    const response = await fetch(`${backendBaseUrl}/api/payment/test-complete-checkout/${sessionId}`, {
+                        method: 'POST',
+                        headers: {
+                            ...authManager.getAuthHeaders(),
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        showNotification('Payment processed! Check your email for GitHub repository invitation.', 'success');
+                        
+                        // Clear the URL parameters
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        // Reload repositories to show updated purchase status
+                        await loadRepositories();
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Webhook trigger failed:', errorText);
+                        showNotification('Payment received but GitHub invite may be delayed. Contact support if you don\'t receive it.', 'warning');
+                    }
+                } catch (error) {
+                    console.error('Error triggering webhook:', error);
+                    showNotification('Payment received but GitHub invite may be delayed. Contact support if you don\'t receive it.', 'warning');
+                }
+            } else if (payment === 'cancel') {
+                showNotification('Payment was cancelled.', 'info');
+                // Clear the URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        // Themed modal for GitHub username input
+        function showGitHubUsernameModal(repositoryTitle, price) {
+            return new Promise((resolve) => {
+                // Create modal overlay
+                const modal = document.createElement('div');
+                modal.className = 'custom-modal-overlay';
+                modal.innerHTML = `
+                    <div class="custom-modal">
+                        <div class="custom-modal-header">
+                            <h3><i class="fab fa-github"></i> Purchase Premium Repository</h3>
+                            <button class="custom-modal-close" onclick="this.closest('.custom-modal-overlay').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="custom-modal-body">
+                            <div class="purchase-info">
+                                <p><strong>Repository:</strong> ${repositoryTitle}</p>
+                                <p><strong>Price:</strong> $${price.toFixed(2)}</p>
+                            </div>
+                            <p class="modal-description">
+                                <i class="fas fa-info-circle"></i> Enter your GitHub username to receive repository access. 
+                                You will receive a GitHub invitation email after payment.
+                            </p>
+                            <div class="form-group">
+                                <label for="github-username-input"><i class="fab fa-github"></i> GitHub Username</label>
+                                <input 
+                                    type="text" 
+                                    id="github-username-input" 
+                                    class="custom-modal-input" 
+                                    placeholder="yourusername"
+                                    autocomplete="off"
+                                />
+                            </div>
+                        </div>
+                        <div class="custom-modal-footer">
+                            <button class="modal-btn modal-btn-cancel">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button class="modal-btn modal-btn-confirm">
+                                <i class="fas fa-shopping-cart"></i> Continue to Payment
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Add modal styles
+                if (!document.getElementById('custom-modal-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'custom-modal-styles';
+                    style.textContent = `
+                        .custom-modal-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(0, 0, 0, 0.75);
+                            backdrop-filter: blur(10px);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            z-index: 10000;
+                            animation: fadeIn 0.3s ease;
+                        }
+                        @keyframes fadeIn {
+                            from { opacity: 0; }
+                            to { opacity: 1; }
+                        }
+                        .custom-modal {
+                            background: var(--card-bg);
+                            border: 1px solid var(--glass-border);
+                            border-radius: 20px;
+                            box-shadow: var(--glass-shadow);
+                            max-width: 500px;
+                            width: 90%;
+                            max-height: 90vh;
+                            overflow: hidden;
+                            animation: slideUp 0.3s ease;
+                        }
+                        @keyframes slideUp {
+                            from { transform: translateY(50px); opacity: 0; }
+                            to { transform: translateY(0); opacity: 1; }
+                        }
+                        .custom-modal-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 24px;
+                            border-bottom: 1px solid var(--glass-border);
+                            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+                        }
+                        .custom-modal-header h3 {
+                            margin: 0;
+                            font-size: 1.5rem;
+                            font-weight: 700;
+                            color: var(--text);
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                        }
+                        .custom-modal-close {
+                            background: none;
+                            border: none;
+                            font-size: 1.5rem;
+                            color: var(--text-muted);
+                            cursor: pointer;
+                            padding: 8px;
+                            border-radius: 8px;
+                            transition: all 0.3s ease;
+                        }
+                        .custom-modal-close:hover {
+                            background: var(--glass-bg);
+                            color: var(--text);
+                        }
+                        .custom-modal-body {
+                            padding: 24px;
+                            max-height: 60vh;
+                            overflow-y: auto;
+                            display: flex;
+                            flex-direction: column;
+                        }
+                        .purchase-info {
+                            background: var(--glass-bg);
+                            border: 1px solid var(--glass-border);
+                            border-radius: 12px;
+                            padding: 16px;
+                            margin-bottom: 20px;
+                            width: 100%;
+                            box-sizing: border-box;
+                        }
+                        .purchase-info p {
+                            margin: 8px 0;
+                            color: var(--text-light);
+                        }
+                        .purchase-info strong {
+                            color: var(--text);
+                            margin-right: 8px;
+                        }
+                        .modal-description {
+                            color: var(--text-light);
+                            line-height: 1.6;
+                            margin-bottom: 20px;
+                            padding: 12px 16px;
+                            background: var(--glass-bg);
+                            border-left: 3px solid var(--info);
+                            border-radius: 8px;
+                            width: 100%;
+                            box-sizing: border-box;
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 10px;
+                        }
+                        .modal-description i {
+                            margin-top: 2px;
+                            flex-shrink: 0;
+                        }
+                        .form-group {
+                            margin-bottom: 0;
+                            width: 100%;
+                        }
+                        .form-group label {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            margin-bottom: 8px;
+                            font-weight: 600;
+                            color: var(--text);
+                        }
+                        .custom-modal-input {
+                            width: 100%;
+                            padding: 14px 18px;
+                            border: 1px solid var(--glass-border);
+                            border-radius: 12px;
+                            background: var(--glass-bg);
+                            backdrop-filter: var(--glass-blur);
+                            color: var(--text);
+                            font-size: 1rem;
+                            transition: all 0.3s ease;
+                            box-sizing: border-box;
+                        }
+                        .custom-modal-input:focus {
+                            outline: none;
+                            border-color: var(--primary);
+                            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+                        }
+                        .custom-modal-footer {
+                            display: flex;
+                            gap: 12px;
+                            padding: 20px 24px;
+                            border-top: 1px solid var(--glass-border);
+                            background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.05));
+                        }
+                        .modal-btn {
+                            flex: 1;
+                            padding: 14px 24px;
+                            border: none;
+                            border-radius: 12px;
+                            font-weight: 600;
+                            font-size: 1rem;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        }
+                        .modal-btn-cancel {
+                            background: var(--glass-bg);
+                            color: var(--text);
+                            border: 1px solid var(--glass-border);
+                        }
+                        .modal-btn-cancel:hover {
+                            background: var(--bg-light);
+                            transform: translateY(-2px);
+                        }
+                        .modal-btn-confirm {
+                            background: var(--primary);
+                            color: white;
+                        }
+                        .modal-btn-confirm:hover {
+                            background: var(--primary-dark);
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.4);
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(modal);
+
+                // Focus input
+                const input = modal.querySelector('#github-username-input');
+                setTimeout(() => input.focus(), 100);
+
+                // Handle Enter key
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const value = input.value.trim();
+                        if (value) {
+                            modal.remove();
+                            resolve(value);
+                        }
+                    }
+                });
+
+                // Handle buttons
+                modal.querySelector('.modal-btn-cancel').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(null);
+                });
+
+                modal.querySelector('.modal-btn-confirm').addEventListener('click', () => {
+                    const value = input.value.trim();
+                    if (!value) {
+                        input.style.borderColor = 'var(--accent)';
+                        input.focus();
+                        return;
+                    }
+                    modal.remove();
+                    resolve(value);
+                });
+
+                // Handle overlay click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                        resolve(null);
+                    }
+                });
+            });
+        }
+
         // Global search is handled by shared components
         // Removed duplicate GlobalSearch class
 
@@ -849,8 +1174,13 @@
             }, 500);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             currentUser = getCurrentUser();
+            
+            // Handle payment success/cancel first
+            await handlePaymentSuccess();
+            
+            // Then load repositories
             loadRepositories();
             
             // Global search is handled by shared components
