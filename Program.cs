@@ -115,7 +115,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.EnableServiceProviderCaching();
 });
 
-// Configure CORS - simplified, allow any origin for easier deployment
+// Configure CORS - restrict production to neelsol.com only
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultCorsPolicy", policy =>
@@ -131,8 +131,13 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // Production - allow any origin for easier deployment
-            policy.AllowAnyOrigin()
+            // Production - only allow requests from neelsol.com domain
+            policy.WithOrigins(
+                      "https://neelsol.com",
+                      "https://www.neelsol.com",
+                      "http://neelsol.com",
+                      "http://www.neelsol.com"
+                  )
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
