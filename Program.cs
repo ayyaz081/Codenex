@@ -190,6 +190,15 @@ var jwtExpiryHoursStr = Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?
                          builder.Configuration["Jwt:ExpiryHours"];
 var jwtExpiryHours = !string.IsNullOrEmpty(jwtExpiryHoursStr) && int.TryParse(jwtExpiryHoursStr, out var hours) ? hours : 24;
 
+// Configure JwtSettings for dependency injection (required by TokenService)
+builder.Services.Configure<JwtSettings>(options =>
+{
+    options.Key = jwtKey;
+    options.Issuer = jwtIssuer;
+    options.Audience = jwtAudience;
+    options.ExpiryHours = jwtExpiryHours;
+});
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
