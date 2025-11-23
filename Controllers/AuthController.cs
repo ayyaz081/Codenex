@@ -734,23 +734,8 @@ namespace Neelsol.Controllers
                     }
                 }
 
-                // Delete related CommentLikes first (they depend on comments)
-                var commentLikes = await _context.CommentLikes
-                    .Where(cl => cl.UserId == id)
-                    .ToListAsync();
-                _context.CommentLikes.RemoveRange(commentLikes);
-
-                // Delete PublicationComments
-                var comments = await _context.PublicationComments
-                    .Where(pc => pc.UserId == id)
-                    .ToListAsync();
-                _context.PublicationComments.RemoveRange(comments);
-
-                // Delete PublicationRatings
-                var ratings = await _context.PublicationRatings
-                    .Where(pr => pr.UserId == id)
-                    .ToListAsync();
-                _context.PublicationRatings.RemoveRange(ratings);
+                // Note: Comments, Ratings, and CommentLikes will have their UserId set to NULL
+                // automatically due to SetNull cascade behavior (preserves the data)
 
                 // Delete Payments
                 var payments = await _context.Payments

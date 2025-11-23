@@ -39,7 +39,7 @@ namespace Neelsol.Data
                 .HasOne(pc => pc.User)
                 .WithMany(u => u.Comments)
                 .HasForeignKey(pc => pc.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull); // Preserve comments when user deleted
 
             modelBuilder.Entity<PublicationRating>()
                 .HasOne(pr => pr.Publication)
@@ -51,7 +51,7 @@ namespace Neelsol.Data
                 .HasOne(pr => pr.User)
                 .WithMany(u => u.Ratings)
                 .HasForeignKey(pr => pr.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull); // Preserve ratings when user deleted
 
             modelBuilder.Entity<ContactForm>()
                 .HasOne(cf => cf.User)
@@ -80,7 +80,7 @@ namespace Neelsol.Data
                 .HasOne(cl => cl.User)
                 .WithMany(u => u.CommentLikes)
                 .HasForeignKey(cl => cl.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull); // Preserve likes when user deleted
 
             // Ensure unique like per user per comment
             modelBuilder.Entity<CommentLike>()

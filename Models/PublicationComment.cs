@@ -10,8 +10,7 @@ namespace Neelsol.Models
         [Required]
         public int PublicationId { get; set; }
 
-        [Required]
-        public string UserId { get; set; } = string.Empty;
+        public string? UserId { get; set; }
 
         [Required]
         [StringLength(1000)]

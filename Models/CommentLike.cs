@@ -10,8 +10,7 @@ namespace Neelsol.Models
         [Required]
         public int CommentId { get; set; }
 
-        [Required]
-        public string UserId { get; set; } = string.Empty;
+        public string? UserId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
