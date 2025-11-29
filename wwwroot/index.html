@@ -363,6 +363,8 @@
         let isMobile = window.innerWidth < 1280;
         let isPaused = false;
         let animationId = null;
+        let pauseCounter = 0;
+        const PAUSE_DURATION = 60; // Frames to pause at edges (about 1 second)
 
         function autoScrollFeatures() {
             if (isMobile || !featureScroller || !featureContainer || isPaused) {
@@ -373,17 +375,30 @@
             const visibleWidth = featureContainer.clientWidth;
             const maxScroll = featureScroller.scrollWidth - visibleWidth;
             
-            if (scrollPosition <= 0) {
-                scrollDirection = 1;
-                scrollPosition = 0;
-            } else if (scrollPosition >= maxScroll) {
-                scrollDirection = -1;
-                scrollPosition = maxScroll;
+            // Pause at edges
+            if ((scrollPosition <= 0 && scrollDirection === -1) || 
+                (scrollPosition >= maxScroll && scrollDirection === 1)) {
+                pauseCounter++;
+                
+                if (pauseCounter >= PAUSE_DURATION) {
+                    // Change direction after pause
+                    scrollDirection *= -1;
+                    pauseCounter = 0;
+                    
+                    // Ensure we're at exact boundary
+                    if (scrollPosition <= 0) scrollPosition = 0;
+                    if (scrollPosition >= maxScroll) scrollPosition = maxScroll;
+                }
+            } else {
+                // Normal scrolling
+                scrollPosition += scrollDirection * 0.8;
+                
+                // Clamp to boundaries
+                if (scrollPosition < 0) scrollPosition = 0;
+                if (scrollPosition > maxScroll) scrollPosition = maxScroll;
             }
             
-            scrollPosition += scrollDirection * 1;
             featureScroller.style.transform = `translateX(-${scrollPosition}px)`;
-            
             animationId = requestAnimationFrame(autoScrollFeatures);
         }
 
