@@ -1787,17 +1787,16 @@
 
         // Modal Management Functions - Gentle and stable
         function showModal(modalId) {
-            console.log('ðŸ”µ Opening modal:', modalId);
+            console.log('🔵 Opening modal:', modalId);
             
             const modal = document.getElementById(modalId);
             if (modal) {
-                // CRITICAL: Reset any lingering display styles before showing
-                modal.style.display = '';
+                // Add show class to trigger CSS display: flex
                 modal.classList.add('show');
                 
-                console.log('âœ… Modal opened successfully, display reset and show class added');
+                console.log('✅ Modal opened successfully, show class added');
             } else {
-                console.error('âŒ Modal not found:', modalId);
+                console.error('❌ Modal not found:', modalId);
             }
         }
 
