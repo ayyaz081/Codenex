@@ -364,7 +364,7 @@
         let isPaused = false;
         let animationId = null;
         let pauseCounter = 0;
-        const PAUSE_DURATION = 60; // Frames to pause at edges (about 1 second)
+        const PAUSE_DURATION = 180; // Frames to pause at edges (about 3 seconds at 60fps)
 
         function autoScrollFeatures() {
             if (isMobile || !featureScroller || !featureContainer || isPaused) {
@@ -375,23 +375,27 @@
             const visibleWidth = featureContainer.clientWidth;
             const maxScroll = featureScroller.scrollWidth - visibleWidth;
             
-            // Pause at edges
-            if ((scrollPosition <= 0 && scrollDirection === -1) || 
-                (scrollPosition >= maxScroll && scrollDirection === 1)) {
+            // Check if at edge
+            const atStart = scrollPosition <= 1;
+            const atEnd = scrollPosition >= maxScroll - 1;
+            
+            if ((atStart && scrollDirection === -1) || (atEnd && scrollDirection === 1)) {
+                // At edge - pause
                 pauseCounter++;
+                
+                // Snap to exact position
+                if (atStart) scrollPosition = 0;
+                if (atEnd) scrollPosition = maxScroll;
                 
                 if (pauseCounter >= PAUSE_DURATION) {
                     // Change direction after pause
                     scrollDirection *= -1;
                     pauseCounter = 0;
-                    
-                    // Ensure we're at exact boundary
-                    if (scrollPosition <= 0) scrollPosition = 0;
-                    if (scrollPosition >= maxScroll) scrollPosition = maxScroll;
                 }
             } else {
-                // Normal scrolling
-                scrollPosition += scrollDirection * 0.8;
+                // Not at edge - scroll normally
+                pauseCounter = 0;
+                scrollPosition += scrollDirection * 0.5;
                 
                 // Clamp to boundaries
                 if (scrollPosition < 0) scrollPosition = 0;
