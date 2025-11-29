@@ -1791,6 +1791,8 @@
             
             const modal = document.getElementById(modalId);
             if (modal) {
+                // Clear any inline display style set by closeModal
+                modal.style.display = '';
                 // Add show class to trigger CSS display: flex
                 modal.classList.add('show');
                 
