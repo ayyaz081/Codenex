@@ -238,6 +238,65 @@
                     </div>
                 </div>
 
+                <!-- Finance Metrics -->
+                <div class="dashboard-grid" style="margin-top: 30px;">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <div class="stat-header">
+                            <span class="stat-title" style="color: white;">Total Revenue</span>
+                            <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" style="color: white;" id="dashboardTotalRevenue">$0.00</div>
+                        <div class="stat-change" style="color: rgba(255,255,255,0.8);">
+                            <i class="fas fa-chart-line"></i>
+                            <span id="dashboardMonthlyRevenue">$0 this month</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                        <div class="stat-header">
+                            <span class="stat-title" style="color: white;">Transactions</span>
+                            <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" style="color: white;" id="dashboardTotalTransactions">0</div>
+                        <div class="stat-change" style="color: rgba(255,255,255,0.8);">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="dashboardMonthlyTransactions">0 this month</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <div class="stat-header">
+                            <span class="stat-title" style="color: white;">Pending Payments</span>
+                            <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" style="color: white;" id="dashboardPendingTransactions">0</div>
+                        <div class="stat-change" style="color: rgba(255,255,255,0.8);">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Awaiting completion</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                        <div class="stat-header">
+                            <span class="stat-title" style="color: white;">Premium Repos</span>
+                            <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" style="color: white;" id="dashboardPremiumRepos">0</div>
+                        <div class="stat-change" style="color: rgba(255,255,255,0.8);">
+                            <i class="fas fa-lock"></i>
+                            <span>Paid repositories</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="content-section active">
                     <div class="section-header">
                         <h3 class="section-title">Recent Contacts</h3>

@@ -1341,6 +1341,9 @@
                 // Load recent contacts table
                 loadRecentContacts(contacts);
                 
+                // Load finance data
+                loadDashboardFinanceData();
+                
             } catch (error) {
                 console.error("Error loading dashboard data:", error);
                 showNotification("Failed to load dashboard data", "error");
@@ -1437,6 +1440,47 @@
                     </td>
                 </tr>
             `).join('');
+        }
+        
+        // Load finance data for dashboard
+        async function loadDashboardFinanceData() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/Payment/finance/overview`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.warn('Finance data not available:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // Update dashboard finance cards
+                document.getElementById('dashboardTotalRevenue').textContent = `$${data.totalRevenue.toFixed(2)}`;
+                document.getElementById('dashboardMonthlyRevenue').textContent = `$${data.monthlyRevenue.toFixed(2)} this month`;
+                document.getElementById('dashboardTotalTransactions').textContent = data.totalTransactions;
+                document.getElementById('dashboardMonthlyTransactions').textContent = `${data.monthlyTransactions} this month`;
+                document.getElementById('dashboardPendingTransactions').textContent = data.pendingTransactions;
+                
+                // Get premium repository count
+                const repoResponse = await fetch(`${API_BASE_URL}/Repository`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (repoResponse.ok) {
+                    const repos = await repoResponse.json();
+                    const premiumCount = repos.filter(r => r.isPremium && r.isActive).length;
+                    document.getElementById('dashboardPremiumRepos').textContent = premiumCount;
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard finance data:', error);
+                // Don't show notification for finance data errors on dashboard
+            }
         }
         
         // Switch to contacts section
