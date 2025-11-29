@@ -358,37 +358,59 @@
 
         const featureScroller = document.querySelector('.feature-scroller');
         const featureContainer = document.querySelector('.feature-container');
+        const featureCards = document.querySelectorAll('.feature-card');
         let scrollPosition = 0;
-        let scrollDirection = -1;
-        let isMobile = window.innerWidth <= 1280;
+        let scrollDirection = 1;
+        let isMobile = window.innerWidth < 1280;
+        let isPaused = false;
+        let animationId = null;
 
         function autoScrollFeatures() {
-            if (isMobile || !featureScroller || !featureContainer) return;
+            if (isMobile || !featureScroller || !featureContainer || isPaused) {
+                animationId = requestAnimationFrame(autoScrollFeatures);
+                return;
+            }
             
             const visibleWidth = featureContainer.clientWidth;
             const maxScroll = featureScroller.scrollWidth - visibleWidth;
             
             if (scrollPosition <= 0) {
                 scrollDirection = 1;
+                scrollPosition = 0;
             } else if (scrollPosition >= maxScroll) {
                 scrollDirection = -1;
+                scrollPosition = maxScroll;
             }
             
-            scrollPosition += scrollDirection * 0.5;
+            scrollPosition += scrollDirection * 1;
             featureScroller.style.transform = `translateX(-${scrollPosition}px)`;
             
-            requestAnimationFrame(autoScrollFeatures);
+            animationId = requestAnimationFrame(autoScrollFeatures);
         }
 
+        // Pause auto-scroll on hover
+        featureCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                isPaused = true;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                isPaused = false;
+            });
+        });
+
         window.addEventListener('resize', () => {
-            isMobile = window.innerWidth <= 1280;
-            if (!isMobile) {
-                requestAnimationFrame(autoScrollFeatures);
+            const wasMobile = isMobile;
+            isMobile = window.innerWidth < 1280;
+            
+            // Start animation if transitioning from mobile to desktop
+            if (wasMobile && !isMobile && !animationId) {
+                animationId = requestAnimationFrame(autoScrollFeatures);
             }
         });
 
         if (!isMobile) {
-            requestAnimationFrame(autoScrollFeatures);
+            animationId = requestAnimationFrame(autoScrollFeatures);
         }
     </script>
     <script src="/js/index.js"></script>

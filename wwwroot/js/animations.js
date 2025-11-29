@@ -96,10 +96,19 @@ class AnimationController {
         );
 
         cards.forEach(card => {
+            // Skip 3D hover effect for cards inside auto-scrolling feature-scroller
+            const isInAutoScroller = card.closest('.feature-scroller');
+            
+            if (isInAutoScroller) {
+                // Only add basic hover lift for auto-scrolling cards
+                card.classList.add('card-hover-lift');
+                return;
+            }
+            
             // Add hover lift effect
             card.classList.add('card-hover-lift');
 
-            // 3D tilt effect on mouse move
+            // 3D tilt effect on mouse move (only for non-auto-scrolling cards)
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
                 const x = e.clientX - rect.left;
