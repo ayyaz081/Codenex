@@ -405,22 +405,20 @@
                 if (pauseCounter >= PAUSE_DURATION) {
                     // Move to next card
                     pauseCounter = 0;
+                    
+                    // Check if we're at a boundary before moving
+                    if ((currentCardIndex >= maxIndex && scrollDirection === 1) || 
+                        (currentCardIndex <= 0 && scrollDirection === -1)) {
+                        // At boundary - change direction
+                        scrollDirection *= -1;
+                    }
+                    
+                    // Move to next position
                     currentCardIndex += scrollDirection;
                     
-                    // Check boundaries and change direction
-                    // With 6 cards and 4 visible, we need 3 positions:
-                    // Position 0: cards 1-4
-                    // Position 1: cards 2-5
-                    // Position 2: cards 3-6
-                    const maxIndex = featureCards.length - 4; // 6 - 4 = 2
-                    
-                    if (currentCardIndex > maxIndex) {
-                        currentCardIndex = maxIndex;
-                        scrollDirection = -1;
-                    } else if (currentCardIndex < 0) {
-                        currentCardIndex = 0;
-                        scrollDirection = 1;
-                    }
+                    // Ensure we stay within bounds
+                    if (currentCardIndex > maxIndex) currentCardIndex = maxIndex;
+                    if (currentCardIndex < 0) currentCardIndex = 0;
                     
                     isScrolling = true;
                 }
