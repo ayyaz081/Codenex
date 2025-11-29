@@ -741,6 +741,9 @@
                 case 'testimonials':
                     if (typeof loadTestimonials === 'function') loadTestimonials();
                     break;
+                case 'finance':
+                    if (typeof loadFinanceData === 'function') loadFinanceData();
+                    break;
                 case 'homepage':
                     if (typeof loadCarousel === 'function') loadCarousel();
                     break;
@@ -7723,6 +7726,167 @@ ${contact.message}
             
             console.log('âœ“ GitHub auto-fetch listener attached for both free and premium repos');
         }
+        
+        // ============================================
+        // FINANCE DASHBOARD FUNCTIONS
+        // ============================================
+        
+        // Load finance overview data
+        async function loadFinanceData() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/Payment/finance/overview`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load finance data');
+                
+                const data = await response.json();
+                
+                // Update overview cards
+                document.getElementById('totalRevenue').textContent = `$${data.totalRevenue.toFixed(2)}`;
+                document.getElementById('monthlyRevenue').textContent = `$${data.monthlyRevenue.toFixed(2)}`;
+                document.getElementById('totalTransactions').textContent = data.totalTransactions;
+                document.getElementById('monthlyTransactions').textContent = `${data.monthlyTransactions} this month`;
+                document.getElementById('pendingTransactions').textContent = data.pendingTransactions;
+                
+                // Load other finance data
+                await loadTopSelling();
+                await loadTransactions();
+            } catch (error) {
+                console.error('Error loading finance data:', error);
+                showNotification('Failed to load finance data', 'error');
+            }
+        }
+        
+        // Load top selling repositories
+        async function loadTopSelling() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/Payment/finance/top-selling?limit=5`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load top selling data');
+                
+                const data = await response.json();
+                const container = document.getElementById('topSellingContainer');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--text-muted);">No sales data available yet.</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.map((item, index) => `
+                    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-right: 10px;">#${index + 1}</div>
+                            <div>
+                                <strong>${item.repositoryTitle}</strong>
+                                <div style="color: var(--text-muted); font-size: 0.9rem;">${item.totalSales} sales</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: var(--success);">$${item.totalRevenue.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading top selling:', error);
+            }
+        }
+        
+        // Load transactions with pagination
+        let currentTransactionPage = 1;
+        async function loadTransactions(page = 1) {
+            try {
+                const token = getAuthToken();
+                const statusFilter = document.getElementById('transactionStatusFilter').value;
+                const url = `${API_BASE_URL}/Payment/finance/transactions?page=${page}&pageSize=20${ statusFilter ? `&status=${statusFilter}` : ''}`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load transactions');
+                
+                const data = await response.json();
+                const tbody = document.querySelector('#transactionsTable tbody');
+                
+                if (data.transactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No transactions found.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.transactions.map(t => {
+                    const statusClass = t.status === 'Completed' ? 'success' : t.status === 'Pending' ? 'warning' : 'danger';
+                    const date = new Date(t.createdAt).toLocaleDateString();
+                    const completedDate = t.completedAt ? new Date(t.completedAt).toLocaleDateString() : 'N/A';
+                    
+                    return `
+                        <tr>
+                            <td>${t.id}</td>
+                            <td>${t.userEmail}</td>
+                            <td>${t.repositoryTitle}</td>
+                            <td>$${t.amount.toFixed(2)}</td>
+                            <td><span class="badge badge-${statusClass}">${t.status}</span></td>
+                            <td>${t.status === 'Completed' ? completedDate : date}</td>
+                            <td style="font-size: 0.8rem; font-family: monospace;">${t.stripePaymentIntentId.substring(0, 20)}...</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                // Update pagination
+                currentTransactionPage = page;
+                renderTransactionPagination(data.totalPages);
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                showNotification('Failed to load transactions', 'error');
+            }
+        }
+        
+        function renderTransactionPagination(totalPages) {
+            const container = document.getElementById('transactionPagination');
+            if (totalPages <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            let html = '';
+            
+            // Previous button
+            html += `<button class="btn btn-secondary" onclick="loadTransactions(${currentTransactionPage - 1})" ${currentTransactionPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>`;
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentTransactionPage - 2 && i <= currentTransactionPage + 2)) {
+                    html += `<button class="btn ${i === currentTransactionPage ? 'btn-primary' : 'btn-secondary'}" onclick="loadTransactions(${i})">${i}</button>`;
+                } else if (i === currentTransactionPage - 3 || i === currentTransactionPage + 3) {
+                    html += '<span style="padding: 0 10px;">...</span>';
+                }
+            }
+            
+            // Next button
+            html += `<button class="btn btn-secondary" onclick="loadTransactions(${currentTransactionPage + 1})" ${currentTransactionPage === totalPages ? 'disabled' : ''}>
+                Next <i class="fas fa-chevron-right"></i>
+            </button>`;
+            
+            container.innerHTML = html;
+        }
+        
+        // Make functions globally available
+        window.loadFinanceData = loadFinanceData;
+        window.loadTransactions = loadTransactions;
         
         // Initialize theme and header for shared components
         document.addEventListener('DOMContentLoaded', () => {

@@ -95,6 +95,12 @@
                             <span>User Management</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-section="finance" data-tooltip="Finance">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span>Finance</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </aside>
@@ -653,6 +659,127 @@
                         <!-- Users will be loaded here -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Finance Section -->
+            <div class="content-section" id="finance">
+                <div class="section-header">
+                    <h2 class="section-title">Finance Dashboard</h2>
+                    <button class="btn btn-primary" onclick="loadFinanceData()">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                </div>
+
+                <!-- Finance Overview Cards -->
+                <div class="dashboard-grid">
+                    <div class="stat-card success">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Revenue</span>
+                            <div class="stat-icon success">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalRevenue">$0.00</div>
+                        <div class="stat-change">
+                            <i class="fas fa-info-circle"></i>
+                            <span>All-time earnings</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-header">
+                            <span class="stat-title">Monthly Revenue</span>
+                            <div class="stat-icon info">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="monthlyRevenue">$0.00</div>
+                        <div class="stat-change">
+                            <i class="fas fa-info-circle"></i>
+                            <span>This month's earnings</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card primary">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Transactions</span>
+                            <div class="stat-icon primary">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalTransactions">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-chart-line"></i>
+                            <span id="monthlyTransactions">0 this month</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-header">
+                            <span class="stat-title">Pending</span>
+                            <div class="stat-icon warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="pendingTransactions">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Awaiting completion</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Selling Repositories -->
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px;">Top Selling Repositories</h3>
+                    <div id="topSellingContainer">
+                        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
+                            <p>Loading top sellers...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <div style="margin-top: 30px;">
+                    <div class="section-header">
+                        <h3>Recent Transactions</h3>
+                        <div>
+                            <select class="form-control" id="transactionStatusFilter" onchange="loadTransactions()" style="width: 200px; display: inline-block; margin-right: 10px;">
+                                <option value="">All Status</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Failed">Failed</option>
+                                <option value="Refunded">Refunded</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag table-cell-icon"></i> ID</th>
+                                <th><i class="fas fa-user table-cell-icon"></i> User</th>
+                                <th><i class="fas fa-code-branch table-cell-icon"></i> Repository</th>
+                                <th><i class="fas fa-dollar-sign table-cell-icon"></i> Amount</th>
+                                <th><i class="fas fa-info-circle table-cell-icon"></i> Status</th>
+                                <th><i class="fas fa-calendar table-cell-icon"></i> Date</th>
+                                <th><i class="fas fa-receipt table-cell-icon"></i> Payment ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading transactions...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Pagination -->
+                    <div id="transactionPagination" class="pagination-container" style="display: none; margin-top: 20px; text-align: center;">
+                    </div>
+                </div>
             </div>
 
             <!-- Analytics Section -->

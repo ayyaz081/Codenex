@@ -622,5 +622,171 @@ namespace Neelsol.Controllers
                 return StatusCode(500, $"Error: {ex.Message}");
             }
         }
+
+        // GET: api/payment/finance/overview
+        [HttpGet("finance/overview")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetFinanceOverview()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+
+                var totalRevenue = await _context.Payments
+                    .Where(p => p.Status == "Completed")
+                    .SumAsync(p => p.Amount);
+
+                var monthlyRevenue = await _context.Payments
+                    .Where(p => p.Status == "Completed" && p.CompletedAt >= firstDayOfMonth)
+                    .SumAsync(p => p.Amount);
+
+                var totalTransactions = await _context.Payments
+                    .Where(p => p.Status == "Completed")
+                    .CountAsync();
+
+                var monthlyTransactions = await _context.Payments
+                    .Where(p => p.Status == "Completed" && p.CompletedAt >= firstDayOfMonth)
+                    .CountAsync();
+
+                var pendingTransactions = await _context.Payments
+                    .Where(p => p.Status == "Pending")
+                    .CountAsync();
+
+                return Ok(new
+                {
+                    totalRevenue,
+                    monthlyRevenue,
+                    totalTransactions,
+                    monthlyTransactions,
+                    pendingTransactions
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting finance overview");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/payment/finance/transactions
+        [HttpGet("finance/transactions")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetAllTransactions(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? status = null)
+        {
+            try
+            {
+                var query = _context.Payments
+                    .Include(p => p.User)
+                    .Include(p => p.Repository)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(status))
+                {
+                    query = query.Where(p => p.Status == status);
+                }
+
+                var total = await query.CountAsync();
+
+                var transactions = await query
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Amount,
+                        p.Status,
+                        p.CreatedAt,
+                        p.CompletedAt,
+                        p.StripePaymentIntentId,
+                        UserEmail = p.User != null ? p.User.Email : "N/A",
+                        RepositoryTitle = p.Repository != null ? p.Repository.Title : "N/A",
+                        p.RepositoryId
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    transactions,
+                    total,
+                    page,
+                    pageSize,
+                    totalPages = (int)Math.Ceiling(total / (double)pageSize)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting transactions");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/payment/finance/revenue-by-month
+        [HttpGet("finance/revenue-by-month")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetRevenueByMonth([FromQuery] int months = 12)
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var startDate = now.AddMonths(-months);
+
+                var revenueData = await _context.Payments
+                    .Where(p => p.Status == "Completed" && p.CompletedAt >= startDate)
+                    .GroupBy(p => new { p.CompletedAt!.Value.Year, p.CompletedAt!.Value.Month })
+                    .Select(g => new
+                    {
+                        Year = g.Key.Year,
+                        Month = g.Key.Month,
+                        Revenue = g.Sum(p => p.Amount),
+                        Count = g.Count()
+                    })
+                    .OrderBy(x => x.Year)
+                    .ThenBy(x => x.Month)
+                    .ToListAsync();
+
+                return Ok(revenueData);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting revenue by month");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/payment/finance/top-selling
+        [HttpGet("finance/top-selling")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetTopSellingRepositories([FromQuery] int limit = 10)
+        {
+            try
+            {
+                var topSelling = await _context.Payments
+                    .Where(p => p.Status == "Completed")
+                    .Include(p => p.Repository)
+                    .GroupBy(p => new { p.RepositoryId, p.Repository!.Title })
+                    .Select(g => new
+                    {
+                        RepositoryId = g.Key.RepositoryId,
+                        RepositoryTitle = g.Key.Title,
+                        TotalSales = g.Count(),
+                        TotalRevenue = g.Sum(p => p.Amount)
+                    })
+                    .OrderByDescending(x => x.TotalRevenue)
+                    .Take(limit)
+                    .ToListAsync();
+
+                return Ok(topSelling);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting top selling repositories");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }
