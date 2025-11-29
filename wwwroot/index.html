@@ -358,104 +358,38 @@
 
         const featureScroller = document.querySelector('.feature-scroller');
         const featureContainer = document.querySelector('.feature-container');
-        const featureCards = document.querySelectorAll('.feature-card');
-        let currentCardIndex = 0;
-        let scrollDirection = 1;
-        let isMobile = window.innerWidth < 1280;
-        let isPaused = false;
-        let animationId = null;
-        let pauseCounter = 0;
-        let isScrolling = false;
-        const PAUSE_DURATION = 180; // Frames to pause at each position (3 seconds)
-        const SCROLL_SPEED = 2;
+        let isHoveringContainer = false;
+        let scrollPosition = 0;
 
-        function autoScrollFeatures() {
-            if (isMobile || !featureScroller || !featureContainer || isPaused) {
-                animationId = requestAnimationFrame(autoScrollFeatures);
-                return;
-            }
-            
-            const cardWidth = featureCards[0]?.offsetWidth || 272;
-            const gap = 24;
-            const cardStep = cardWidth + gap;
-            
-            // For the last position, use actual max scroll to show last card fully
-            const maxScroll = featureScroller.scrollWidth - featureContainer.clientWidth;
-            const maxIndex = featureCards.length - 4;
-            
-            // Calculate target position for current card
-            let targetPosition;
-            if (currentCardIndex >= maxIndex) {
-                // At last position, use max scroll to ensure last card shows
-                targetPosition = maxScroll;
-            } else {
-                targetPosition = currentCardIndex * cardStep;
-            }
-            const currentPosition = -parseFloat(featureScroller.style.transform.replace(/[^0-9.-]/g, '') || 0);
-            
-            // Check if we've reached target position
-            if (Math.abs(currentPosition - targetPosition) < 2) {
-                // At target - pause
-                isScrolling = false;
-                pauseCounter++;
-                
-                // Snap to exact position
-                featureScroller.style.transform = `translateX(-${targetPosition}px)`;
-                
-                if (pauseCounter >= PAUSE_DURATION) {
-                    // Move to next card
-                    pauseCounter = 0;
-                    
-                    // Check if we're at a boundary before moving
-                    if ((currentCardIndex >= maxIndex && scrollDirection === 1) || 
-                        (currentCardIndex <= 0 && scrollDirection === -1)) {
-                        // At boundary - change direction
-                        scrollDirection *= -1;
-                    }
-                    
-                    // Move to next position
-                    currentCardIndex += scrollDirection;
-                    
-                    // Ensure we stay within bounds
-                    if (currentCardIndex > maxIndex) currentCardIndex = maxIndex;
-                    if (currentCardIndex < 0) currentCardIndex = 0;
-                    
-                    isScrolling = true;
-                }
-            } else {
-                // Scroll towards target
-                isScrolling = true;
-                const diff = targetPosition - currentPosition;
-                const scrollAmount = Math.sign(diff) * Math.min(Math.abs(diff), SCROLL_SPEED);
-                featureScroller.style.transform = `translateX(-${currentPosition + scrollAmount}px)`;
-            }
-            
-            animationId = requestAnimationFrame(autoScrollFeatures);
-        }
-
-        // Pause auto-scroll when hovering over the container
+        // Horizontal scroll on mouse wheel when hovering
         if (featureContainer) {
             featureContainer.addEventListener('mouseenter', () => {
-                isPaused = true;
+                isHoveringContainer = true;
             });
             
             featureContainer.addEventListener('mouseleave', () => {
-                isPaused = false;
+                isHoveringContainer = false;
             });
-        }
-
-        window.addEventListener('resize', () => {
-            const wasMobile = isMobile;
-            isMobile = window.innerWidth < 1280;
             
-            // Start animation if transitioning from mobile to desktop
-            if (wasMobile && !isMobile && !animationId) {
-                animationId = requestAnimationFrame(autoScrollFeatures);
-            }
-        });
-
-        if (!isMobile) {
-            animationId = requestAnimationFrame(autoScrollFeatures);
+            featureContainer.addEventListener('wheel', (e) => {
+                if (isHoveringContainer) {
+                    e.preventDefault();
+                    
+                    // Scroll horizontally
+                    const delta = e.deltaY;
+                    scrollPosition += delta;
+                    
+                    // Get max scroll
+                    const maxScroll = featureScroller.scrollWidth - featureContainer.clientWidth;
+                    
+                    // Clamp scroll position
+                    if (scrollPosition < 0) scrollPosition = 0;
+                    if (scrollPosition > maxScroll) scrollPosition = maxScroll;
+                    
+                    // Apply transform
+                    featureScroller.style.transform = `translateX(-${scrollPosition}px)`;
+                }
+            }, { passive: false });
         }
     </script>
     <script src="/js/index.js"></script>
