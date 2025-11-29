@@ -2530,7 +2530,7 @@
 
         async function loadTeamManagement() {
             try {
-                const response = await fetch(`${API_BASE_URL}/About/team`);
+                const response = await fetch(`${API_BASE_URL}/About/team?_=${Date.now()}`);
                 const teamMembers = response.ok ? await response.json() : [];
                 const tbody = document.querySelector('#teamTable tbody');
                 if (!tbody) return;
@@ -2574,7 +2574,7 @@
             try {
                 const token = getAuthToken();
                 const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const resp = await fetch(`${API_BASE_URL}/About/team/${id}`, { headers });
+                const resp = await fetch(`${API_BASE_URL}/About/team/${id}?_=${Date.now()}`, { headers });
                 if (!resp.ok) throw new Error('Failed to fetch team member');
                 const member = await resp.json();
 
@@ -2667,7 +2667,7 @@
 
         async function loadTestimonialsManagement() {
             try {
-                const response = await fetch(`${API_BASE_URL}/About/testimonials`);
+                const response = await fetch(`${API_BASE_URL}/About/testimonials?_=${Date.now()}`);
                 const testimonials = response.ok ? await response.json() : [];
                 const tbody = document.querySelector('#testimonialsTable tbody');
                 if (!tbody) return;
@@ -2707,7 +2707,7 @@
             try {
                 const token = getAuthToken();
                 const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const resp = await fetch(`${API_BASE_URL}/About/testimonials/${id}`, { headers });
+                const resp = await fetch(`${API_BASE_URL}/About/testimonials/${id}?_=${Date.now()}`, { headers });
                 if (!resp.ok) throw new Error('Failed to fetch testimonial');
                 const t = await resp.json();
 
@@ -5506,7 +5506,7 @@ ${contact.message}
         async function loadTeamMembers() {
             try {
                 console.log('Loading team members...');
-                const response = await fetch(`${API_BASE_URL}/About/team`);
+                const response = await fetch(`${API_BASE_URL}/About/team?_=${Date.now()}`);
                 if (!response.ok) {
                     console.error('Team members API error:', response.status, response.statusText);
                     return;
@@ -5592,7 +5592,7 @@ ${contact.message}
         
         async function viewTeamMember(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/About/team/${id}`);
+                const response = await fetch(`${API_BASE_URL}/About/team/${id}?_=${Date.now()}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch team member: ${response.status}`);
                 }
@@ -5674,7 +5674,7 @@ ${contact.message}
         
         async function editTeamMember(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/About/team/${id}`);
+                const response = await fetch(`${API_BASE_URL}/About/team/${id}?_=${Date.now()}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch team member: ${response.status}`);
                 }
@@ -5807,7 +5807,7 @@ ${contact.message}
         async function loadTestimonials() {
             try {
                 console.log('Loading testimonials...');
-                const response = await fetch(`${API_BASE_URL}/About/testimonials`);
+                const response = await fetch(`${API_BASE_URL}/About/testimonials?_=${Date.now()}`);
                 if (!response.ok) {
                     console.error('Testimonials API error:', response.status, response.statusText);
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -5902,7 +5902,7 @@ ${contact.message}
         
         async function viewTestimonial(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/About/testimonials/${id}`);
+                const response = await fetch(`${API_BASE_URL}/About/testimonials/${id}?_=${Date.now()}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch testimonial: ${response.status}`);
                 }
@@ -5987,7 +5987,7 @@ ${contact.message}
         
         async function editTestimonial(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/About/testimonials/${id}`);
+                const response = await fetch(`${API_BASE_URL}/About/testimonials/${id}?_=${Date.now()}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch testimonial: ${response.status}`);
                 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Neelsol.Data;
 using Neelsol.Models;
+using Neelsol.Filters;
 
 namespace Neelsol.Controllers
 {
@@ -25,7 +26,7 @@ namespace Neelsol.Controllers
 
         // GET: api/About/team
         [HttpGet("team")]
-        [ResponseCache(Duration = 300, VaryByHeader = "User-Agent", Location = ResponseCacheLocation.Any)]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<TeamMember>>> GetTeamMembers()
         {
             try
@@ -45,6 +46,7 @@ namespace Neelsol.Controllers
 
         // GET: api/About/team/{id}
         [HttpGet("team/{id}")]
+        [NoCache]
         public async Task<ActionResult<TeamMember>> GetTeamMember(int id)
         {
             try
@@ -191,7 +193,7 @@ namespace Neelsol.Controllers
 
         // GET: api/About/testimonials
         [HttpGet("testimonials")]
-        [ResponseCache(Duration = 300, VaryByHeader = "User-Agent", Location = ResponseCacheLocation.Any)]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<ClientTestimonial>>> GetTestimonials()
         {
             try
@@ -211,6 +213,7 @@ namespace Neelsol.Controllers
 
         // GET: api/About/testimonials/{id}
         [HttpGet("testimonials/{id}")]
+        [NoCache]
         public async Task<ActionResult<ClientTestimonial>> GetTestimonial(int id)
         {
             try
