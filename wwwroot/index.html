@@ -366,7 +366,7 @@
         let animationId = null;
         let pauseCounter = 0;
         let isScrolling = false;
-        const PAUSE_DURATION = 120; // Frames to pause at each position (2 seconds)
+        const PAUSE_DURATION = 180; // Frames to pause at each position (3 seconds)
         const SCROLL_SPEED = 2;
 
         function autoScrollFeatures() {
@@ -375,7 +375,7 @@
                 return;
             }
             
-            const cardWidth = featureCards[0]?.offsetWidth || 262;
+            const cardWidth = featureCards[0]?.offsetWidth || 272;
             const gap = 24;
             const cardStep = cardWidth + gap;
             
