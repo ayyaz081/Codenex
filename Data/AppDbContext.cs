@@ -33,7 +33,7 @@ namespace Neelsol.Data
                 .HasOne(pc => pc.Publication)
                 .WithMany(p => p.Comments)
                 .HasForeignKey(pc => pc.PublicationId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); // Preserve comments when publication deleted
 
             modelBuilder.Entity<PublicationComment>()
                 .HasOne(pc => pc.User)
@@ -45,7 +45,7 @@ namespace Neelsol.Data
                 .HasOne(pr => pr.Publication)
                 .WithMany(p => p.Ratings)
                 .HasForeignKey(pr => pr.PublicationId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); // Preserve ratings when publication deleted
 
             modelBuilder.Entity<PublicationRating>()
                 .HasOne(pr => pr.User)
@@ -74,7 +74,7 @@ namespace Neelsol.Data
                 .HasOne(cl => cl.Comment)
                 .WithMany(c => c.Likes)
                 .HasForeignKey(cl => cl.CommentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict); // Preserve likes when comment deleted
 
             modelBuilder.Entity<CommentLike>()
                 .HasOne(cl => cl.User)
@@ -124,14 +124,21 @@ namespace Neelsol.Data
                 .HasOne(r => r.Product)
                 .WithMany(p => p.Repositories)
                 .HasForeignKey(r => r.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull); // Preserve repository when product deleted
 
             // Configure Solution-Publication relationship
             modelBuilder.Entity<Publication>()
                 .HasOne(p => p.Solution)
                 .WithMany(s => s.Publications)
                 .HasForeignKey(p => p.SolutionId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull); // Preserve publication when solution deleted
+            
+            // Configure Product-Publication relationship
+            modelBuilder.Entity<Publication>()
+                .HasOne(p => p.Product)
+                .WithMany(p => p.Publications)
+                .HasForeignKey(p => p.ProductId)
+                .OnDelete(DeleteBehavior.SetNull); // Preserve publication when product deleted
 
             // Configure decimal precision
             modelBuilder.Entity<Payment>()

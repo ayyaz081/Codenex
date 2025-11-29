@@ -44,12 +44,13 @@ namespace Neelsol.Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Foreign key
-        [Required]
-        public int SolutionId { get; set; }
+        // Foreign keys - at least one must be set
+        public int? SolutionId { get; set; }
+        public int? ProductId { get; set; }
 
         // Navigation properties
-        public virtual Solution Solution { get; set; } = null!;
+        public virtual Solution? Solution { get; set; }
+        public virtual Product? Product { get; set; }
         public virtual ICollection<PublicationComment> Comments { get; set; } = new List<PublicationComment>();
         public virtual ICollection<PublicationRating> Ratings { get; set; } = new List<PublicationRating>();
     }

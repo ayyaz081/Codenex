@@ -1018,6 +1018,30 @@ class SharedComponents {
         
         // Initialize dropdown event listeners
         this.initializeDropdownEvents();
+        
+        // Set up auto-refresh every 30 seconds
+        this.setupNavigationAutoRefresh();
+        
+        // Listen for storage events from other tabs/windows
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'navigationDataUpdated') {
+                console.log('🔄 Navigation data updated in another tab, refreshing...');
+                sessionStorage.removeItem('navigationData');
+                this.loadNavigationData();
+            }
+        });
+    }
+    
+    /**
+     * Setup periodic auto-refresh for navigation data
+     */
+    setupNavigationAutoRefresh() {
+        // Refresh navigation data every 30 seconds
+        setInterval(() => {
+            console.log('🔄 Auto-refreshing navigation data...');
+            sessionStorage.removeItem('navigationData');
+            this.loadNavigationData();
+        }, 30000); // 30 seconds
     }
     
     /**

@@ -45,6 +45,7 @@ namespace Neelsol.Controllers
                 var publications = await _context.Publications
                     .Include(p => p.Ratings)
                     .Include(p => p.Solution)
+                    .Include(p => p.Product)
                     .Where(p => p.IsPublished)
                     .OrderByDescending(p => p.PublishedDate)
                     .AsNoTracking()
@@ -63,6 +64,10 @@ namespace Neelsol.Controllers
                     publishedDate = p.PublishedDate,
                     createdAt = p.CreatedAt,
                     updatedAt = p.UpdatedAt,
+                    solutionId = p.SolutionId,
+                    solutionTitle = p.Solution?.Title,
+                    productId = p.ProductId,
+                    productTitle = p.Product?.Title,
                     // Calculate ratings from loaded navigation property
                     averageRating = p.Ratings.Any() ? p.Ratings.Average(r => (double)r.Rating) : 0.0,
                     ratingCount = p.Ratings.Count
@@ -88,6 +93,7 @@ namespace Neelsol.Controllers
             {
                 var publication = await _context.Publications
                     .Include(p => p.Solution)
+                    .Include(p => p.Product)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == id && p.IsPublished);
 
@@ -109,6 +115,7 @@ namespace Neelsol.Controllers
             {
                 return await _context.Publications
                     .Include(p => p.Solution)
+                    .Include(p => p.Product)
                     .Where(p => p.Domain == domain && p.IsPublished)
                     .OrderByDescending(p => p.PublishedDate)
                     .AsNoTracking()
@@ -185,11 +192,24 @@ namespace Neelsol.Controllers
                     downloadUrl = await ProcessUploadedFile(dto.DocumentFile, uploadsDir, "document", AllowedDocumentExtensions);
                 }
 
-                // Verify solution exists
-                var solutionExists = await _context.Solutions.AnyAsync(s => s.Id == dto.SolutionId);
-                if (!solutionExists)
+                // Verify at least one relationship exists
+                if (dto.SolutionId <= 0 && dto.ProductId <= 0)
                 {
-                    return BadRequest(new { message = "Solution not found" });
+                    return BadRequest(new { message = "Either SolutionId or ProductId must be provided" });
+                }
+                
+                if (dto.SolutionId > 0)
+                {
+                    var solutionExists = await _context.Solutions.AnyAsync(s => s.Id == dto.SolutionId);
+                    if (!solutionExists)
+                        return BadRequest(new { message = "Solution not found" });
+                }
+                
+                if (dto.ProductId > 0)
+                {
+                    var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId);
+                    if (!productExists)
+                        return BadRequest(new { message = "Product not found" });
                 }
 
                 var publication = new Publication
@@ -200,9 +220,10 @@ namespace Neelsol.Controllers
                     Abstract = dto.Abstract,
                     Keywords = dto.Keywords ?? string.Empty,
                     ThumbnailUrl = thumbnailUrl ?? string.Empty,
-                    DownloadUrl = downloadUrl ?? string.Empty,
+                    DownloadUrl = dto.DownloadUrl ?? downloadUrl ?? string.Empty,
                     PublishedDate = dto.PublishedDate ?? DateTime.UtcNow,
-                    SolutionId = dto.SolutionId,
+                    SolutionId = dto.SolutionId > 0 ? dto.SolutionId : null,
+                    ProductId = dto.ProductId > 0 ? dto.ProductId : null,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsPublished = true
@@ -254,13 +275,38 @@ namespace Neelsol.Controllers
                     existing.IsPublished = dto.IsPublished.Value;
                 if (dto.SolutionId.HasValue)
                 {
-                    var solutionExists = await _context.Solutions.AnyAsync(s => s.Id == dto.SolutionId.Value);
-                    if (!solutionExists)
+                    if (dto.SolutionId.Value > 0)
                     {
-                        return BadRequest(new { message = "Solution not found" });
+                        var solutionExists = await _context.Solutions.AnyAsync(s => s.Id == dto.SolutionId.Value);
+                        if (!solutionExists)
+                            return BadRequest(new { message = "Solution not found" });
+                        existing.SolutionId = dto.SolutionId.Value;
+                        existing.ProductId = null;
                     }
-                    existing.SolutionId = dto.SolutionId.Value;
+                    else
+                    {
+                        existing.SolutionId = null;
+                    }
                 }
+                
+                if (dto.ProductId.HasValue)
+                {
+                    if (dto.ProductId.Value > 0)
+                    {
+                        var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId.Value);
+                        if (!productExists)
+                            return BadRequest(new { message = "Product not found" });
+                        existing.ProductId = dto.ProductId.Value;
+                        existing.SolutionId = null;
+                    }
+                    else
+                    {
+                        existing.ProductId = null;
+                    }
+                }
+                
+                if (!string.IsNullOrEmpty(dto.DownloadUrl))
+                    existing.DownloadUrl = dto.DownloadUrl;
 
                 existing.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();

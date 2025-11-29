@@ -14,7 +14,7 @@
         let allPublications = [];
         let filteredPublications = [];
         let currentPage = 1;
-        let pageSize = 8;
+        let pageSize = 2;
 
         // Authentication Management
         class InlineAuthManager {
@@ -468,33 +468,111 @@
             const currentPagePublications = publications.slice(startIndex, endIndex);
 
             const publicationsHtml = currentPagePublications.map(pub => {
+                const relatedTo = pub.productTitle ? `<i class="fas fa-box"></i> ${pub.productTitle}` : 
+                                 pub.solutionTitle ? `<i class="fas fa-lightbulb"></i> ${pub.solutionTitle}` : '';
+                
+                const thumbnailContent = pub.thumbnailUrl 
+                    ? `<img src="${formatImageUrl(pub.thumbnailUrl)}" alt="${pub.title}">`
+                    : `<i class="fas fa-file-pdf"></i>`;
+                
                 return `
-                <div class="publication-card" id="publication-${pub.id}">
-                    <div class="publication-thumbnail">
-                        ${pub.thumbnailUrl ? 
-                            `<img src="${formatImageUrl(pub.thumbnailUrl)}" alt="${pub.title}" onerror="this.parentElement.innerHTML='<i class=\\"fas fa-file-pdf fallback-icon\\"></i>'">`:  
-                            `<i class="fas fa-file-pdf fallback-icon"></i>`
-                        }
-                        <div class="publication-date">${formatDate(pub.publishedDate)}</div>
-                    </div>
-                    <div class="publication-content">
-                        <div class="publication-meta">
-                            <span class="domain-tag">${pub.domain}</span>
-                            ${pub.averageRating > 0 ? `
-                                <div class="publication-rating">
-                                    <div class="stars">${generateStars(pub.averageRating)}</div>
-                                    <span>(${pub.ratingCount})</span>
+                <div class="publication-card-full" id="publication-${pub.id}">
+                    <div class="publication-header">
+                        <div class="publication-thumbnail-small">
+                            ${thumbnailContent}
+                        </div>
+                        <div class="publication-header-content">
+                            <div class="publication-meta-row">
+                                <div class="meta-left">
+                                    <span class="domain-tag"><i class="fas fa-folder"></i> ${pub.domain}</span>
+                                    ${relatedTo ? `<span class="related-tag">${relatedTo}</span>` : ''}
                                 </div>
+                                <span class="publication-date-small"><i class="fas fa-calendar-alt"></i> ${formatDate(pub.publishedDate)}</span>
+                            </div>
+                            <h3 class="publication-title-large">${pub.title}</h3>
+                            <p class="publication-authors-large">
+                                <i class="fas fa-user-edit"></i> ${pub.authors}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="publication-body">
+                        <div class="publication-abstract-wrapper">
+                            <div class="publication-abstract-full ${pub.abstract && pub.abstract.length > 300 ? 'collapsed' : ''}" id="abstract-${pub.id}">
+                                ${pub.abstract}
+                            </div>
+                            ${pub.abstract && pub.abstract.length > 300 ? `
+                                <button class="show-more-btn" onclick="toggleAbstract(${pub.id})" id="show-more-${pub.id}">
+                                    <span class="show-more-text">Show More</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
                             ` : ''}
                         </div>
-                        <h3 class="publication-title">${pub.title}</h3>
-                        <p class="publication-authors">By ${pub.authors}</p>
-                        <div class="publication-abstract">${pub.abstract}</div>
-                        <div class="publication-actions">
-                            ${generatePublicationActions(pub)}
-                            <button class="action-btn view" onclick="viewPublication(${pub.id})">
-                                <i class="fas fa-eye"></i> View Details
-                            </button>
+                        ${pub.keywords ? `
+                            <div class="publication-keywords">
+                                <i class="fas fa-tags"></i>
+                                ${pub.keywords.split(',').map(k => `<span class="keyword-tag">${k.trim()}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="publication-footer">
+                        <div class="publication-stats">
+                            ${pub.averageRating > 0 ? `
+                                <div class="stat-item">
+                                    <div class="stars-inline">${generateStars(pub.averageRating)}</div>
+                                    <span class="stat-label">${pub.averageRating.toFixed(1)} (${pub.ratingCount} ratings)</span>
+                                </div>
+                            ` : '<div class="stat-item"><span class="stat-label">No ratings yet</span></div>'}
+                        </div>
+                        <div class="publication-actions-row">
+                            ${pub.downloadUrl ? `
+                                <a href="${pub.downloadUrl}" target="_blank" rel="noopener noreferrer" class="publication-link-btn">
+                                    <i class="fas fa-external-link-alt"></i> View Publication
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Compact Inline Rating & Comment Section -->
+                    <div class="publication-interaction-compact">
+                        ${currentUser ? `
+                            <div class="compact-rating">
+                                <span class="compact-label">Rate:</span>
+                                <div class="rating-stars-compact" id="rating-stars-${pub.id}">
+                                    ${[1,2,3,4,5].map(star => `
+                                        <i class="far fa-star" data-rating="${star}" onclick="submitRating(${pub.id}, ${star})"></i>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="compact-comment">
+                                <input 
+                                    type="text"
+                                    id="comment-input-${pub.id}" 
+                                    class="comment-input-compact"
+                                    placeholder="Add a comment..."
+                                    maxlength="1000" />
+                                <button class="btn-compact" onclick="submitComment(${pub.id})" title="Post comment">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="compact-login-prompt">
+                                <i class="fas fa-info-circle"></i>
+                                <a href="/Auth">Log in</a> to rate and comment
+                            </div>
+                        `}
+                    </div>
+                    
+                    <!-- Comments Display Section -->
+                    <div class="comments-display-section" id="comments-section-${pub.id}">
+                        <div class="comments-header-compact">
+                            <h5><i class="fas fa-comments"></i> Comments</h5>
+                        </div>
+                        <div class="comments-list-compact" id="comments-list-${pub.id}">
+                            <div class="comments-loading-compact">
+                                <i class="fas fa-spinner fa-spin"></i> Loading comments...
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -509,6 +587,11 @@
 
             // Render pagination
             renderPagination(totalPages);
+            
+            // Load comments for each publication
+            currentPagePublications.forEach(pub => {
+                loadCommentsForCard(pub.id);
+            });
         }
 
         function handleDeepLink() {
@@ -561,34 +644,30 @@
                 document.getElementById('modal-authors').textContent = `By ${publication.authors}`;
                 document.getElementById('modal-abstract').innerHTML = publication.abstract;
                 
-                const actionsHtml = [];
-                
-                // Generate download button based on authentication
-                if (publication.downloadUrl) {
-                    if (!currentUser) {
-                        actionsHtml.push(`
-                            <button class="btn btn-outline" onclick="showLoginPrompt('download', ${publication.id})">
-                                <i class="fas fa-lock"></i> Login to Download
-                            </button>
-                        `);
+                // Show related Product or Solution
+                const relatedInfo = document.getElementById('modal-related-info');
+                if (relatedInfo) {
+                    if (publication.productTitle) {
+                        relatedInfo.innerHTML = `<i class="fas fa-box"></i> Related to Product: <strong>${publication.productTitle}</strong>`;
+                        relatedInfo.style.display = 'block';
+                    } else if (publication.solutionTitle) {
+                        relatedInfo.innerHTML = `<i class="fas fa-lightbulb"></i> Related to Solution: <strong>${publication.solutionTitle}</strong>`;
+                        relatedInfo.style.display = 'block';
                     } else {
-                        actionsHtml.push(`
-                            <button class="btn btn-primary" onclick="downloadPublication(${publication.id}, '${publication.title}')">
-                                <i class="fas fa-download"></i> Download Publication
-                            </button>
-                        `);
+                        relatedInfo.style.display = 'none';
                     }
                 }
                 
-                // Preview button for documents
-                if (publication.downloadUrl && publication.downloadUrl.toLowerCase().includes('.pdf')) {
+                const actionsHtml = [];
+                
+                // External link button (always visible if URL exists)
+                if (publication.downloadUrl) {
                     actionsHtml.push(`
-                        <button class="btn btn-secondary" onclick="previewDocument('${formatImageUrl(publication.downloadUrl)}', '${publication.title}')">
-                            <i class="fas fa-eye"></i> Preview PDF
-                        </button>
+                        <a href="${publication.downloadUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt"></i> View Publication
+                        </a>
                     `);
                 }
-                
                 
                 document.getElementById('modal-actions').innerHTML = actionsHtml.join('');
                 
@@ -602,27 +681,10 @@
             }
         }
 
-        // Generate publication action buttons based on authentication
+        // Generate publication action buttons
         function generatePublicationActions(publication) {
-            let actions = [];
-            
-            if (publication.downloadUrl) {
-                if (!currentUser) {
-                    actions.push(`
-                        <button class="action-btn locked" onclick="showLoginPrompt('download', ${publication.id})">
-                            <i class="fas fa-lock"></i> Login Required
-                        </button>
-                    `);
-                } else {
-                    actions.push(`
-                        <button class="action-btn download" onclick="downloadPublication(${publication.id}, '${publication.title}')">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                    `);
-                }
-            }
-            
-            return actions.join('');
+            // No action buttons on cards - just view details button
+            return '';
         }
 
         // Download publication with authentication
@@ -907,10 +969,22 @@
         }
 
         function formatImageUrl(url) {
-            if (!url) return '';
-            if (url.startsWith('http')) return url;
-            if (url.startsWith('/')) return `${backendBaseUrl}${url}`;
-            return `${backendBaseUrl}/${url}`;
+            if (!url) {
+                console.log('formatImageUrl: Empty URL provided');
+                return '';
+            }
+            
+            let formattedUrl;
+            if (url.startsWith('http')) {
+                formattedUrl = url;
+            } else if (url.startsWith('/')) {
+                formattedUrl = `${backendBaseUrl}${url}`;
+            } else {
+                formattedUrl = `${backendBaseUrl}/${url}`;
+            }
+            
+            console.log('formatImageUrl:', url, '->', formattedUrl);
+            return formattedUrl;
         }
 
         function formatDate(dateString) {
@@ -1916,3 +1990,211 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', loadPublications);
+        // Store comments data for each publication
+        const publicationComments = {};
+        const commentsDisplayLimit = {};
+        const INITIAL_COMMENTS_SHOW = 2;
+        
+        // Load comments for a specific card
+        async function loadCommentsForCard(publicationId) {
+            const commentsList = document.getElementById(`comments-list-${publicationId}`);
+            if (!commentsList) return;
+            
+            try {
+                commentsList.innerHTML = `<div class="comments-loading-compact"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+                
+                const response = await fetch(`${backendBaseUrl}/api/comments/publication/${publicationId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load comments');
+                }
+                
+                const comments = await response.json();
+                publicationComments[publicationId] = comments;
+                commentsDisplayLimit[publicationId] = INITIAL_COMMENTS_SHOW;
+                renderCommentsForCard(publicationId);
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                commentsList.innerHTML = `<div class="comments-empty-compact">No comments yet</div>`;
+            }
+        }
+        
+        // Render comments for a card
+        function renderCommentsForCard(publicationId) {
+            const commentsList = document.getElementById(`comments-list-${publicationId}`);
+            if (!commentsList) return;
+            
+            const comments = publicationComments[publicationId] || [];
+            const limit = commentsDisplayLimit[publicationId] || INITIAL_COMMENTS_SHOW;
+            
+            if (comments.length === 0) {
+                commentsList.innerHTML = `<div class="comments-empty-compact">No comments yet</div>`;
+                return;
+            }
+            
+            const displayComments = comments.slice(0, limit);
+            const hasMore = comments.length > limit;
+            
+            const commentsHtml = displayComments.map(comment => {
+                const authorInitials = comment.authorName ? comment.authorName.split(' ').map(n => n[0]).join('').toUpperCase() : '?';
+                const commentDate = new Date(comment.createdAt);
+                const timeAgo = getTimeAgo(commentDate);
+                
+                return `
+                    <div class="comment-item-compact">
+                        <div class="comment-avatar-compact">${authorInitials}</div>
+                        <div class="comment-content-compact">
+                            <div class="comment-header-inline">
+                                <span class="comment-author-compact">${comment.authorName || 'Anonymous'}</span>
+                                <span class="comment-date-compact">${timeAgo}</span>
+                            </div>
+                            <p class="comment-text-compact">${comment.content}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            const showMoreButton = hasMore ? `
+                <button class="show-more-comments-btn" onclick="showMoreComments(${publicationId})">
+                    Show ${comments.length - limit} more comment${comments.length - limit > 1 ? 's' : ''}
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            ` : '';
+            
+            commentsList.innerHTML = commentsHtml + showMoreButton;
+        }
+        
+        // Show more comments
+        function showMoreComments(publicationId) {
+            commentsDisplayLimit[publicationId] = (publicationComments[publicationId] || []).length;
+            renderCommentsForCard(publicationId);
+        }
+        
+        // Submit rating
+        async function submitRating(publicationId, rating) {
+            if (!currentUser) {
+                showNotification('Please log in to rate publications', 'warning');
+                return;
+            }
+            
+            try {
+                const headers = getAuthHeaders();
+                headers['Content-Type'] = 'application/json';
+                
+                const response = await fetch(`${backendBaseUrl}/api/ratings/`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ 
+                        publicationId: publicationId,
+                        rating: rating 
+                    })
+                });
+                
+                if (response.ok) {
+                    showNotification('Rating submitted successfully!', 'success');
+                    // Update star display
+                    const stars = document.querySelectorAll(`#rating-stars-${publicationId} i`);
+                    stars.forEach((star, index) => {
+                        if (index < rating) {
+                            star.classList.remove('far');
+                            star.classList.add('fas');
+                        } else {
+                            star.classList.remove('fas');
+                            star.classList.add('far');
+                        }
+                    });
+                    // Reload publications to update rating
+                    setTimeout(() => renderPublications(filteredPublications), 1000);
+                } else {
+                    const error = await response.text();
+                    showNotification(`Failed to submit rating: ${error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+                showNotification('Failed to submit rating', 'error');
+            }
+        }
+        
+        // Submit comment
+        async function submitComment(publicationId) {
+            if (!currentUser) {
+                showNotification('Please log in to comment', 'warning');
+                return;
+            }
+            
+            const commentInput = document.getElementById(`comment-input-${publicationId}`);
+            const commentText = commentInput.value.trim();
+            
+            if (!commentText) {
+                showNotification('Please enter a comment', 'warning');
+                return;
+            }
+            
+            try {
+                const headers = getAuthHeaders();
+                headers['Content-Type'] = 'application/json';
+                
+                const response = await fetch(`${backendBaseUrl}/api/comments/`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ 
+                        publicationId: publicationId,
+                        content: commentText 
+                    })
+                });
+                
+                if (response.ok) {
+                    showNotification('Comment posted successfully!', 'success');
+                    commentInput.value = '';
+                    // Reload comments
+                    loadCommentsForCard(publicationId);
+                } else {
+                    const error = await response.text();
+                    showNotification(`Failed to post comment: ${error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                showNotification('Failed to post comment', 'error');
+            }
+        }
+        
+        // Helper function for time ago
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+            
+            for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+                const interval = Math.floor(seconds / secondsInUnit);
+                if (interval >= 1) {
+                    return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
+                }
+            }
+            return 'just now';
+        }
+        
+        // Toggle abstract show more/less
+        function toggleAbstract(publicationId) {
+            const abstract = document.getElementById(`abstract-${publicationId}`);
+            const button = document.getElementById(`show-more-${publicationId}`);
+            const buttonText = button.querySelector('.show-more-text');
+            const icon = button.querySelector('i');
+            
+            if (abstract.classList.contains('collapsed')) {
+                abstract.classList.remove('collapsed');
+                buttonText.textContent = 'Show Less';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                abstract.classList.add('collapsed');
+                buttonText.textContent = 'Show More';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }

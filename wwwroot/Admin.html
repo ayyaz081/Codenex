@@ -1174,17 +1174,35 @@ list="productDomainList" style="padding-right: 35px;">
                 </button>
             </div>
             <form id="publicationForm" class="modal-form">
-                <div class="form-group">
-                    <label class="form-label">Solution (Optional)</label>
-                    <select name="solutionId" id="publicationSolutionId" class="form-control">
-                        <option value="">Select a Solution (Optional)</option>
-                        <!-- Solutions will be loaded dynamically -->
-                    </select>
-                    <small class="form-hint">
-                        <i class="fas fa-info-circle" style="color: var(--info);"></i>
-                        Optionally link this publication to a solution
-                    </small>
+                <input type="hidden" name="publicationId" id="publicationId">
+                
+                <!-- Relation Selection -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Relation Type *</label>
+                        <select id="publicationRelationType" class="form-control" required onchange="updatePublicationRelationOptions()">
+                            <option value="">Select Type</option>
+                            <option value="product">Product</option>
+                            <option value="solution">Solution</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="publicationSolutionGroup" style="display: none;">
+                        <label class="form-label">Solution *</label>
+                        <select name="solutionId" id="publicationSolutionId" class="form-control" required>
+                            <option value="">Select a Solution</option>
+                            <!-- Solutions will be loaded dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group" id="publicationProductGroup" style="display: none;">
+                        <label class="form-label">Product *</label>
+                        <select name="productId" id="publicationProductId" class="form-control" required>
+                            <option value="">Select a Product</option>
+                            <!-- Products will be loaded dynamically -->
+                        </select>
+                    </div>
                 </div>
+                
+                <!-- Title and Domain -->
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Title *</label>
@@ -1201,45 +1219,58 @@ list="productDomainList" style="padding-right: 35px;">
                         </div>
                     </div>
                 </div>
-                <div style="margin-bottom: 20px;">
-                    <small class="form-hint">
-                        <i class="fas fa-info-circle" style="color: var(--info); margin-right: 4px;"></i>
-                        Type to see existing domains or enter a new one
-                    </small>
-                </div>
+                
+                <!-- Authors -->
                 <div class="form-group">
                     <label class="form-label">Authors *</label>
                     <input type="text" name="authors" class="form-control" required maxlength="500" placeholder="e.g., John Doe, Jane Smith">
                 </div>
+                
+                <!-- Abstract -->
                 <div class="form-group">
                     <label class="form-label">Abstract *</label>
                     <textarea name="abstract" class="form-control" rows="6" required maxlength="2000"></textarea>
                 </div>
+                
+                <!-- Keywords -->
                 <div class="form-group">
                     <label class="form-label">Keywords</label>
                     <input type="text" name="keywords" class="form-control" maxlength="500" placeholder="keyword1, keyword2, keyword3">
                     <small class="form-hint">Separate keywords with commas for better searchability</small>
                 </div>
+                
+                <!-- External Link -->
+                <div class="form-group">
+                    <label class="form-label">External Publication Link *</label>
+                    <input type="url" name="downloadUrl" id="publicationDownloadUrl" class="form-control" required maxlength="500" placeholder="https://example.com/publication.pdf">
+                    <small class="form-hint">
+                        <i class="fas fa-link" style="color: var(--info);"></i>
+                        External link to the publication (e.g., Research paper PDF, DOI link, external website)
+                    </small>
+                </div>
+                
+                <!-- Published Date and Thumbnail -->
                 <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Published Date</label>
+                        <input type="datetime-local" name="publishedDate" class="form-control">
+                        <small class="form-hint">
+                            <i class="fas fa-calendar" style="color: var(--info);"></i>
+                            Optional: Specify when the publication was published
+                        </small>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Thumbnail Image</label>
                         <input type="file" name="thumbnailFile" class="form-control" accept="image/*">
-                        <div id="currentPublicationImagePreview" style="margin-top: 10px; display: none;">
-                            <label class="form-label">Current Image:</label>
-                            <img id="currentPublicationThumbnail" src="" alt="Current thumbnail" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid var(--glass-border);">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Document File</label>
-                        <input type="file" name="documentFile" class="form-control" accept=".pdf,.doc,.docx">
+                        <small class="form-hint">
+                            <i class="fas fa-image" style="color: var(--info);"></i>
+                            JPG, PNG, GIF. Max 10MB
+                        </small>
                     </div>
                 </div>
-                <div style="margin-bottom: 20px;">
-                    <small class="form-hint">Supported formats - Images: JPG, PNG, GIF (Max 10MB). Documents: PDF, DOC, DOCX (Max 10MB). Leave empty to keep current files when editing.</small>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Published Date</label>
-                    <input type="datetime-local" name="publishedDate" class="form-control">
+                <div id="currentPublicationImagePreview" style="margin-top: 10px; display: none;">
+                    <label class="form-label">Current Thumbnail:</label>
+                    <img id="currentPublicationThumbnail" src="" alt="Current thumbnail" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid var(--glass-border); margin-top: 8px;">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('publicationModal')">Cancel</button>

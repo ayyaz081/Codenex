@@ -23,7 +23,8 @@ namespace Neelsol.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
-        // Navigation property
+        // Navigation properties
         public virtual ICollection<Repository> Repositories { get; set; } = new List<Repository>();
+        public virtual ICollection<Publication> Publications { get; set; } = new List<Publication>();
     }
 }

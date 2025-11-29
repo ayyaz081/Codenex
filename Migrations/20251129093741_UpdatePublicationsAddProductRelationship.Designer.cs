@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neelsol.Data;
 
@@ -11,9 +12,11 @@ using Neelsol.Data;
 namespace Neelsol.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251129093741_UpdatePublicationsAddProductRelationship")]
+    partial class UpdatePublicationsAddProductRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -925,7 +928,7 @@ namespace Neelsol.Migrations
                     b.HasOne("Neelsol.Models.PublicationComment", "Comment")
                         .WithMany("Likes")
                         .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Neelsol.Models.User", "User")
@@ -971,13 +974,12 @@ namespace Neelsol.Migrations
                 {
                     b.HasOne("Neelsol.Models.Product", "Product")
                         .WithMany("Publications")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ProductId");
 
                     b.HasOne("Neelsol.Models.Solution", "Solution")
                         .WithMany("Publications")
                         .HasForeignKey("SolutionId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Product");
 
@@ -989,7 +991,7 @@ namespace Neelsol.Migrations
                     b.HasOne("Neelsol.Models.Publication", "Publication")
                         .WithMany("Comments")
                         .HasForeignKey("PublicationId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Neelsol.Models.User", "User")
@@ -1007,7 +1009,7 @@ namespace Neelsol.Migrations
                     b.HasOne("Neelsol.Models.Publication", "Publication")
                         .WithMany("Ratings")
                         .HasForeignKey("PublicationId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Neelsol.Models.User", "User")
@@ -1025,7 +1027,7 @@ namespace Neelsol.Migrations
                     b.HasOne("Neelsol.Models.Product", "Product")
                         .WithMany("Repositories")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Product");
                 });

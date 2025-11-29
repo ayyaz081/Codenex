@@ -2299,15 +2299,15 @@
             showModal('solutionModal');
         }
 
-        function showAddPublicationModal() {
+        async function showAddPublicationModal() {
             // Reset form for adding new publication
             document.getElementById('publicationForm').reset();
+            document.getElementById('publicationId').value = '';
             
-            // Remove any existing hidden ID field
-            const existingIdField = document.getElementById('publicationId');
-            if (existingIdField) {
-                existingIdField.remove();
-            }
+            // Reset relation type selector
+            document.getElementById('publicationRelationType').value = '';
+            document.getElementById('publicationSolutionGroup').style.display = 'none';
+            document.getElementById('publicationProductGroup').style.display = 'none';
             
             // Update modal title and button text
             const modalTitle = document.querySelector('#publicationModal .modal-header h3');
@@ -2321,14 +2321,166 @@
                 currentImagePreview.style.display = 'none';
             }
             
-            // Make file fields optional for new publications
-            const thumbnailField = document.querySelector('#publicationModal input[name="thumbnailFile"]');
-            const documentField = document.querySelector('#publicationModal input[name="documentFile"]');
-            if (thumbnailField) thumbnailField.removeAttribute('required');
-            if (documentField) documentField.removeAttribute('required');
+            // Load dropdowns and WAIT for them to complete before showing modal
+            await loadPublicationDropdowns();
             
             showModal('publicationModal');
         }
+
+        async function updatePublicationRelationOptions() {
+            const relationType = document.getElementById('publicationRelationType').value;
+            const solutionGroup = document.getElementById('publicationSolutionGroup');
+            const productGroup = document.getElementById('publicationProductGroup');
+            const solutionSelect = document.getElementById('publicationSolutionId');
+            const productSelect = document.getElementById('publicationProductId');
+            
+            console.log('Relation type selected:', relationType);
+            
+            if (relationType === 'solution') {
+                solutionGroup.style.display = 'block';
+                productGroup.style.display = 'none';
+                solutionSelect.setAttribute('required', 'required');
+                productSelect.removeAttribute('required');
+                productSelect.value = '';
+            } else if (relationType === 'product') {
+                solutionGroup.style.display = 'none';
+                productGroup.style.display = 'block';
+                productSelect.setAttribute('required', 'required');
+                solutionSelect.removeAttribute('required');
+                solutionSelect.value = '';
+            } else {
+                solutionGroup.style.display = 'none';
+                productGroup.style.display = 'none';
+                solutionSelect.removeAttribute('required');
+                productSelect.removeAttribute('required');
+                solutionSelect.value = '';
+                productSelect.value = '';
+            }
+        }
+        
+        // Store loaded data for auto-fill
+        let publicationProductsData = [];
+        let publicationSolutionsData = [];
+        
+        async function loadPublicationDropdowns() {
+            console.log('🔄 Starting loadPublicationDropdowns...');
+            
+            // Load solutions
+            try {
+                console.log('📊 Fetching solutions from:', `${API_BASE_URL}/Solutions`);
+                const solutionsResp = await fetch(`${API_BASE_URL}/Solutions`);
+                console.log('📊 Solutions response status:', solutionsResp.status);
+                
+                const solutions = solutionsResp.ok ? await solutionsResp.json() : [];
+                publicationSolutionsData = solutions;
+                
+                console.log('✅ Loaded solutions:', solutions.length, solutions);
+                
+                const solutionSelect = document.getElementById('publicationSolutionId');
+                if (solutionSelect) {
+                    solutionSelect.innerHTML = '<option value="">Select a Solution</option>';
+                    solutions.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.title;
+                        opt.dataset.problemArea = s.problemArea || '';
+                        solutionSelect.appendChild(opt);
+                    });
+                    console.log('✅ Solution dropdown populated with', solutions.length, 'items');
+                } else {
+                    console.error('❌ Solution select element not found!');
+                }
+            } catch (error) {
+                console.error('❌ Error loading solutions:', error);
+            }
+            
+            // Load products
+            try {
+                // Use /list endpoint to get ALL products without pagination
+                const token = getAuthToken();
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                
+                console.log('📦 Fetching products from:', `${API_BASE_URL}/Products/list`);
+                const productsResp = await fetch(`${API_BASE_URL}/Products/list`, { headers });
+                console.log('📦 Products response status:', productsResp.status);
+                
+                if (!productsResp.ok) {
+                    console.error('❌ Failed to fetch products:', productsResp.status, productsResp.statusText);
+                    const errorText = await productsResp.text();
+                    console.error('❌ Error response:', errorText);
+                }
+                
+                const products = productsResp.ok ? await productsResp.json() : [];
+                publicationProductsData = products;
+                
+                console.log('✅ Loaded products:', products.length, products);
+                
+                const productSelect = document.getElementById('publicationProductId');
+                if (productSelect) {
+                    productSelect.innerHTML = '<option value="">Select a Product</option>';
+                    products.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.title;
+                        opt.dataset.domain = p.domain || '';
+                        productSelect.appendChild(opt);
+                    });
+                    console.log('✅ Product dropdown populated with', products.length, 'items');
+                } else {
+                    console.error('❌ Product select element not found!');
+                }
+            } catch (error) {
+                console.error('❌ Error loading products:', error);
+            }
+            
+            // Setup auto-fill
+            try {
+                setupPublicationAutoFill();
+                console.log('✅ Auto-fill setup complete');
+            } catch (error) {
+                console.error('❌ Error setting up auto-fill:', error);
+            }
+            
+            console.log('🔄 loadPublicationDropdowns complete!');
+        }
+        
+        function setupPublicationAutoFill() {
+            const solutionSelect = document.getElementById('publicationSolutionId');
+            const productSelect = document.getElementById('publicationProductId');
+            const domainInput = document.getElementById('publicationDomain');
+            
+            // Remove old event listeners by cloning and replacing elements
+            if (solutionSelect && !solutionSelect.dataset.listenerAttached) {
+                solutionSelect.addEventListener('change', function() {
+                    const selectedId = parseInt(this.value);
+                    if (selectedId && domainInput) {
+                        const solution = publicationSolutionsData.find(s => s.id === selectedId);
+                        if (solution && solution.problemArea) {
+                            domainInput.value = solution.problemArea;
+                            console.log('Auto-filled domain from solution:', solution.problemArea);
+                        }
+                    }
+                });
+                solutionSelect.dataset.listenerAttached = 'true';
+            }
+            
+            if (productSelect && !productSelect.dataset.listenerAttached) {
+                productSelect.addEventListener('change', function() {
+                    const selectedId = parseInt(this.value);
+                    if (selectedId && domainInput) {
+                        const product = publicationProductsData.find(p => p.id === selectedId);
+                        if (product && product.domain) {
+                            domainInput.value = product.domain;
+                            console.log('Auto-filled domain from product:', product.domain);
+                        }
+                    }
+                });
+                productSelect.dataset.listenerAttached = 'true';
+            }
+        }
+        
+        // Make function globally available
+        window.updatePublicationRelationOptions = updatePublicationRelationOptions;
 
         function showAddRepositoryModal() {
             // Reset form for adding new repository
@@ -2691,6 +2843,21 @@
                     showNotification(`Product ${isEditing ? 'updated' : 'created'} successfully!`, 'success');
                     closeModal('productModal');
                     loadProducts();
+                    
+                    // Clear navigation cache and reload dropdowns
+                    sessionStorage.removeItem('navigationData');
+                    
+                    // Notify other tabs/windows to refresh navigation
+                    localStorage.setItem('navigationDataUpdated', Date.now().toString());
+                    localStorage.removeItem('navigationDataUpdated'); // Trigger storage event
+                    
+                    if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
+                        window.sharedComponents.loadNavigationData();
+                    }
+                    
+                    // Refresh publication dropdowns
+                    loadPublicationDropdowns();
+                    
                     return true;
                 } else {
                     const error = await response.text();
@@ -2788,6 +2955,21 @@
                     showNotification(`Solution ${isEditing ? 'updated' : 'created'} successfully!`, 'success');
                     closeModal('solutionModal');
                     loadSolutions();
+                    
+                    // Clear navigation cache and reload dropdowns
+                    sessionStorage.removeItem('navigationData');
+                    
+                    // Notify other tabs/windows to refresh navigation
+                    localStorage.setItem('navigationDataUpdated', Date.now().toString());
+                    localStorage.removeItem('navigationDataUpdated'); // Trigger storage event
+                    
+                    if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
+                        window.sharedComponents.loadNavigationData();
+                    }
+                    
+                    // Refresh publication dropdowns
+                    loadPublicationDropdowns();
+                    
                     return true;
                 } else {
                     const error = await response.text();
@@ -2807,16 +2989,33 @@
                 const publicationId = formData.get('publicationId');
                 const isEditing = publicationId && publicationId !== '';
                 
-                // SolutionId is now optional - no validation required
-                const solutionId = formData.get('solutionId');
-                console.log('SolutionId (optional):', solutionId);
+                // Get relation type and IDs
+                const relationType = document.getElementById('publicationRelationType').value;
+                let solutionId = formData.get('solutionId');
+                let productId = formData.get('productId');
                 
-                console.log(`${isEditing ? 'Updating' : 'Creating'} publication with data:`, formData);
+                // Clean up empty string values
+                solutionId = solutionId && solutionId.trim() !== '' ? solutionId : null;
+                productId = productId && productId.trim() !== '' ? productId : null;
                 
-                // Log form data contents
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}:`, value);
+                // Validate that one relation is selected
+                if (!relationType) {
+                    showNotification('Please select relation type (Product or Solution)', 'error');
+                    return false;
                 }
+                if (relationType === 'solution' && !solutionId) {
+                    showNotification('Please select a Solution', 'error');
+                    return false;
+                }
+                if (relationType === 'product' && !productId) {
+                    showNotification('Please select a Product', 'error');
+                    return false;
+                }
+                
+                console.log(`${isEditing ? 'Updating' : 'Creating'} publication with data:`);
+                console.log('Relation type:', relationType);
+                console.log('SolutionId:', solutionId);
+                console.log('ProductId:', productId);
                 
                 let apiUrl, method, headers, requestBody;
                 
@@ -2828,7 +3027,7 @@
                 }
                 
                 if (isEditing) {
-                    // For editing, send JSON body as the API expects [FromBody] JSON (not multipart/form-data)
+                    // For editing, send JSON body
                     apiUrl = `${API_BASE_URL}/Publications/${publicationId}`;
                     method = 'PUT';
                     headers['Content-Type'] = 'application/json';
@@ -2842,19 +3041,39 @@
                     copyIfPresent('domain');
                     copyIfPresent('abstract');
                     copyIfPresent('keywords');
+                    copyIfPresent('downloadUrl');
+                    
+                    // Set the appropriate relation ID
+                    if (relationType === 'solution') {
+                        dto.solutionId = parseInt(solutionId);
+                        dto.productId = null;
+                    } else {
+                        dto.productId = parseInt(productId);
+                        dto.solutionId = null;
+                    }
+                    
                     const publishedDate = formData.get('publishedDate');
                     if (publishedDate) dto.publishedDate = String(publishedDate);
-                    // Optional: include isPublished checkbox if present
+                    
                     if (formData.has('isPublished')) {
                         const isPublished = formData.get('isPublished');
                         if (isPublished !== null) dto.isPublished = isPublished === 'on' || isPublished === 'true' || isPublished === true;
                     }
                     requestBody = JSON.stringify(dto);
                 } else {
-                    // For creating, use POST method with FormData (supports file uploads)
+                    // For creating, use POST method with FormData but add relation IDs
                     apiUrl = `${API_BASE_URL}/Publications/upload`;
                     method = 'POST';
-                    // Don't set Content-Type for FormData, let browser set it with boundary
+                    
+                    // Set the correct relation ID based on type
+                    if (relationType === 'solution') {
+                        formData.set('solutionId', solutionId);
+                        formData.set('productId', '0');
+                    } else {
+                        formData.set('productId', productId);
+                        formData.set('solutionId', '0');
+                    }
+                    
                     requestBody = formData;
                 }
                 
@@ -3158,12 +3377,29 @@
                 
                 const publication = await response.json();
                 
+                // Load dropdowns first
+                await loadPublicationDropdowns();
+                
                 // Populate the form with existing data
+                document.getElementById('publicationId').value = publication.id;
                 document.querySelector('#publicationModal input[name="title"]').value = publication.title;
                 document.getElementById('publicationDomain').value = publication.domain || '';
                 document.querySelector('#publicationModal input[name="authors"]').value = publication.authors;
                 document.querySelector('#publicationModal textarea[name="abstract"]').value = publication.abstract;
                 document.querySelector('#publicationModal input[name="keywords"]').value = publication.keywords || '';
+                document.getElementById('publicationDownloadUrl').value = publication.downloadUrl || '';
+                
+                // Set relation type and load appropriate dropdown
+                const relationType = document.getElementById('publicationRelationType');
+                if (publication.productId) {
+                    relationType.value = 'product';
+                    await updatePublicationRelationOptions();
+                    document.getElementById('publicationProductId').value = publication.productId;
+                } else if (publication.solutionId) {
+                    relationType.value = 'solution';
+                    await updatePublicationRelationOptions();
+                    document.getElementById('publicationSolutionId').value = publication.solutionId;
+                }
                 
                 // Set published date
                 if (publication.publishedDate) {
@@ -3184,28 +3420,11 @@
                     currentImagePreview.style.display = 'none';
                 }
                 
-                // Store the ID for updating
-                let publicationIdField = document.getElementById('publicationId');
-                if (!publicationIdField) {
-                    publicationIdField = document.createElement('input');
-                    publicationIdField.type = 'hidden';
-                    publicationIdField.name = 'publicationId';
-                    publicationIdField.id = 'publicationId';
-                    document.getElementById('publicationForm').appendChild(publicationIdField);
-                }
-                publicationIdField.value = publication.id;
-                
                 // Update modal title and button text
                 const modalTitle = document.querySelector('#publicationModal .modal-header h3');
                 const submitBtn = document.querySelector('#publicationModal button[type="submit"]');
                 if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Publication';
                 if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Publication';
-                
-                // Make file fields optional for editing
-                const thumbnailField = document.querySelector('#publicationModal input[name="thumbnailFile"]');
-                const documentField = document.querySelector('#publicationModal input[name="documentFile"]');
-                if (thumbnailField) thumbnailField.removeAttribute('required');
-                if (documentField) documentField.removeAttribute('required');
                 
                 // Show the modal
                 showModal('publicationModal');
@@ -7146,25 +7365,7 @@ ${contact.message}
             }, 100);
         }
         
-        async function showAddPublicationModal() {
-            console.log('Opening Publication modal...');
-            
-            // Load existing domains and solutions
-            await loadPublicationDomains();
-            await loadSolutionsForDropdown();
-            
-            // Clear form
-            document.getElementById('publicationForm').reset();
-            
-            // Show modal
-            document.getElementById('publicationModal').style.display = 'flex';
-            
-            // Focus on first input
-            setTimeout(() => {
-                const solutionSelect = document.getElementById('publicationSolutionId');
-                if (solutionSelect) solutionSelect.focus();
-            }, 100);
-        }
+        // REMOVED DUPLICATE - Using the updated showAddPublicationModal at line ~2302 instead
         
         async function showAddRepositoryModal() {
             console.log('Opening Repository modal...');

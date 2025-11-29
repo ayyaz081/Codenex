@@ -188,7 +188,8 @@ namespace Neelsol.Controllers
                     .Select(p => new
                     {
                         id = p.Id,
-                        title = p.Title
+                        title = p.Title,
+                        domain = p.Domain
                     })
                     .OrderBy(p => p.title)
                     .ToListAsync();

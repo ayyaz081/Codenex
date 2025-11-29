@@ -25,6 +25,11 @@ namespace Neelsol.DTOs
         public bool? IsPublished { get; set; }
 
         public int? SolutionId { get; set; }
+
+        public int? ProductId { get; set; }
+
+        [StringLength(500)]
+        public string? DownloadUrl { get; set; }
     }
 
     public class PublicationUploadDto
@@ -54,8 +59,12 @@ namespace Neelsol.DTOs
 
         public IFormFile? DocumentFile { get; set; }
 
-        [Required]
+        [StringLength(500)]
+        public string? DownloadUrl { get; set; }
+
         public int SolutionId { get; set; }
+
+        public int ProductId { get; set; }
     }
 
     public class PublicationCommentDto
