@@ -530,19 +530,21 @@
             let buttons = [];
             
             if (!repo.isPremium) {
-                // Free repository
-                if (repo.githubUrl) {
+                // Free repository - always link to GitHub
+                const githubUrl = repo.githubUrl || repo.gitHubUrl;
+                if (githubUrl) {
                     buttons.push(`
-                        <a href="${repo.githubUrl}" target="_blank" class="action-btn btn-primary">
-                            <i class="fab fa-github"></i>
-                            View on GitHub
+                        <a href="${githubUrl}" target="_blank" class="action-btn btn-primary">
+                            <i class="fas fa-download"></i>
+                            Download Free
                         </a>
                     `);
                 } else {
+                    // No GitHub URL available - show message
                     buttons.push(`
-                        <button class="action-btn btn-primary" onclick="downloadRepository('${repo.id}')">
-                            <i class="fas fa-download"></i>
-                            Download Free
+                        <button class="action-btn btn-secondary" disabled>
+                            <i class="fas fa-info-circle"></i>
+                            No Download Available
                         </button>
                     `);
                 }
