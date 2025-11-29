@@ -48,39 +48,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Feature scroller auto-scroll
-    const featureScroller = document.querySelector('.feature-scroller');
-    const featureContainer = document.querySelector('.feature-container');
-    let scrollPosition = 0;
-    let scrollDirection = -1;
-    let isMobile = window.innerWidth <= 1280;
-
-    function autoScrollFeatures() {
-        if (isMobile || !featureScroller || !featureContainer) return;
-        
-        const visibleWidth = featureContainer.clientWidth;
-        const maxScroll = featureScroller.scrollWidth - visibleWidth;
-        
-        if (scrollPosition <= 0) {
-            scrollDirection = 1;
-        } else if (scrollPosition >= maxScroll) {
-            scrollDirection = -1;
-        }
-        
-        scrollPosition += scrollDirection * 0.5;
-        featureScroller.style.transform = `translateX(-${scrollPosition}px)`;
-        
-        requestAnimationFrame(autoScrollFeatures);
-    }
-
-    window.addEventListener('resize', () => {
-        isMobile = window.innerWidth <= 1280;
-        if (!isMobile) {
-            requestAnimationFrame(autoScrollFeatures);
-        }
-    });
-
-    if (!isMobile) {
-        requestAnimationFrame(autoScrollFeatures);
-    }
 });

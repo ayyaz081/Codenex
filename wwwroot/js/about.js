@@ -76,6 +76,7 @@ async function loadTeamMembers() {
         // Render team members - create cards
         const teamCards = teamMembers.map((member, index) => {
             const fullImageUrl = getFullImageUrl(member.photoUrl);
+            console.log(`Team member ${member.firstName}: photoUrl=${member.photoUrl}, fullImageUrl=${fullImageUrl}`);
             const fullName = `${member.firstName} ${member.lastName}`;
             const bioText = member.bio || member.department || '';
             const maxLength = 120;
@@ -254,110 +255,53 @@ function toggleTestimonial(index) {
 window.toggleTeamBio = toggleTeamBio;
 window.toggleTestimonial = toggleTestimonial;
 
-// Auto-scroll functionality - EXACT same as home page feature scroller
-let teamScrollPosition = 0;
-let teamScrollDirection = 1;
-let testimonialScrollPosition = 0;
-let testimonialScrollDirection = 1;
-let isMobile = window.innerWidth < 1280;
-
-function autoScrollTeam() {
-    if (isMobile) return;
+// Horizontal wheel scroll functionality for all animated containers
+function setupHorizontalWheelScroll(container, scroller) {
+    if (!container || !scroller) return;
     
+    let isHovering = false;
+    let scrollPosition = 0;
+    
+    container.addEventListener('mouseenter', () => {
+        isHovering = true;
+    });
+    
+    container.addEventListener('mouseleave', () => {
+        isHovering = false;
+    });
+    
+    container.addEventListener('wheel', (e) => {
+        if (isHovering) {
+            e.preventDefault();
+            
+            const delta = e.deltaY;
+            scrollPosition += delta;
+            
+            const maxScroll = scroller.scrollWidth - container.clientWidth;
+            
+            if (scrollPosition < 0) scrollPosition = 0;
+            if (scrollPosition > maxScroll) scrollPosition = maxScroll;
+            
+            scroller.style.transform = `translateX(-${scrollPosition}px)`;
+        }
+    }, { passive: false });
+}
+
+function setupAllHorizontalScrolls() {
+    // Team section
     const teamGrid = document.getElementById('dynamicTeamGrid');
     const teamScroller = teamGrid ? teamGrid.querySelector('.team-scroller') : null;
-    if (!teamGrid || !teamScroller) return;
-    
-    // Check if paused
-    if (teamGrid.dataset.paused === 'true') {
-        requestAnimationFrame(autoScrollTeam);
-        return;
+    if (teamGrid && teamScroller) {
+        setupHorizontalWheelScroll(teamGrid, teamScroller);
     }
     
-    const visibleWidth = teamGrid.clientWidth;
-    const maxScroll = teamScroller.scrollWidth - visibleWidth;
-    
-    if (maxScroll <= 0) return; // Nothing to scroll
-    
-    if (teamScrollPosition <= 0) {
-        teamScrollDirection = 1;
-    } else if (teamScrollPosition >= maxScroll) {
-        teamScrollDirection = -1;
-    }
-    
-    teamScrollPosition += teamScrollDirection * 1;
-    teamScroller.style.transform = `translateX(-${teamScrollPosition}px)`;
-    
-    requestAnimationFrame(autoScrollTeam);
-}
-
-function autoScrollTestimonials() {
-    if (isMobile) return;
-    
+    // Testimonials section
     const reviewsGrid = document.getElementById('dynamicReviewsGrid');
     const reviewsScroller = reviewsGrid ? reviewsGrid.querySelector('.reviews-scroller') : null;
-    if (!reviewsGrid || !reviewsScroller) return;
-    
-    // Check if paused
-    if (reviewsGrid.dataset.paused === 'true') {
-        requestAnimationFrame(autoScrollTestimonials);
-        return;
-    }
-    
-    const visibleWidth = reviewsGrid.clientWidth;
-    const maxScroll = reviewsScroller.scrollWidth - visibleWidth;
-    
-    if (maxScroll <= 0) return; // Nothing to scroll
-    
-    if (testimonialScrollPosition <= 0) {
-        testimonialScrollDirection = 1;
-    } else if (testimonialScrollPosition >= maxScroll) {
-        testimonialScrollDirection = -1;
-    }
-    
-    testimonialScrollPosition += testimonialScrollDirection * 1;
-    reviewsScroller.style.transform = `translateX(-${testimonialScrollPosition}px)`;
-    
-    requestAnimationFrame(autoScrollTestimonials);
-}
-
-// Pause auto-scroll on hover
-function setupAutoScrollPause() {
-    const teamGrid = document.getElementById('dynamicTeamGrid');
-    const reviewsGrid = document.getElementById('dynamicReviewsGrid');
-    
-    if (teamGrid) {
-        teamGrid.addEventListener('mouseenter', () => {
-            teamGrid.dataset.paused = 'true';
-        });
-        teamGrid.addEventListener('mouseleave', () => {
-            teamGrid.dataset.paused = 'false';
-            if (!isMobile) requestAnimationFrame(autoScrollTeam);
-        });
-    }
-    
-    if (reviewsGrid) {
-        reviewsGrid.addEventListener('mouseenter', () => {
-            reviewsGrid.dataset.paused = 'true';
-        });
-        reviewsGrid.addEventListener('mouseleave', () => {
-            reviewsGrid.dataset.paused = 'false';
-            if (!isMobile) requestAnimationFrame(autoScrollTestimonials);
-        });
+    if (reviewsGrid && reviewsScroller) {
+        setupHorizontalWheelScroll(reviewsGrid, reviewsScroller);
     }
 }
-
-// Handle window resize
-window.addEventListener('resize', () => {
-    const wasMobile = isMobile;
-    isMobile = window.innerWidth < 1280;
-    
-    // Only restart animations when transitioning from mobile to desktop
-    if (wasMobile && !isMobile) {
-        requestAnimationFrame(autoScrollTeam);
-        requestAnimationFrame(autoScrollTestimonials);
-    }
-});
 
 // Timeline animation functionality
 let timelineAnimated = false;
@@ -397,17 +341,15 @@ function animateTimeline() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('About page loaded - initializing dynamic content');
     
-    // Load content first
+    // Setup horizontal scroll for static sections immediately
+    setupAllHorizontalScrolls();
+    
+    // Load dynamic content first
     Promise.all([loadTeamMembers(), loadTestimonials()]).then(() => {
-        // Start auto-scroll after content is loaded
-        setupAutoScrollPause();
-        
-        if (!isMobile) {
-            setTimeout(() => {
-                requestAnimationFrame(autoScrollTeam);
-                requestAnimationFrame(autoScrollTestimonials);
-            }, 500); // Small delay to ensure content is fully rendered
-        }
+        // Setup horizontal scroll for dynamic sections after content is loaded
+        setTimeout(() => {
+            setupAllHorizontalScrolls();
+        }, 100); // Small delay to ensure content is fully rendered
     });
     
     // Set up timeline animation on scroll
