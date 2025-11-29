@@ -197,19 +197,26 @@ namespace Neelsol.Controllers
         {
             try
             {
+                _logger.LogInformation($"Fetching contact form with ID: {id}");
+                
                 var contactForm = await _context.ContactForms
+                    .Where(cf => cf.Id == id)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(cf => cf.Id == id);
+                    .FirstOrDefaultAsync();
 
                 if (contactForm == null)
-                    return NotFound();
+                {
+                    _logger.LogWarning($"Contact form with ID {id} not found");
+                    return NotFound(new { error = "Contact form not found", id = id });
+                }
 
+                _logger.LogInformation($"Successfully fetched contact form {id}");
                 return Ok(contactForm);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving contact form with ID {id}. Message: {ex.Message}");
-                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
+                _logger.LogError(ex, $"Error retrieving contact form with ID {id}. Message: {ex.Message}, InnerException: {ex.InnerException?.Message}");
+                return StatusCode(500, new { error = "Internal server error", message = ex.Message, innerMessage = ex.InnerException?.Message });
             }
         }
 
