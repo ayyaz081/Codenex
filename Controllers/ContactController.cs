@@ -198,26 +198,18 @@ namespace Neelsol.Controllers
             try
             {
                 var contactForm = await _context.ContactForms
-                    .Include(cf => cf.User)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(cf => cf.Id == id);
 
                 if (contactForm == null)
                     return NotFound();
 
-                // Mark as read
-                if (!contactForm.IsRead)
-                {
-                    contactForm.IsRead = true;
-                    contactForm.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-                }
-
                 return Ok(contactForm);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving contact form with ID {id}");
-                return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, $"Error retrieving contact form with ID {id}. Message: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
             }
         }
 
