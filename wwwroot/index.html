@@ -379,8 +379,18 @@
             const gap = 24;
             const cardStep = cardWidth + gap;
             
+            // For the last position, use actual max scroll to show last card fully
+            const maxScroll = featureScroller.scrollWidth - featureContainer.clientWidth;
+            const maxIndex = featureCards.length - 4;
+            
             // Calculate target position for current card
-            const targetPosition = currentCardIndex * cardStep;
+            let targetPosition;
+            if (currentCardIndex >= maxIndex) {
+                // At last position, use max scroll to ensure last card shows
+                targetPosition = maxScroll;
+            } else {
+                targetPosition = currentCardIndex * cardStep;
+            }
             const currentPosition = -parseFloat(featureScroller.style.transform.replace(/[^0-9.-]/g, '') || 0);
             
             // Check if we've reached target position
@@ -398,11 +408,16 @@
                     currentCardIndex += scrollDirection;
                     
                     // Check boundaries and change direction
-                    const maxIndex = featureCards.length - 4; // Show last 4 cards
-                    if (currentCardIndex >= maxIndex) {
+                    // With 6 cards and 4 visible, we need 3 positions:
+                    // Position 0: cards 1-4
+                    // Position 1: cards 2-5
+                    // Position 2: cards 3-6
+                    const maxIndex = featureCards.length - 4; // 6 - 4 = 2
+                    
+                    if (currentCardIndex > maxIndex) {
                         currentCardIndex = maxIndex;
                         scrollDirection = -1;
-                    } else if (currentCardIndex <= 0) {
+                    } else if (currentCardIndex < 0) {
                         currentCardIndex = 0;
                         scrollDirection = 1;
                     }
