@@ -78,7 +78,7 @@
     border-radius: 20px;
     padding: 24px;
     width: 100%;
-    max-width: 360px;
+    max-width: 480px;
     margin: 0 auto;
     box-shadow: var(--glass-shadow);
     position: relative;
@@ -138,7 +138,7 @@
 /* Auth tabs navigation - modern design */
 .auth-tabs {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     margin-bottom: 18px;
     border-radius: 16px;
     background: var(--glass-bg);
@@ -455,7 +455,7 @@
     
     .auth-container {
         padding: 20px;
-        max-width: 320px;
+        max-width: 440px;
         margin: 0 auto;
     }
     
@@ -465,7 +465,7 @@
     }
     
     .auth-tabs {
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
         gap: 3px;
         padding: 4px;
     }
@@ -498,11 +498,11 @@
     .auth-container {
         padding: 18px 16px;
         border-radius: 16px;
-        max-width: 300px;
+        max-width: 350px;
     }
     
     .auth-tabs {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 2px;
     }
     
