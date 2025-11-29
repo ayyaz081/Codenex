@@ -5,6 +5,7 @@ using Neelsol.Data;
 using Neelsol.Models;
 using Neelsol.DTOs;
 using Neelsol.Exceptions;
+using Neelsol.Filters;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
@@ -35,7 +36,7 @@ namespace Neelsol.Controllers
 
         // GET: api/publications
         [HttpGet]
-        [ResponseCache(Duration = 60)]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<object>>> GetPublications()
         {
             try
@@ -86,7 +87,7 @@ namespace Neelsol.Controllers
 
         // GET: api/publications/5
         [HttpGet("{id:int}")]
-        [ResponseCache(Duration = 120)]
+        [NoCache]
         public async Task<ActionResult<Publication>> GetPublication([FromRoute] int id)
         {
             try
@@ -108,7 +109,7 @@ namespace Neelsol.Controllers
 
         // GET: api/publications/domain/{domain}
         [HttpGet("domain/{domain}")]
-        [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "domain" })]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<Publication>>> GetByDomain([FromRoute] string domain)
         {
             try
@@ -379,7 +380,7 @@ namespace Neelsol.Controllers
 
         // GET: api/publications/domains
         [HttpGet("domains")]
-        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        [NoCache]
         public async Task<ActionResult<IEnumerable<string>>> GetDomains()
         {
             try
@@ -402,7 +403,7 @@ namespace Neelsol.Controllers
 
         // GET: api/publications/domains/detailed
         [HttpGet("domains/detailed")]
-        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        [NoCache]
         public async Task<ActionResult<IEnumerable<object>>> GetDomainsDetailed()
         {
             try

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Neelsol.Data;
 using Neelsol.Models;
 using Neelsol.DTOs;
+using Neelsol.Filters;
 using System.IO;
 
 namespace Neelsol.Controllers
@@ -26,6 +27,7 @@ namespace Neelsol.Controllers
 
         // GET: api/Products
         [HttpGet]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
             [FromQuery] string? domain = null,
             [FromQuery] int page = 1,
@@ -58,6 +60,7 @@ namespace Neelsol.Controllers
 
         // GET: api/Products/5
         [HttpGet("{id}")]
+        [NoCache]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
             try
@@ -205,6 +208,7 @@ namespace Neelsol.Controllers
 
         // GET: api/Products/domains
         [HttpGet("domains")]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<object>>> GetProductDomains()
         {
             try

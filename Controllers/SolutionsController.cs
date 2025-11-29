@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Neelsol.Data;
 using Neelsol.Models;
 using Neelsol.Exceptions;
+using Neelsol.Filters;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace Neelsol.Controllers
 
         // GET: api/solutions
         [HttpGet]
-        [ResponseCache(Duration = 30)]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<Solution>>> GetSolutions(
             [FromQuery] string? problemArea = null,
             [FromQuery] string? category = null,
@@ -85,7 +86,7 @@ namespace Neelsol.Controllers
 
         // GET: api/solutions/5
         [HttpGet("{id:int}")]
-        [ResponseCache(Duration = 60)]
+        [NoCache]
         public async Task<ActionResult<Solution>> GetSolution([FromRoute] int id)
         {
             try
@@ -106,7 +107,7 @@ namespace Neelsol.Controllers
 
         // GET: api/solutions/problem-areas/{problemArea}
         [HttpGet("problem-areas/{problemArea}")]
-        [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "problemArea" })]
+        [NoCache]
         public async Task<ActionResult<IEnumerable<Solution>>> GetByProblemArea([FromRoute] string problemArea)
         {
             try
@@ -125,7 +126,7 @@ namespace Neelsol.Controllers
 
         // GET: api/solutions/problem-areas
         [HttpGet("problem-areas")]
-        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        [NoCache]
         public async Task<ActionResult<IEnumerable<string>>> GetProblemAreas()
         {
             try
@@ -148,7 +149,7 @@ namespace Neelsol.Controllers
 
         // GET: api/solutions/problem-areas/detailed
         [HttpGet("problem-areas/detailed")]
-        [ResponseCache(Duration = 3600)] // Cache for 1 hour
+        [NoCache]
         public async Task<ActionResult<IEnumerable<object>>> GetProblemAreasDetailed()
         {
             try
