@@ -785,18 +785,49 @@
                     </div>
                 </div>
 
+                <!-- Repository Sales Breakdown -->
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px;">Repository Sales Breakdown</h3>
+                    <table class="data-table" id="repositorySalesTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-code-branch table-cell-icon"></i> Repository</th>
+                                <th><i class="fas fa-shopping-cart table-cell-icon"></i> Sales</th>
+                                <th><i class="fas fa-dollar-sign table-cell-icon"></i> Revenue</th>
+                                <th><i class="fas fa-tag table-cell-icon"></i> Price</th>
+                                <th><i class="fas fa-calendar table-cell-icon"></i> Last Sale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading repository sales...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 <!-- Transactions Table -->
                 <div style="margin-top: 30px;">
                     <div class="section-header">
-                        <h3>Recent Transactions</h3>
-                        <div>
-                            <select class="form-control" id="transactionStatusFilter" onchange="loadTransactions()" style="width: 200px; display: inline-block; margin-right: 10px;">
+                        <h3>Transactions</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="date" class="form-control" id="transactionStartDate" style="width: 160px;" placeholder="Start Date">
+                            <input type="date" class="form-control" id="transactionEndDate" style="width: 160px;" placeholder="End Date">
+                            <select class="form-control" id="transactionStatusFilter" style="width: 150px;">
                                 <option value="">All Status</option>
                                 <option value="Completed">Completed</option>
                                 <option value="Pending">Pending</option>
                                 <option value="Failed">Failed</option>
                                 <option value="Refunded">Refunded</option>
                             </select>
+                            <button class="btn btn-primary" onclick="loadTransactions()">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearTransactionFilters()">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
                         </div>
                     </div>
                     

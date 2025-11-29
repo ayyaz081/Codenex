@@ -675,7 +675,9 @@ namespace Neelsol.Controllers
         public async Task<ActionResult> GetAllTransactions(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50,
-            [FromQuery] string? status = null)
+            [FromQuery] string? status = null,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null)
         {
             try
             {
@@ -687,6 +689,17 @@ namespace Neelsol.Controllers
                 if (!string.IsNullOrEmpty(status))
                 {
                     query = query.Where(p => p.Status == status);
+                }
+                
+                if (startDate.HasValue)
+                {
+                    query = query.Where(p => p.CreatedAt >= startDate.Value);
+                }
+                
+                if (endDate.HasValue)
+                {
+                    var endOfDay = endDate.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(p => p.CreatedAt <= endOfDay);
                 }
 
                 var total = await query.CountAsync();
@@ -785,6 +798,39 @@ namespace Neelsol.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting top selling repositories");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/payment/finance/repository-sales
+        [HttpGet("finance/repository-sales")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetAllRepositorySales()
+        {
+            try
+            {
+                var repositorySales = await _context.Payments
+                    .Where(p => p.Status == "Completed")
+                    .Include(p => p.Repository)
+                    .GroupBy(p => new { p.RepositoryId, p.Repository!.Title, p.Repository.IsPremium, p.Repository.Price })
+                    .Select(g => new
+                    {
+                        RepositoryId = g.Key.RepositoryId,
+                        RepositoryTitle = g.Key.Title,
+                        IsPremium = g.Key.IsPremium,
+                        Price = g.Key.Price,
+                        TotalSales = g.Count(),
+                        TotalRevenue = g.Sum(p => p.Amount),
+                        LastSaleDate = g.Max(p => p.CompletedAt)
+                    })
+                    .OrderByDescending(x => x.TotalRevenue)
+                    .ToListAsync();
+
+                return Ok(repositorySales);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting repository sales");
                 return StatusCode(500, "Internal server error");
             }
         }

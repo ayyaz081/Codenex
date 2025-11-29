@@ -7811,6 +7811,7 @@ ${contact.message}
                 
                 // Load other finance data
                 await loadTopSelling();
+                await loadRepositorySales();
                 await loadTransactions();
             } catch (error) {
                 console.error('Error loading finance data:', error);
@@ -7857,13 +7858,59 @@ ${contact.message}
             }
         }
         
-        // Load transactions with pagination
+        // Load repository sales breakdown
+        async function loadRepositorySales() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/Payment/finance/repository-sales`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load repository sales');
+                
+                const data = await response.json();
+                const tbody = document.querySelector('#repositorySalesTable tbody');
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No sales data available yet.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.map(repo => {
+                    const lastSaleDate = repo.lastSaleDate ? new Date(repo.lastSaleDate).toLocaleDateString() : 'N/A';
+                    const price = repo.price ? `$${repo.price.toFixed(2)}` : 'N/A';
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <strong>${repo.repositoryTitle}</strong>
+                                ${repo.isPremium ? '<span class="badge badge-warning" style="margin-left: 8px;"><i class="fas fa-crown"></i> Premium</span>' : ''}
+                            </td>
+                            <td>${repo.totalSales}</td>
+                            <td style="color: var(--success); font-weight: bold;">$${repo.totalRevenue.toFixed(2)}</td>
+                            <td>${price}</td>
+                            <td>${lastSaleDate}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading repository sales:', error);
+            }
+        }
+        
+        // Load transactions with pagination and date filtering
         let currentTransactionPage = 1;
         async function loadTransactions(page = 1) {
             try {
                 const token = getAuthToken();
                 const statusFilter = document.getElementById('transactionStatusFilter').value;
-                const url = `${API_BASE_URL}/Payment/finance/transactions?page=${page}&pageSize=20${ statusFilter ? `&status=${statusFilter}` : ''}`;
+                const startDate = document.getElementById('transactionStartDate').value;
+                const endDate = document.getElementById('transactionEndDate').value;
+                
+                let url = `${API_BASE_URL}/Payment/finance/transactions?page=${page}&pageSize=20`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+                if (startDate) url += `&startDate=${startDate}`;
+                if (endDate) url += `&endDate=${endDate}`;
                 
                 const response = await fetch(url, {
                     headers: {
@@ -7940,9 +7987,18 @@ ${contact.message}
             container.innerHTML = html;
         }
         
+        // Clear transaction filters
+        function clearTransactionFilters() {
+            document.getElementById('transactionStartDate').value = '';
+            document.getElementById('transactionEndDate').value = '';
+            document.getElementById('transactionStatusFilter').value = '';
+            loadTransactions(1);
+        }
+        
         // Make functions globally available
         window.loadFinanceData = loadFinanceData;
         window.loadTransactions = loadTransactions;
+        window.clearTransactionFilters = clearTransactionFilters;
         
         // Initialize theme and header for shared components
         document.addEventListener('DOMContentLoaded', () => {
