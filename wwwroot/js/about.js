@@ -256,10 +256,10 @@ window.toggleTestimonial = toggleTestimonial;
 
 // Auto-scroll functionality - EXACT same as home page feature scroller
 let teamScrollPosition = 0;
-let teamScrollDirection = -1;
+let teamScrollDirection = 1;
 let testimonialScrollPosition = 0;
-let testimonialScrollDirection = -1;
-let isMobile = window.innerWidth <= 1280;
+let testimonialScrollDirection = 1;
+let isMobile = window.innerWidth < 1280;
 
 function autoScrollTeam() {
     if (isMobile) return;
@@ -285,7 +285,7 @@ function autoScrollTeam() {
         teamScrollDirection = -1;
     }
     
-    teamScrollPosition += teamScrollDirection * 0.2;
+    teamScrollPosition += teamScrollDirection * 1;
     teamScroller.style.transform = `translateX(-${teamScrollPosition}px)`;
     
     requestAnimationFrame(autoScrollTeam);
@@ -315,7 +315,7 @@ function autoScrollTestimonials() {
         testimonialScrollDirection = -1;
     }
     
-    testimonialScrollPosition += testimonialScrollDirection * 0.3;
+    testimonialScrollPosition += testimonialScrollDirection * 1;
     reviewsScroller.style.transform = `translateX(-${testimonialScrollPosition}px)`;
     
     requestAnimationFrame(autoScrollTestimonials);
@@ -349,8 +349,11 @@ function setupAutoScrollPause() {
 
 // Handle window resize
 window.addEventListener('resize', () => {
-    isMobile = window.innerWidth <= 1280;
-    if (!isMobile) {
+    const wasMobile = isMobile;
+    isMobile = window.innerWidth < 1280;
+    
+    // Only restart animations when transitioning from mobile to desktop
+    if (wasMobile && !isMobile) {
         requestAnimationFrame(autoScrollTeam);
         requestAnimationFrame(autoScrollTestimonials);
     }

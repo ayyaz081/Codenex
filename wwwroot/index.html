@@ -358,7 +358,6 @@
 
         const featureScroller = document.querySelector('.feature-scroller');
         const featureContainer = document.querySelector('.feature-container');
-        const featureCards = document.querySelectorAll('.feature-card');
         let scrollPosition = 0;
         let scrollDirection = 1;
         let isMobile = window.innerWidth < 1280;
@@ -388,16 +387,16 @@
             animationId = requestAnimationFrame(autoScrollFeatures);
         }
 
-        // Pause auto-scroll on hover
-        featureCards.forEach(card => {
-            card.addEventListener('mouseenter', () => {
+        // Pause auto-scroll when hovering over the container
+        if (featureContainer) {
+            featureContainer.addEventListener('mouseenter', () => {
                 isPaused = true;
             });
             
-            card.addEventListener('mouseleave', () => {
+            featureContainer.addEventListener('mouseleave', () => {
                 isPaused = false;
             });
-        });
+        }
 
         window.addEventListener('resize', () => {
             const wasMobile = isMobile;
