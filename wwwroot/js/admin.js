@@ -1465,7 +1465,6 @@
                 document.getElementById('dashboardMonthlyRevenue').textContent = `$${data.monthlyRevenue.toFixed(2)} this month`;
                 document.getElementById('dashboardTotalTransactions').textContent = data.totalTransactions;
                 document.getElementById('dashboardMonthlyTransactions').textContent = `${data.monthlyTransactions} this month`;
-                document.getElementById('dashboardPendingTransactions').textContent = data.pendingTransactions;
                 
                 // Get premium repository count
                 const repoResponse = await fetch(`${API_BASE_URL}/Repository`, {
@@ -1475,6 +1474,20 @@
                     const repos = await repoResponse.json();
                     const premiumCount = repos.filter(r => r.isPremium && r.isActive).length;
                     document.getElementById('dashboardPremiumRepos').textContent = premiumCount;
+                }
+                
+                // Get average rating from publications
+                const pubResponse = await fetch(`${API_BASE_URL}/Publications`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (pubResponse.ok) {
+                    const publications = await pubResponse.json();
+                    const avgRating = publications.length > 0 ? 
+                        publications.reduce((sum, pub) => {
+                            const rating = pub.averageRating || pub.AverageRating || 0;
+                            return sum + rating;
+                        }, 0) / publications.length : 0;
+                    document.getElementById('dashboardAverageRating').textContent = avgRating > 0 ? avgRating.toFixed(1) : '0.0';
                 }
                 
             } catch (error) {
@@ -7795,7 +7808,6 @@ ${contact.message}
                 document.getElementById('monthlyRevenue').textContent = `$${data.monthlyRevenue.toFixed(2)}`;
                 document.getElementById('totalTransactions').textContent = data.totalTransactions;
                 document.getElementById('monthlyTransactions').textContent = `${data.monthlyTransactions} this month`;
-                document.getElementById('pendingTransactions').textContent = data.pendingTransactions;
                 
                 // Load other finance data
                 await loadTopSelling();
