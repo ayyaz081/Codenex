@@ -40,7 +40,7 @@ namespace Neelsol.Controllers
                         Id = r.Id,
                         PublicationId = r.PublicationId,
                         Rating = r.Rating,
-                        UserId = r.UserId,
+                        UserId = r.UserId ?? string.Empty,
                         CreatedAt = r.CreatedAt,
                         UpdatedAt = r.UpdatedAt
                     })
