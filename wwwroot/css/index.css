@@ -265,7 +265,7 @@
     margin: 0 auto;
     overflow: hidden;
     position: relative;
-    padding: 40px;
+    padding: 32px 20px;
     box-sizing: border-box;
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
@@ -294,7 +294,7 @@
 }
 
 .feature-card {
-    flex: 0 0 262px;
+    flex: 0 0 272px;
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
