@@ -3379,8 +3379,14 @@
 
         async function viewContact(id) {
             try {
-                // Fetch contact details
-                const response = await fetch(`${API_BASE_URL}/Contact/${id}`);
+                // Fetch contact details with authentication
+                const token = getAuthToken();
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch(`${API_BASE_URL}/Contact/${id}`, { headers });
                 if (!response.ok) {
                     throw new Error(`Failed to fetch contact: ${response.status}`);
                 }
@@ -3447,8 +3453,15 @@ ${contact.message}
                 const contactId = window.currentContactId;
                 if (!contactId) return;
                 
+                const token = getAuthToken();
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
                 const response = await fetch(`${API_BASE_URL}/Contact/${contactId}/read`, {
-                    method: 'PUT'
+                    method: 'PUT',
+                    headers: headers
                 });
                 
                 if (response.ok) {
@@ -3466,8 +3479,15 @@ ${contact.message}
         async function markAllAsRead() {
             if (confirm('Are you sure you want to mark all contacts as read?')) {
                 try {
+                    const token = getAuthToken();
+                    const headers = {};
+                    if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                    }
+                    
                     const response = await fetch(`${API_BASE_URL}/Contact/mark-all-read`, {
-                        method: 'PUT'
+                        method: 'PUT',
+                        headers: headers
                     });
                     
                     if (response.ok) {
@@ -3486,8 +3506,15 @@ ${contact.message}
         async function deleteReadContacts() {
             if (confirm('Are you sure you want to delete all read contacts? This action cannot be undone.')) {
                 try {
+                    const token = getAuthToken();
+                    const headers = {};
+                    if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                    }
+                    
                     const response = await fetch(`${API_BASE_URL}/Contact/delete-read`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: headers
                     });
                     
                     if (response.ok) {
