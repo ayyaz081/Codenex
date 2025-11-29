@@ -169,6 +169,9 @@
                         url = `${API_BASE_URL}/Solutions/problem-areas/${encodeURIComponent(area)}`;
                     }
                     
+                    // Add cache-busting parameter
+                    url += (url.includes('?') ? '&' : '?') + `_=${Date.now()}`;
+                    
                     console.log('Fetching solutions from URL:', url);
                     const response = await fetch(url);
                     console.log('Solutions API response status:', response.status);
@@ -210,6 +213,7 @@
             static async fetchPublications(domain = '', search = '') {
                 try {
                     console.log('Fetching publications with filters - domain:', domain, 'search:', search);
+                    const cacheBuster = `_=${Date.now()}`;
                     let url = `${API_BASE_URL}/Publications`;
                     let publications = [];
                     
@@ -217,7 +221,7 @@
                     if (domain && search) {
                         // Both domain and search - use base endpoint and filter client-side
                         console.log('Using both domain and search filters');
-                        const response = await fetch(url);
+                        const response = await fetch(`${url}?${cacheBuster}`);
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);
                         publications = await response.json();
                         
@@ -230,11 +234,11 @@
                         // Only domain filter
                         console.log('Using domain filter only:', domain);
                         url = `${API_BASE_URL}/Publications/domain/${encodeURIComponent(domain)}`;
-                        const response = await fetch(url);
+                        const response = await fetch(`${url}?${cacheBuster}`);
                         if (!response.ok) {
                             console.warn(`Domain endpoint failed, falling back to client-side filtering`);
                             // Fallback to client-side filtering if domain endpoint fails
-                            const fallbackResponse = await fetch(`${API_BASE_URL}/Publications`);
+                            const fallbackResponse = await fetch(`${API_BASE_URL}/Publications?${cacheBuster}`);
                             if (!fallbackResponse.ok) throw new Error(`HTTP ${fallbackResponse.status}`);
                             const allPublications = await fallbackResponse.json();
                             publications = allPublications.filter(p => p.domain === domain);
@@ -246,13 +250,14 @@
                         console.log('Using search filter only:', search);
                         const searchParams = new URLSearchParams();
                         searchParams.append('query', search);
+                        searchParams.append('_', Date.now().toString());
                         const searchUrl = `${API_BASE_URL}/Publications/search?${searchParams.toString()}`;
                         
                         const response = await fetch(searchUrl);
                         if (!response.ok) {
                             console.warn(`Search endpoint failed, falling back to client-side search`);
                             // Fallback to client-side search if search endpoint fails
-                            const fallbackResponse = await fetch(`${API_BASE_URL}/Publications`);
+                            const fallbackResponse = await fetch(`${API_BASE_URL}/Publications?${cacheBuster}`);
                             if (!fallbackResponse.ok) throw new Error(`HTTP ${fallbackResponse.status}`);
                             const allPublications = await fallbackResponse.json();
                             publications = enhancedSearch(allPublications, search, 'domain');
@@ -262,7 +267,7 @@
                     } else {
                         // No filters - get all publications
                         console.log('No filters - fetching all publications');
-                        const response = await fetch(url);
+                        const response = await fetch(`${url}?${cacheBuster}`);
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);
                         publications = await response.json();
                     }
