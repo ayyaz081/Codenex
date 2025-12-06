@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Neelsol.Models;
+using Codenex.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Neelsol.Services
+namespace Codenex.Services
 {
     public class TokenService
     {

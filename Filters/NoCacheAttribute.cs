@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Neelsol.Filters
+namespace Codenex.Filters
 {
     /// <summary>
     /// Filter attribute to disable caching for API endpoints.

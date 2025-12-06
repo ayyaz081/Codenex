@@ -2,13 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Neelsol.Data;
-using Neelsol.Models;
-using Neelsol.DTOs;
-using Neelsol.Filters;
+using Codenex.Data;
+using Codenex.Models;
+using Codenex.DTOs;
+using Codenex.Filters;
 using System.IO;
 
-namespace Neelsol.Controllers
+namespace Codenex.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

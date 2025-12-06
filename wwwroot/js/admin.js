@@ -1,4 +1,4 @@
-﻿// Authorization check - run immediately
+// Authorization check - run immediately
         function checkUserAccess() {
             const token = localStorage.getItem('authToken');
             const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -117,7 +117,7 @@
         class AdminAPI {
             static async fetchProducts(domain = '', search = '') {
                 try {
-                    console.log('ðŸ” AdminAPI.fetchProducts called with domain:', domain, 'search:', search);
+                    console.log('🔍 AdminAPI.fetchProducts called with domain:', domain, 'search:', search);
                     let url = `${API_BASE_URL}/Products`;
                     
                     // Products API doesn't have built-in filtering, so we'll filter client-side
@@ -128,13 +128,13 @@
                     }
                     
                     let products = await response.json();
-                    console.log('ðŸ“¦ Raw products from API:', products.length);
+                    console.log('📦 Raw products from API:', products.length);
                     
                     // Client-side filtering with enhanced search
                     if (domain) {
                         const beforeFilter = products.length;
                         products = products.filter(p => p.domain && p.domain.toLowerCase() === domain.toLowerCase());
-                        console.log('ðŸ“¦ After domain filter:', beforeFilter, '->', products.length);
+                        console.log('📦 After domain filter:', beforeFilter, '->', products.length);
                     }
                     
                     if (search) {
@@ -152,7 +152,7 @@
                                 (p.domain && p.domain.toLowerCase().includes(searchLower))
                             );
                         }
-                        console.log('ðŸ“¦ After search filter:', beforeSearch, '->', products.length);
+                        console.log('📦 After search filter:', beforeSearch, '->', products.length);
                     }
                     
                     return products;
@@ -200,7 +200,7 @@
                                 (s.problemArea && s.problemArea.toLowerCase().includes(searchLower))
                             );
                         }
-                        console.log('ðŸ’¡ After search filter:', beforeSearch, '->', solutions.length);
+                        console.log('💡 After search filter:', beforeSearch, '->', solutions.length);
                     }
                     
                     return solutions;
@@ -334,10 +334,10 @@
                         headers['Authorization'] = `Bearer ${token}`;
                     }
                     
-                    console.log('📧 Fetching contacts with token:', token ? 'present' : 'missing');
+                    console.log('?? Fetching contacts with token:', token ? 'present' : 'missing');
                     const response = await fetch(url, { headers });
                     
-                    console.log('📧 Contact API response status:', response.status);
+                    console.log('?? Contact API response status:', response.status);
                     
                     if (!response.ok) {
                         // Try to get response body for better error message
@@ -354,7 +354,7 @@
                         } else {
                             // Non-JSON response (likely HTML error page)
                             const text = await response.text();
-                            console.error('📧 Server returned non-JSON response:', text.substring(0, 200));
+                            console.error('?? Server returned non-JSON response:', text.substring(0, 200));
                             
                             if (response.status === 401) {
                                 errorMessage = 'Unauthorized. Please log in again.';
@@ -371,12 +371,12 @@
                     // Check if response is JSON before parsing
                     const contentType = response.headers.get('content-type');
                     if (!contentType || !contentType.includes('application/json')) {
-                        console.error('📧 Expected JSON but got:', contentType);
+                        console.error('?? Expected JSON but got:', contentType);
                         throw new Error('Server returned non-JSON response');
                     }
                     
                     let contacts = await response.json();
-                    console.log('📧 Successfully fetched contacts:', contacts.length);
+                    console.log('?? Successfully fetched contacts:', contacts.length);
                     
                     // Client-side search filtering with enhanced search
                     if (search) {
@@ -496,7 +496,7 @@
                         role: 'Admin',
                         firstName: localStorage.getItem('adminUsername') || 'Admin',
                         lastName: '',
-                        email: localStorage.getItem('adminEmail') || 'admin@neelsol.tech'
+                        email: localStorage.getItem('adminEmail') || 'admin@Codenex.tech'
                     };
                     return;
                 }
@@ -521,7 +521,7 @@
             if (!localStorage.getItem('authToken') && !localStorage.getItem('adminLoggedIn')) {
                 localStorage.setItem('adminLoggedIn', 'true');
                 localStorage.setItem('adminUsername', 'Admin');
-                localStorage.setItem('adminEmail', 'admin@neelsol.tech');
+                localStorage.setItem('adminEmail', 'admin@Codenex.tech');
                 console.log('Set up temporary admin access for testing');
             }
             
@@ -1588,10 +1588,10 @@
         async function loadProducts() {
             const domain = document.getElementById('productDomainFilter')?.value || '';
             const search = document.getElementById('productSearch')?.value || '';
-            console.log('ðŸ“¦ Loading products with filters - domain:', domain, 'search:', search);
+            console.log('📦 Loading products with filters - domain:', domain, 'search:', search);
             
             const products = await AdminAPI.fetchProducts(domain, search);
-            console.log('ðŸ“¦ Products loaded:', products.length, 'items');
+            console.log('📦 Products loaded:', products.length, 'items');
             
             const tbody = document.querySelector('#productsTable tbody');
             if (!tbody) return;
@@ -1644,7 +1644,7 @@
         async function loadSolutions() {
             const area = document.getElementById('solutionAreaFilter')?.value || '';
             const search = document.getElementById('solutionSearch')?.value || '';
-            console.log('ðŸ’¡ Loading solutions with filters - area:', area, 'search:', search);
+            console.log('💡 Loading solutions with filters - area:', area, 'search:', search);
             
             const solutions = await AdminAPI.fetchSolutions(area, search);
             console.log('Solutions loaded:', solutions);
@@ -1707,10 +1707,10 @@
         async function loadPublications() {
             const domain = document.getElementById('publicationDomainFilter')?.value || '';
             const search = document.getElementById('publicationSearch')?.value || '';
-            console.log('ðŸ“š Loading publications with filters - domain:', domain, 'search:', search);
+            console.log('📚 Loading publications with filters - domain:', domain, 'search:', search);
             
             const publications = await AdminAPI.fetchPublications(domain, search);
-            console.log('ðŸ“š Publications loaded:', publications.length, 'items');
+            console.log('📚 Publications loaded:', publications.length, 'items');
             
             const tbody = document.querySelector('#publicationsTable tbody');
             if (!tbody) return;
@@ -1808,10 +1808,10 @@
         async function loadContacts() {
             const status = document.getElementById('contactStatusFilter')?.value || '';
             const search = document.getElementById('contactSearch')?.value || '';
-            console.log('ðŸ“§ Loading contacts with filters - status:', status, 'search:', search);
+            console.log('📧 Loading contacts with filters - status:', status, 'search:', search);
             
             const contacts = await AdminAPI.fetchContacts(status, search);
-            console.log('ðŸ“§ Contacts loaded:', contacts.length, 'items');
+            console.log('📧 Contacts loaded:', contacts.length, 'items');
             
             const tbody = document.querySelector('#contactsTable tbody');
             if (!tbody) return;
@@ -1853,7 +1853,7 @@
 
         // Modal Management Functions - Gentle and stable
         function showModal(modalId) {
-            console.log('🔵 Opening modal:', modalId);
+            console.log('?? Opening modal:', modalId);
             
             const modal = document.getElementById(modalId);
             if (modal) {
@@ -1862,14 +1862,14 @@
                 // Add show class to trigger CSS display: flex
                 modal.classList.add('show');
                 
-                console.log('✅ Modal opened successfully, show class added');
+                console.log('? Modal opened successfully, show class added');
             } else {
-                console.error('❌ Modal not found:', modalId);
+                console.error('? Modal not found:', modalId);
             }
         }
 
         function closeModal(modalId) {
-            console.log('ðŸ”´ Closing modal:', modalId);
+            console.log('🔴 Closing modal:', modalId);
             
             const modal = document.getElementById(modalId);
             if (modal) {
@@ -1883,7 +1883,7 @@
                     }
                 }, 300);
             } else {
-                console.error('âŒ Modal not found for closing:', modalId);
+                console.error('❌ Modal not found for closing:', modalId);
             }
             
             // Gentle scroll restoration only after modal is closed
@@ -1891,17 +1891,17 @@
                 forceScrollRestore();
             }, 350); // Wait a bit longer for CSS transition to complete
             
-            console.log('âœ… Modal closed');
+            console.log('✅ Modal closed');
         }
         
         // GENTLE SCROLL RESTORATION FUNCTION (Fixed to prevent page shake)
         function forceScrollRestore() {
-            console.log('ðŸ”§ Gentle scroll restore activated');
+            console.log('🔧 Gentle scroll restore activated');
             
             // Check if any modal is actually open before restoring
             const openModal = document.querySelector('.modal-overlay.show');
             if (openModal) {
-                console.log('ðŸ“‹ Modal is open, skipping scroll restore:', openModal.id);
+                console.log('📋 Modal is open, skipping scroll restore:', openModal.id);
                 return; // Don't restore scroll if modal is legitimately open
             }
             
@@ -1916,14 +1916,14 @@
             document.body.classList.remove('modal-open', 'no-scroll', 'mobile-menu-open');
             document.body.removeAttribute('data-original-overflow');
             
-            console.log('âœ… Gentle scroll restore complete');
+            console.log('✅ Gentle scroll restore complete');
         }
         
         // Close modal when clicking outside - Enhanced with safety handling
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal-overlay')) {
                 const modalId = e.target.id;
-                console.log('ðŸ”‘ Click outside modal detected:', modalId);
+                console.log('🔑 Click outside modal detected:', modalId);
                 closeModal(modalId);
             }
         });
@@ -1932,14 +1932,14 @@
         document.addEventListener('click', function(e) {
             const button = e.target.closest('button');
             if (button && (button.classList.contains('btn-view') || button.classList.contains('btn-warning') || button.classList.contains('btn-danger'))) {
-                console.log('ðŸ”¶ Modal button clicked:', button.getAttribute('onclick') || button.textContent.trim());
+                console.log('🔶 Modal button clicked:', button.getAttribute('onclick') || button.textContent.trim());
                 
                 // Very gentle safety check after a reasonable delay
                 setTimeout(() => {
                     const hasOpenModal = document.querySelector('.modal-overlay.show');
                     if (!hasOpenModal && document.body.style.overflow === 'hidden') {
                         forceScrollRestore();
-                        console.log('ðŸ”§ Gentle scroll fix after button click');
+                        console.log('🔧 Gentle scroll fix after button click');
                     }
                 }, 1000); // Reduced from 2000ms
             }
@@ -1947,7 +1947,7 @@
         
         // Smart button reactivation function
         function reactivateAllButtons() {
-            console.log('ðŸŸ  SMART: Reactivating modal-related buttons');
+            console.log('🟠 SMART: Reactivating modal-related buttons');
             
             // Only reactivate buttons that might be affected by modal issues
             document.querySelectorAll('.btn-view, .btn-warning, .btn-danger, .modal-close').forEach(btn => {
@@ -1964,7 +1964,7 @@
                 document.documentElement.style.pointerEvents = '';
             }
             
-            console.log('âœ… SMART: Modal-related buttons reactivated');
+            console.log('✅ SMART: Modal-related buttons reactivated');
         }
 
         // Close modal with Escape key and add emergency scroll fix shortcut
@@ -1972,10 +1972,10 @@
             if (e.key === 'Escape') {
                 const openModal = document.querySelector('.modal-overlay.show');
                 if (openModal) {
-                    console.log('â© Escape key pressed - closing modal:', openModal.id);
+                    console.log('⏩ Escape key pressed - closing modal:', openModal.id);
                     closeModal(openModal.id);
                 } else {
-                    console.log('â© Escape key pressed - no modal open, ensuring scroll is enabled');
+                    console.log('⏩ Escape key pressed - no modal open, ensuring scroll is enabled');
                     ensureBodyScrolling();
                 }
             }
@@ -1983,14 +1983,14 @@
             // NUCLEAR Emergency scroll fix: Ctrl+Shift+F (or Cmd+Shift+F on Mac)
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
                 e.preventDefault();
-                console.log('ðŸ’£ NUCLEAR emergency scroll fix triggered!');
+                console.log('💣 NUCLEAR emergency scroll fix triggered!');
                 forceScrollRestore();
                 reactivateAllButtons();
                 window.fixAdminScrolling(); // Also run the old one as backup
                 
                 // Show user feedback
                 const notification = document.createElement('div');
-                notification.textContent = 'ðŸ’£ NUCLEAR scroll fix applied!';
+                notification.textContent = '💣 NUCLEAR scroll fix applied!';
                 notification.style.cssText = `
                     position: fixed;
                     top: 20px;
@@ -2011,18 +2011,18 @@
         
         // Safety function to ensure body scrolling is always properly restored
         function ensureBodyScrolling() {
-            console.log('ðŸš‘ Running body scrolling safety check...');
+            console.log('🚑 Running body scrolling safety check...');
             
             // Check if any modals are currently open
             const openModal = document.querySelector('.modal-overlay.show');
             // Check if mobile sidebar is open
             const sidebarOpen = sidebar && sidebar.classList.contains('show') && window.innerWidth <= 1024;
             
-            console.log('ðŸ“‘ Open modal:', openModal ? openModal.id : 'none');
-            console.log('ðŸ“‘ Sidebar open:', sidebarOpen);
+            console.log('📑 Open modal:', openModal ? openModal.id : 'none');
+            console.log('📑 Sidebar open:', sidebarOpen);
             
             if (!openModal && !sidebarOpen) {
-                console.log('ðŸš‘ No modals or sidebar open - restoring scroll completely');
+                console.log('🚑 No modals or sidebar open - restoring scroll completely');
                 
                 // Comprehensive scroll restoration
                 document.body.style.overflow = '';
@@ -2040,9 +2040,9 @@
                 // Remove any scroll-blocking classes
                 document.body.classList.remove('modal-open', 'no-scroll', 'mobile-menu-open');
                 
-                console.log('âœ… Body scrolling fully restored');
+                console.log('✅ Body scrolling fully restored');
             } else {
-                console.log('ðŸ“‘ Modal or sidebar still open - keeping scroll restrictions');
+                console.log('📑 Modal or sidebar still open - keeping scroll restrictions');
             }
         }
         
@@ -2056,7 +2056,7 @@
                                       document.documentElement.style.overflow === 'hidden';
                 if (isScrollBlocked) {
                     forceScrollRestore();
-                    console.log('ðŸ’¥ NUCLEAR: Detected scroll block - cleanup completed');
+                    console.log('💥 NUCLEAR: Detected scroll block - cleanup completed');
                 }
             }
         }, 10000); // Check every 10 seconds
@@ -2080,7 +2080,7 @@
                         if (!hasOpenModal) {
                             forceScrollRestore();
                             reactivateAllButtons();
-                            console.log('ðŸ’¥ NUCLEAR: Modal-related emergency recovery activated');
+                            console.log('💥 NUCLEAR: Modal-related emergency recovery activated');
                         }
                     }, 1000);
                 }
@@ -2101,7 +2101,7 @@
             if (productForm) {
                 productForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ Product form submitted - handling via API');
+                    console.log('📝 Product form submitted - handling via API');
                     // Form handling will be done via API calls
                     // Close modal after successful submission
                     setTimeout(() => {
@@ -2115,7 +2115,7 @@
             if (solutionForm) {
                 solutionForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ Solution form submitted - handling via API');
+                    console.log('📝 Solution form submitted - handling via API');
                     setTimeout(() => {
                         closeModal('solutionModal');
                     }, 100);
@@ -2127,7 +2127,7 @@
             if (publicationForm) {
                 publicationForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ Publication form submitted - handling via API');
+                    console.log('📝 Publication form submitted - handling via API');
                     setTimeout(() => {
                         closeModal('publicationModal');
                     }, 100);
@@ -2139,7 +2139,7 @@
             if (repositoryForm) {
                 repositoryForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ Repository form submitted - handling via API');
+                    console.log('📝 Repository form submitted - handling via API');
                     setTimeout(() => {
                         closeModal('repositoryModal');
                     }, 100);
@@ -2151,7 +2151,7 @@
             if (teamForm) {
                 teamForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ Team form submitted - handling via API');
+                    console.log('📝 Team form submitted - handling via API');
                     setTimeout(() => {
                         closeModal('teamModal');
                     }, 100);
@@ -2163,7 +2163,7 @@
             if (testimonialForm) {
                 testimonialForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ Testimonial form submitted - handling via API');
+                    console.log('📝 Testimonial form submitted - handling via API');
                     setTimeout(() => {
                         closeModal('testimonialModal');
                     }, 100);
@@ -2175,7 +2175,7 @@
             if (userForm) {
                 userForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ User form submitted - handling via API');
+                    console.log('📝 User form submitted - handling via API');
                     setTimeout(() => {
                         closeModal('userModal');
                     }, 100);
@@ -2187,46 +2187,46 @@
             if (carouselForm) {
                 carouselForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('ðŸ“ Carousel form submitted - handling via API');
+                    console.log('📝 Carousel form submitted - handling via API');
                     setTimeout(() => {
                         closeModal('carouselModal');
                     }, 100);
                 });
             }
             
-            console.log('âœ… Modal form event handlers initialized');
+            console.log('✅ Modal form event handlers initialized');
         }
         
         // Emergency fix function - can be called from browser console
         window.fixAdminScrolling = function() {
-            console.log('ðŸ”§ Applying emergency scroll fix...');
+            console.log('🔧 Applying emergency scroll fix...');
             
             // Close all modals
             document.querySelectorAll('.modal-overlay').forEach(modal => {
                 modal.classList.remove('show');
                 modal.style.display = 'none'; // Force hide
-                console.log('âœ“ Closed modal:', modal.id);
+                console.log('✓ Closed modal:', modal.id);
             });
             
             // Close mobile sidebar
             const sidebar = document.querySelector('.admin-sidebar');
             if (sidebar && sidebar.classList.contains('show')) {
                 sidebar.classList.remove('show');
-                console.log('âœ“ Closed mobile sidebar');
+                console.log('✓ Closed mobile sidebar');
             }
             
             // Close mobile overlay
             const mobileOverlay = document.querySelector('.mobile-overlay');
             if (mobileOverlay && mobileOverlay.classList.contains('show')) {
                 mobileOverlay.classList.remove('show');
-                console.log('âœ“ Closed mobile overlay');
+                console.log('✓ Closed mobile overlay');
             }
             
             // Close shared header mobile menu if open
             const sharedMobileMenu = document.querySelector('.mobile-menu');
             if (sharedMobileMenu && sharedMobileMenu.classList.contains('show')) {
                 sharedMobileMenu.classList.remove('show');
-                console.log('âœ“ Closed shared header mobile menu');
+                console.log('✓ Closed shared header mobile menu');
             }
             
             // Remove mobile menu open class from body
@@ -2242,14 +2242,14 @@
             document.body.removeAttribute('data-original-overflow');
             document.documentElement.style.overflow = '';
             document.documentElement.style.overflowY = '';
-            console.log('âœ“ Restored body scrolling with comprehensive cleanup');
+            console.log('✓ Restored body scrolling with comprehensive cleanup');
             
             // Test scrolling
             const originalScrollTop = window.pageYOffset;
             window.scrollTo(0, originalScrollTop + 1);
             setTimeout(() => {
                 window.scrollTo(0, originalScrollTop);
-                console.log('âœ“ Scrolling test completed - page should be scrollable now');
+                console.log('✓ Scrolling test completed - page should be scrollable now');
             }, 50);
             
             // Clear any stuck body classes
@@ -2263,7 +2263,7 @@
                 mainContent.style.height = '';
             }
             
-            console.log('âœ… Emergency scroll fix completed! Page should be scrollable now.');
+            console.log('✅ Emergency scroll fix completed! Page should be scrollable now.');
             return 'Scroll fix applied!';
         };
         
@@ -2272,13 +2272,13 @@
         window.reactivateAllButtons = reactivateAllButtons;
         
         // Add helpful console messages
-        console.log('%cðŸ›¡ï¸ SMART ADMIN SCROLL SYSTEM ACTIVE', 'color: #22c55e; font-weight: bold; font-size: 16px;');
+        console.log('%c🛡️ SMART ADMIN SCROLL SYSTEM ACTIVE', 'color: #22c55e; font-weight: bold; font-size: 16px;');
         console.log('%cSMART RECOVERY OPTIONS:', 'color: #10b981; font-weight: bold;');
-        console.log('%c  â€¢ Press Ctrl+Shift+F (or Cmd+Shift+F) for NUCLEAR fix', 'color: #10b981;');
-        console.log('%c  â€¢ Run: forceScrollRestore() for instant fix', 'color: #10b981;');
-        console.log('%c  â€¢ Automatic modal button safety checks', 'color: #10b981;');
-        console.log('%c  â€¢ Selective cleanup every 10 seconds', 'color: #10b981;');
-        console.log('%cðŸŽ¯ Smart modal system - protects navigation while fixing scrolls!', 'color: #22c55e; font-weight: bold;');
+        console.log('%c  • Press Ctrl+Shift+F (or Cmd+Shift+F) for NUCLEAR fix', 'color: #10b981;');
+        console.log('%c  • Run: forceScrollRestore() for instant fix', 'color: #10b981;');
+        console.log('%c  • Automatic modal button safety checks', 'color: #10b981;');
+        console.log('%c  • Selective cleanup every 10 seconds', 'color: #10b981;');
+        console.log('%c🎯 Smart modal system - protects navigation while fixing scrolls!', 'color: #22c55e; font-weight: bold;');
 
         // Show Modal Functions
         function showAddProductModal() {
@@ -4143,7 +4143,7 @@ ${contact.message}
                 return matches;
             });
             
-            console.log(`ðŸ” Enhanced search: "${searchTerm}" -> ${items.length} to ${filteredItems.length} items`);
+            console.log(`🔍 Enhanced search: "${searchTerm}" -> ${items.length} to ${filteredItems.length} items`);
             return filteredItems;
         }
         
@@ -4152,7 +4152,7 @@ ${contact.message}
         
         // Add event listeners for filters and search
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('ðŸ” Setting up search functionality...');
+            console.log('🔍 Setting up search functionality...');
             
             // Load dynamic categories for admin forms
             loadDynamicCategoriesForForms();
@@ -4166,7 +4166,7 @@ ${contact.message}
                     console.log('Product domain filter changed:', productDomainFilter.value);
                     loadProducts();
                 });
-                console.log('âœ“ Product domain filter listener added');
+                console.log('✓ Product domain filter listener added');
             }
             
             if (productSearch) {
@@ -4174,9 +4174,9 @@ ${contact.message}
                     console.log('Product search input:', productSearch.value);
                     loadProducts();
                 }, 300));
-                console.log('âœ“ Product search listener added');
+                console.log('✓ Product search listener added');
             } else {
-                console.error('âŒ Product search input not found!');
+                console.error('❌ Product search input not found!');
             }
 
             // Solutions filters
@@ -4188,7 +4188,7 @@ ${contact.message}
                     console.log('Solution area filter changed:', solutionAreaFilter.value);
                     loadSolutions();
                 });
-                console.log('âœ“ Solution area filter listener added');
+                console.log('✓ Solution area filter listener added');
             }
             
             if (solutionSearch) {
@@ -4196,9 +4196,9 @@ ${contact.message}
                     console.log('Solution search input:', solutionSearch.value);
                     loadSolutions();
                 }, 300));
-                console.log('âœ“ Solution search listener added');
+                console.log('✓ Solution search listener added');
             } else {
-                console.error('âŒ Solution search input not found!');
+                console.error('❌ Solution search input not found!');
             }
 
             // Publications filters
@@ -4210,7 +4210,7 @@ ${contact.message}
                     console.log('Publication domain filter changed:', publicationDomainFilter.value);
                     loadPublications();
                 });
-                console.log('âœ“ Publication domain filter listener added');
+                console.log('✓ Publication domain filter listener added');
             }
             
             if (publicationSearch) {
@@ -4218,9 +4218,9 @@ ${contact.message}
                     console.log('Publication search input:', publicationSearch.value);
                     loadPublications();
                 }, 300));
-                console.log('âœ“ Publication search listener added');
+                console.log('✓ Publication search listener added');
             } else {
-                console.error('âŒ Publication search input not found!');
+                console.error('❌ Publication search input not found!');
             }
 
             // Repository filters
@@ -4232,7 +4232,7 @@ ${contact.message}
                     console.log('Repository category filter changed:', repositoryCategoryFilter.value);
                     loadRepository();
                 });
-                console.log('âœ“ Repository category filter listener added');
+                console.log('✓ Repository category filter listener added');
             }
             
             if (repositoryTypeFilter) {
@@ -4240,7 +4240,7 @@ ${contact.message}
                     console.log('Repository type filter changed:', repositoryTypeFilter.value);
                     loadRepository();
                 });
-                console.log('âœ“ Repository type filter listener added');
+                console.log('✓ Repository type filter listener added');
             }
 
             // Contacts filters
@@ -4252,7 +4252,7 @@ ${contact.message}
                     console.log('Contact status filter changed:', contactStatusFilter.value);
                     loadContacts();
                 });
-                console.log('âœ“ Contact status filter listener added');
+                console.log('✓ Contact status filter listener added');
             }
             
             if (contactSearch) {
@@ -4260,9 +4260,9 @@ ${contact.message}
                     console.log('Contact search input:', contactSearch.value);
                     loadContacts();
                 }, 300));
-                console.log('âœ“ Contact search listener added');
+                console.log('✓ Contact search listener added');
             } else {
-                console.error('âŒ Contact search input not found!');
+                console.error('❌ Contact search input not found!');
             }
             
             // Auto-complete functionality for input fields
@@ -4271,7 +4271,7 @@ ${contact.message}
             // Enhanced search suggestions
             setupSearchSuggestions();
             
-            console.log('ðŸŽ‰ Search functionality setup complete!');
+            console.log('🎉 Search functionality setup complete!');
             
             // Run tests after a short delay to ensure everything is loaded
             setTimeout(() => {
@@ -4346,7 +4346,7 @@ ${contact.message}
                 { id: 'contactSearch', type: 'contacts' }
             ];
             
-            console.log('ðŸ“‹ Setting up search suggestions...');
+            console.log('📋 Setting up search suggestions...');
             
             searchInputs.forEach(config => {
                 const searchInput = document.getElementById(config.id);
@@ -4361,12 +4361,12 @@ ${contact.message}
                     
                     if (placeholders[config.type]) {
                         searchInput.placeholder = placeholders[config.type];
-                        console.log(`ðŸ“‹ Updated placeholder for ${config.id}`);
+                        console.log(`📋 Updated placeholder for ${config.id}`);
                     }
                     
                     // Add focus event for visual feedback
                     searchInput.addEventListener('focus', function() {
-                        console.log(`ðŸ” Search focus on ${config.type}`);
+                        console.log(`🔍 Search focus on ${config.type}`);
                         this.style.borderColor = 'var(--success)';
                     });
                     
@@ -4539,12 +4539,12 @@ ${contact.message}
         }
 
         function showViewModal(title, content) {
-            console.log('ðŸ“– Opening view modal:', title);
+            console.log('📖 Opening view modal:', title);
             
             // Create or update view modal
             let viewModal = document.getElementById('viewModal');
             if (!viewModal) {
-                console.log('ðŸ“– Creating new view modal');
+                console.log('📖 Creating new view modal');
                 viewModal = document.createElement('div');
                 viewModal.id = 'viewModal';
                 viewModal.className = 'modal-overlay';
@@ -4569,12 +4569,12 @@ ${contact.message}
                 // Add event listeners to the dynamically created modal
                 viewModal.addEventListener('click', function(e) {
                     if (e.target === viewModal) {
-                        console.log('ðŸ“– View modal clicked outside, closing');
+                        console.log('📖 View modal clicked outside, closing');
                         closeModal('viewModal');
                     }
                 });
                 
-                console.log('ðŸ“– View modal created and event listeners added');
+                console.log('📖 View modal created and event listeners added');
             }
             
             // Update content
@@ -4584,9 +4584,9 @@ ${contact.message}
             // Show the modal with enhanced error handling
             try {
                 showModal('viewModal');
-                console.log('ðŸ“– View modal opened successfully');
+                console.log('📖 View modal opened successfully');
             } catch (error) {
-                console.error('ðŸ“– Error opening view modal:', error);
+                console.error('📖 Error opening view modal:', error);
                 // Fallback: ensure scroll is restored
                 ensureBodyScrolling();
             }
@@ -4795,41 +4795,41 @@ ${contact.message}
                 const datalist = document.getElementById(field.datalistId);
                 
                 if (input && input.tagName === 'INPUT' && input.hasAttribute('list')) {
-                    console.log(`âœ“ ${field.type}: Input field with datalist found`);
+                    console.log(`✓ ${field.type}: Input field with datalist found`);
                 } else {
-                    console.error(`âœ— ${field.type}: Input field not found or incorrect type`);
+                    console.error(`✗ ${field.type}: Input field not found or incorrect type`);
                     allTestsPassed = false;
                 }
                 
                 if (datalist && datalist.tagName === 'DATALIST') {
-                    console.log(`âœ“ ${field.type}: Datalist found`);
+                    console.log(`✓ ${field.type}: Datalist found`);
                 } else {
-                    console.error(`âœ— ${field.type}: Datalist not found`);
+                    console.error(`✗ ${field.type}: Datalist not found`);
                     allTestsPassed = false;
                 }
             });
             
             // Test 2: Check if enhanced search function exists
             if (typeof enhancedSearch === 'function') {
-                console.log('âœ“ Enhanced search function exists');
+                console.log('✓ Enhanced search function exists');
             } else {
-                console.error('âœ— Enhanced search function not found');
+                console.error('✗ Enhanced search function not found');
                 allTestsPassed = false;
             }
             
             // Test 3: Check if auto-complete setup function exists
             if (typeof setupAutoComplete === 'function') {
-                console.log('âœ“ Auto-complete setup function exists');
+                console.log('✓ Auto-complete setup function exists');
             } else {
-                console.error('âœ— Auto-complete setup function not found');
+                console.error('✗ Auto-complete setup function not found');
                 allTestsPassed = false;
             }
             
             // Test 4: Check if search suggestions setup function exists
             if (typeof setupSearchSuggestions === 'function') {
-                console.log('âœ“ Search suggestions setup function exists');
+                console.log('✓ Search suggestions setup function exists');
             } else {
-                console.error('âœ— Search suggestions setup function not found');
+                console.error('✗ Search suggestions setup function not found');
                 allTestsPassed = false;
             }
             
@@ -4838,19 +4838,19 @@ ${contact.message}
             filterFields.forEach(fieldId => {
                 const filter = document.getElementById(fieldId);
                 if (filter && filter.tagName === 'SELECT') {
-                    console.log(`âœ“ Filter ${fieldId}: Select dropdown maintained for filtering`);
+                    console.log(`✓ Filter ${fieldId}: Select dropdown maintained for filtering`);
                 } else {
-                    console.error(`âœ— Filter ${fieldId}: Select dropdown not found`);
+                    console.error(`✗ Filter ${fieldId}: Select dropdown not found`);
                     allTestsPassed = false;
                 }
             });
             
             console.log('=== Test Results ===');
             if (allTestsPassed) {
-                console.log('ðŸŽ‰ All tests passed! Dynamic categories implementation is working correctly.');
+                console.log('🎉 All tests passed! Dynamic categories implementation is working correctly.');
                 showNotification('Dynamic categories implementation verified successfully!', 'success');
             } else {
-                console.log('âŒ Some tests failed. Please check the implementation.');
+                console.log('❌ Some tests failed. Please check the implementation.');
                 showNotification('Some issues found in dynamic categories implementation', 'warning');
             }
             
@@ -4872,10 +4872,10 @@ ${contact.message}
                             option.value.toLowerCase() === customValue.toLowerCase()
                         );
                         if (hasNewOption) {
-                            console.log(`âœ“ Custom value "${customValue}" added to datalist`);
+                            console.log(`✓ Custom value "${customValue}" added to datalist`);
                             return true;
                         } else {
-                            console.log(`âœ— Custom value "${customValue}" not found in datalist`);
+                            console.log(`✗ Custom value "${customValue}" not found in datalist`);
                             return false;
                         }
                     }
@@ -4885,7 +4885,7 @@ ${contact.message}
         
         // Manual search test functions - accessible from browser console
         window.testSearch = function(searchType, searchValue) {
-            console.log(`ðŸ§ª Testing search for ${searchType} with value: "${searchValue}"`);
+            console.log(`🧪 Testing search for ${searchType} with value: "${searchValue}"`);
             
             const searchInputs = {
                 'products': 'productSearch',
@@ -4904,7 +4904,7 @@ ${contact.message}
             if (searchInput) {
                 searchInput.value = searchValue;
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                console.log(`âœ“ Search triggered for ${searchType}`);
+                console.log(`✓ Search triggered for ${searchType}`);
             } else {
                 console.error(`Search input not found: ${inputId}`);
             }
@@ -4923,9 +4923,9 @@ ${contact.message}
             Object.entries(inputs).forEach(([id, name]) => {
                 const input = document.getElementById(id);
                 if (input) {
-                    console.log(`âœ“ ${name}: Found (value: "${input.value}")`);
+                    console.log(`✓ ${name}: Found (value: "${input.value}")`);
                 } else {
-                    console.log(`âŒ ${name}: Not found`);
+                    console.log(`❌ ${name}: Not found`);
                 }
             });
         };
@@ -5074,7 +5074,7 @@ ${contact.message}
         
         // Force view modal test
         window.forceViewModal = function() {
-            console.log('ðŸ§ª Force testing view modal...');
+            console.log('🧪 Force testing view modal...');
             showViewModal('Test Modal', '<p>This is a test modal content</p>');
         };
 
@@ -5145,12 +5145,12 @@ ${contact.message}
                     
                     // Populate form fields
                     if (document.getElementById('companyName')) {
-                        document.getElementById('companyName').value = aboutData.companyName || 'Neelsol Technologies';
+                        document.getElementById('companyName').value = aboutData.companyName || 'Codenex Solutions';
                         document.getElementById('foundedYear').value = aboutData.foundedYear || '2020';
                         document.getElementById('companyLocation').value = aboutData.companyLocation || 'Global';
                         document.getElementById('missionStatement').value = aboutData.missionStatement || 'To empower businesses through innovative technology solutions that drive growth, efficiency, and digital transformation.';
                         document.getElementById('visionStatement').value = aboutData.visionStatement || 'To be the leading technology partner that transforms businesses and creates lasting value through cutting-edge solutions and exceptional service.';
-                        document.getElementById('companyDescription').value = aboutData.companyDescription || 'Neelsol Technologies is a premier technology company specializing in cloud migration, cybersecurity, and data analytics. With a team of experienced professionals and a commitment to excellence, we help organizations navigate the digital landscape and achieve their strategic objectives.';
+                        document.getElementById('companyDescription').value = aboutData.companyDescription || 'Codenex Solutions is a premier technology company specializing in cloud migration, cybersecurity, and data analytics. With a team of experienced professionals and a commitment to excellence, we help organizations navigate the digital landscape and achieve their strategic objectives.';
                         document.getElementById('valuesTitle').value = aboutData.valuesTitle || 'Our Core Values';
                         document.getElementById('value1Title').value = aboutData.value1Title || 'Innovation';
                         document.getElementById('value1Description').value = aboutData.value1Description || 'We continuously push boundaries and embrace new technologies to deliver innovative solutions.';
@@ -7376,7 +7376,7 @@ ${contact.message}
                         const option = document.createElement('option');
                         option.value = pub.id;
                         const isLinked = pub.productId === parseInt(productId);
-                        option.textContent = pub.title + (isLinked ? ' ✓ (Linked)' : '');
+                        option.textContent = pub.title + (isLinked ? ' ? (Linked)' : '');
                         if (isLinked) {
                             option.selected = true;
                         }
@@ -7413,7 +7413,7 @@ ${contact.message}
                         const option = document.createElement('option');
                         option.value = pub.id;
                         const isLinked = pub.solutionId === parseInt(solutionId);
-                        option.textContent = pub.title + (isLinked ? ' ✓ (Linked)' : '');
+                        option.textContent = pub.title + (isLinked ? ' ? (Linked)' : '');
                         if (isLinked) {
                             option.selected = true;
                         }
@@ -7753,7 +7753,7 @@ ${contact.message}
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = isEditing ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-save"></i> Create Product';
                 });
-                console.log('âœ“ Product form listener added');
+                console.log('✓ Product form listener added');
             }
             
             // Solution form submission
@@ -7765,7 +7765,7 @@ ${contact.message}
                     const formData = new FormData(solutionForm);
                     await submitSolutionForm(formData);
                 });
-                console.log('âœ“ Solution form listener added');
+                console.log('✓ Solution form listener added');
             }
             
             // Publication form submission
@@ -7777,7 +7777,7 @@ ${contact.message}
                     const formData = new FormData(publicationForm);
                     await submitPublicationForm(formData);
                 });
-                console.log('âœ“ Publication form listener added');
+                console.log('✓ Publication form listener added');
             }
             
             // Repository form submission
@@ -7799,7 +7799,7 @@ ${contact.message}
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = isEditing ? '<i class="fas fa-save"></i> Update Repository Item' : '<i class="fas fa-save"></i> Create Repository Item';
                 });
-                console.log('âœ“ Repository form listener added');
+                console.log('✓ Repository form listener added');
             }
             
             // Team member form submission
@@ -7811,7 +7811,7 @@ ${contact.message}
                     const formData = new FormData(teamMemberForm);
                     await submitTeamMemberForm(formData);
                 });
-                console.log('âœ“ Team member form listener added');
+                console.log('✓ Team member form listener added');
             }
             
             // Testimonial form submission
@@ -7823,7 +7823,7 @@ ${contact.message}
                     const formData = new FormData(testimonialForm);
                     await submitTestimonialForm(formData);
                 });
-                console.log('âœ“ Testimonial form listener added');
+                console.log('✓ Testimonial form listener added');
             }
             
             // User form submission
@@ -7835,7 +7835,7 @@ ${contact.message}
                     const formData = new FormData(userForm);
                     await submitUserForm(formData);
                 });
-                console.log('âœ“ User form listener added');
+                console.log('✓ User form listener added');
             }
             
             // Carousel form submission (if exists)
@@ -7848,7 +7848,7 @@ ${contact.message}
                     // Add carousel submission handler when available
                     console.log('Carousel form submission - handler needed');
                 });
-                console.log('âœ“ Carousel form listener added');
+                console.log('✓ Carousel form listener added');
             }
             
             console.log('Form event listeners setup completed!');
@@ -7995,7 +7995,7 @@ ${contact.message}
                 const descField = document.getElementById('repositoryDescription');
                 if (descField && (!descField.value || descField.value.trim() === '')) {
                     descField.value = repoDetails.description || `${repoInfo.repo} - A GitHub repository`;
-                    console.log('âœ“ Description filled:', descField.value);
+                    console.log('✓ Description filled:', descField.value);
                 }
                 
                 // Auto-fill technical stack from languages
@@ -8021,7 +8021,7 @@ ${contact.message}
                 statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
                 statusDiv.style.border = '1px solid var(--success)';
                 statusDiv.style.color = 'var(--success)';
-                statusDiv.innerHTML = `<i class=\"fas fa-check-circle\"></i> Repository details fetched successfully! (â˜…${repoDetails.stars} | ${repoDetails.languages.length ? repoDetails.languages[0] : 'Unknown'})`;
+                statusDiv.innerHTML = `<i class=\"fas fa-check-circle\"></i> Repository details fetched successfully! (★${repoDetails.stars} | ${repoDetails.languages.length ? repoDetails.languages[0] : 'Unknown'})`;
                 
                 // Hide success message after 5 seconds
                 setTimeout(() => {
@@ -8105,7 +8105,7 @@ ${contact.message}
             // Mark as initialized
             githubUrlInput.dataset.autoFetchInitialized = 'true';
             
-            console.log('âœ“ GitHub auto-fetch listener attached for both free and premium repos');
+            console.log('✓ GitHub auto-fetch listener attached for both free and premium repos');
         }
         
         // ============================================
@@ -8350,15 +8350,15 @@ ${contact.message}
                 return;
             }
             
-            console.log('🔄 Setting up AdminSync listeners...');
+            console.log('?? Setting up AdminSync listeners...');
             
             // Listen for product updates
             window.AdminSync.on('product_updated', async (message) => {
-                console.log('🔄 Product updated in another tab, refreshing...', message);
+                console.log('?? Product updated in another tab, refreshing...', message);
                 try {
                     if (typeof loadProducts === 'function') {
                         await loadProducts();
-                        console.log('✅ Products refreshed');
+                        console.log('? Products refreshed');
                     }
                     // Also refresh navigation and dropdowns
                     if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
@@ -8374,11 +8374,11 @@ ${contact.message}
             
             // Listen for solution updates
             window.AdminSync.on('solution_updated', async (message) => {
-                console.log('🔄 Solution updated in another tab, refreshing...', message);
+                console.log('?? Solution updated in another tab, refreshing...', message);
                 try {
                     if (typeof loadSolutions === 'function') {
                         await loadSolutions();
-                        console.log('✅ Solutions refreshed');
+                        console.log('? Solutions refreshed');
                     }
                     // Also refresh navigation and dropdowns
                     if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
@@ -8394,11 +8394,11 @@ ${contact.message}
             
             // Listen for publication updates
             window.AdminSync.on('publication_updated', async (message) => {
-                console.log('🔄 Publication updated in another tab, refreshing...', message);
+                console.log('?? Publication updated in another tab, refreshing...', message);
                 try {
                     if (typeof loadPublications === 'function') {
                         await loadPublications();
-                        console.log('✅ Publications refreshed');
+                        console.log('? Publications refreshed');
                     }
                     // Also refresh navigation
                     if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
@@ -8414,11 +8414,11 @@ ${contact.message}
             
             // Listen for repository updates
             window.AdminSync.on('repository_updated', async (message) => {
-                console.log('🔄 Repository updated in another tab, refreshing...', message);
+                console.log('?? Repository updated in another tab, refreshing...', message);
                 try {
                     if (typeof loadRepository === 'function') {
                         await loadRepository();
-                        console.log('✅ Repository refreshed');
+                        console.log('? Repository refreshed');
                     }
                     if (typeof loadRepositoriesForDropdown === 'function') {
                         await loadRepositoriesForDropdown();
@@ -8437,11 +8437,11 @@ ${contact.message}
             
             // Listen for contact updates
             window.AdminSync.on('contact_updated', async (message) => {
-                console.log('🔄 Contact updated in another tab, refreshing...', message);
+                console.log('?? Contact updated in another tab, refreshing...', message);
                 try {
                     if (typeof loadContacts === 'function') {
                         await loadContacts();
-                        console.log('✅ Contacts refreshed');
+                        console.log('? Contacts refreshed');
                     }
                     // Show subtle notification
                     showNotification('Contacts updated', 'info', 2000);
@@ -8450,8 +8450,8 @@ ${contact.message}
                 }
             });
             
-            console.log('✅ AdminSync listeners registered successfully');
-            console.log('📝 Available functions:', {
+            console.log('? AdminSync listeners registered successfully');
+            console.log('?? Available functions:', {
                 loadProducts: typeof loadProducts,
                 loadSolutions: typeof loadSolutions,
                 loadPublications: typeof loadPublications,

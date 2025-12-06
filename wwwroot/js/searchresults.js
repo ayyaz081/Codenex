@@ -1,4 +1,4 @@
-﻿// Determine backend base URL similar to shared-components
+// Determine backend base URL similar to shared-components
         const getBackendBaseUrl = () => {
             // Check if PortfolioConfig is loaded
             if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {

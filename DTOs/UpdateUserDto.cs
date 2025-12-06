@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Neelsol.DTOs
+namespace Codenex.DTOs
 {
     public class UpdateUserDto : IValidatableObject
     {

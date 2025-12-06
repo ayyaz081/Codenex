@@ -1,6 +1,6 @@
 using Octokit;
 
-namespace Neelsol.Services
+namespace Codenex.Services
 {
     public class GitHubService : IGitHubService
     {
@@ -18,7 +18,7 @@ namespace Neelsol.Services
             
             _organizationName = Environment.GetEnvironmentVariable("GITHUB_ORGANIZATION_NAME") ??
                               configuration["GitHub:OrganizationName"] ??
-                              "neelsoltechnologies";
+                              "codenexsolutions";
 
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -26,7 +26,7 @@ namespace Neelsol.Services
             }
 
             // Initialize GitHub client
-            _githubClient = new GitHubClient(new ProductHeaderValue("Neelsol-App"))
+            _githubClient = new GitHubClient(new ProductHeaderValue("CODENEX-App"))
             {
                 Credentials = new Credentials(accessToken)
             };

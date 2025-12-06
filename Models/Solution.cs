@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Neelsol.Models
+namespace Codenex.Models
 {
     public class Solution
     {

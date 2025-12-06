@@ -1,7 +1,7 @@
-using Neelsol.Models;
+using Codenex.Models;
 using System.Text.Json;
 
-namespace Neelsol.Services
+namespace Codenex.Services
 {
     public interface ICaptchaService
     {

@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Neelsol.DTOs;
-using Neelsol.Models;
-using Neelsol.Services;
+using Codenex.DTOs;
+using Codenex.Models;
+using Codenex.Services;
 using System.Security.Claims;
 
-namespace Neelsol.Controllers
+namespace Codenex.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -20,7 +20,7 @@ namespace Neelsol.Controllers
         private readonly IEmailService _emailService;
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly Neelsol.Data.AppDbContext _context;
+        private readonly Codenex.Data.AppDbContext _context;
 
         public AuthController(
             UserManager<User> userManager,
@@ -29,7 +29,7 @@ namespace Neelsol.Controllers
             IEmailService emailService,
             ILogger<AuthController> logger,
             IConfiguration configuration,
-            Neelsol.Data.AppDbContext context)
+            Codenex.Data.AppDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;

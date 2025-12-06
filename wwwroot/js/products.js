@@ -1,4 +1,4 @@
-﻿// Backend URL configuration - use HTTP on localhost:7150
+// Backend URL configuration - use HTTP on localhost:7150
         const getBackendBaseUrl = () => {
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 return 'http://localhost:7150';
@@ -139,7 +139,7 @@
                 const trimmed = line.trim();
                 if (trimmed.length > 10 && trimmed.length < 100) {
                     // Look for feature-like phrases
-                    if (trimmed.match(/^(\d+\.|â€¢|-|\*|Features?:|Benefits?:|Includes?:)/i) || 
+                    if (trimmed.match(/^(\d+\.|•|-|\*|Features?:|Benefits?:|Includes?:)/i) || 
                         trimmed.includes('support') || 
                         trimmed.includes('design') ||
                         trimmed.includes('manage') ||
@@ -148,7 +148,7 @@
                         trimmed.includes('secure') ||
                         trimmed.includes('responsive') ||
                         trimmed.includes('real-time')) {
-                        features.push(trimmed.replace(/^(\d+\.|â€¢|-|\*|Features?:|Benefits?:|Includes?:)\s*/i, ''));
+                        features.push(trimmed.replace(/^(\d+\.|•|-|\*|Features?:|Benefits?:|Includes?:)\s*/i, ''));
                         if (features.length >= 4) break;
                     }
                 }
@@ -542,7 +542,7 @@
                         <ul style="list-style: none; margin-bottom: 20px;">
                             ${keyFeatures.map(feature => 
                                 `<li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-light);">
-                                    <span style="color: var(--success); font-weight: bold;">âœ“</span>
+                                    <span style="color: var(--success); font-weight: bold;">✓</span>
                                     ${feature}
                                 </li>`
                             ).join('')}
@@ -732,13 +732,13 @@
             // Set up AdminSync listeners for real-time updates
             if (window.AdminSync) {
                 window.AdminSync.on('product_updated', async () => {
-                    console.log('🔄 Product updated in another tab/admin, reloading...');
+                    console.log('?? Product updated in another tab/admin, reloading...');
                     await loadProducts();
                     if (typeof showNotification === 'function') {
                         showNotification('Product list updated', 'info', 2000);
                     }
                 });
-                console.log('✅ AdminSync listener registered for product updates');
+                console.log('? AdminSync listener registered for product updates');
             }
         });
         
@@ -944,15 +944,15 @@
         function getMetaForItem(item) {
             switch(item.type) {
                 case 'product':
-                    return `Product â€¢ ${item.domain || 'Software'}`;
+                    return `Product • ${item.domain || 'Software'}`;
                 case 'publication':
-                    return `Publication â€¢ ${item.publishDate ? new Date(item.publishDate).getFullYear() : ''}`;
+                    return `Publication • ${item.publishDate ? new Date(item.publishDate).getFullYear() : ''}`;
                 case 'solution':
-                    return `Solution â€¢ ${item.category || 'Business'}`;
+                    return `Solution • ${item.category || 'Business'}`;
                 case 'repository':
-                    return `Repository â€¢ ${item.language || 'Code'}`;
+                    return `Repository • ${item.language || 'Code'}`;
                 case 'page':
-                    return `Page â€¢ ${item.section || 'Content'}`;
+                    return `Page • ${item.section || 'Content'}`;
                 default:
                     return item.description || '';
             }

@@ -1,4 +1,4 @@
-namespace Neelsol.Models
+namespace Codenex.Models
 {
     public class JwtSettings
     {

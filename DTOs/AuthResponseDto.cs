@@ -1,4 +1,4 @@
-namespace Neelsol.DTOs
+namespace Codenex.DTOs
 {
     public class AuthResponseDto
     {

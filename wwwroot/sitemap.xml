@@ -6,7 +6,7 @@
   
   <!-- Homepage -->
   <url>
-    <loc>https://neelsol.com/</loc>
+    <loc>https://codenex.com/</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
   
   <!-- About Page -->
   <url>
-    <loc>https://neelsol.com/About</loc>
+    <loc>https://codenex.com/About</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -22,7 +22,7 @@
   
   <!-- Contact Page -->
   <url>
-    <loc>https://neelsol.com/Contact</loc>
+    <loc>https://codenex.com/Contact</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -30,7 +30,7 @@
   
   <!-- Products Page -->
   <url>
-    <loc>https://neelsol.com/Products</loc>
+    <loc>https://codenex.com/Products</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -38,7 +38,7 @@
   
   <!-- Solutions Page -->
   <url>
-    <loc>https://neelsol.com/solutions</loc>
+    <loc>https://codenex.com/solutions</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -46,7 +46,7 @@
   
   <!-- Publications Page -->
   <url>
-    <loc>https://neelsol.com/Publications</loc>
+    <loc>https://codenex.com/Publications</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -54,7 +54,7 @@
   
   <!-- Repository Page -->
   <url>
-    <loc>https://neelsol.com/Repository</loc>
+    <loc>https://codenex.com/Repository</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -62,7 +62,7 @@
   
   <!-- Privacy Policy -->
   <url>
-    <loc>https://neelsol.com/Privacy-Policy</loc>
+    <loc>https://codenex.com/Privacy-Policy</loc>
     <lastmod>2025-11-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>

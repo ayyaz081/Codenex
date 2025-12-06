@@ -1,4 +1,4 @@
-﻿// Backend API Configuration
+// Backend API Configuration
         function getBackendBaseUrl() {
             // Check if PortfolioConfig is loaded
             if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
@@ -175,10 +175,10 @@
                 }
                 
                 const icons = {
-                    success: 'âœ…',
-                    error: 'âŒ',
-                    warning: 'âš ï¸',
-                    info: 'â„¹ï¸'
+                    success: '✅',
+                    error: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
                 };
                 
                 alert(`${icons[type] || icons.info} ${message}`);
@@ -1188,11 +1188,11 @@
             // Set up AdminSync listeners for real-time updates
             if (window.AdminSync) {
                 window.AdminSync.on('repository_updated', async () => {
-                    console.log('🔄 Repository updated in another tab/admin, reloading...');
+                    console.log('?? Repository updated in another tab/admin, reloading...');
                     await loadRepositories();
                     showNotification('Repository list updated', 'info', 2000);
                 });
-                console.log('✅ AdminSync listener registered for repository updates');
+                console.log('? AdminSync listener registered for repository updates');
             }
             
             // Global search is handled by shared components

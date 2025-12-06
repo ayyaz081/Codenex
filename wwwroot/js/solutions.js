@@ -1,4 +1,4 @@
-﻿// Get backend base URL with proper protocol detection
+// Get backend base URL with proper protocol detection
         const getBackendBaseUrl = () => {
             // Check if PortfolioConfig is loaded
             if (typeof PortfolioConfig !== 'undefined' && PortfolioConfig.api && PortfolioConfig.api.getBaseUrl) {
@@ -492,7 +492,7 @@
                         <ul style="list-style: none; margin-bottom: 20px;">
                             ${solution.keyFeatures.split(',').map(feature => 
                                 `<li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-light);">
-                                    <span style="color: var(--success); font-weight: bold;">âœ“</span>
+                                    <span style="color: var(--success); font-weight: bold;">✓</span>
                                     ${feature.trim()}
                                 </li>`
                             ).join('')}
@@ -944,13 +944,13 @@
             // Set up AdminSync listeners for real-time updates
             if (window.AdminSync) {
                 window.AdminSync.on('solution_updated', async () => {
-                    console.log('🔄 Solution updated in another tab/admin, reloading...');
+                    console.log('?? Solution updated in another tab/admin, reloading...');
                     await loadSolutions();
                     if (typeof showNotification === 'function') {
                         showNotification('Solution list updated', 'info', 2000);
                     }
                 });
-                console.log('✅ AdminSync listener registered for solution updates');
+                console.log('? AdminSync listener registered for solution updates');
             }
         });
         

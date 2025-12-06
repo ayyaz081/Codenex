@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Neelsol.Models;
+using Codenex.Models;
 
-namespace Neelsol.Data
+namespace Codenex.Data
 {
     public class AppDbContext : IdentityDbContext<User>
     {

@@ -5,10 +5,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Neelsol.Data;
-using Neelsol.Models;
-using Neelsol.Services;
-using Neelsol.Controllers;
+using Codenex.Data;
+using Codenex.Models;
+using Codenex.Services;
+using Codenex.Controllers;
 using System.Security.Claims;
 using System.Text;
 using DotNetEnv;
@@ -134,7 +134,7 @@ builder.Services.AddCors(options =>
             // Production - read allowed origins from environment (comma-separated)
             var corsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS") ?? 
                              builder.Configuration["CorsOrigins"] ??
-                             "https://neelsol.com,https://www.neelsol.com";
+                             "https://Codenex.com,https://www.Codenex.com";
             
             var origins = corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             
@@ -184,9 +184,9 @@ var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ??
              builder.Configuration["Jwt:Key"] ?? 
              throw new InvalidOperationException("JWT_KEY must be configured in environment variables or appsettings");
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
-                builder.Configuration["Jwt:Issuer"] ?? "NeelsolAPI";
+                builder.Configuration["Jwt:Issuer"] ?? "CODENEXAPI";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
-                  builder.Configuration["Jwt:Audience"] ?? "NeelsolAPI";
+                  builder.Configuration["Jwt:Audience"] ?? "CODENEXAPI";
 var jwtExpiryHoursStr = Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS") ?? 
                          builder.Configuration["Jwt:ExpiryHours"];
 var jwtExpiryHours = !string.IsNullOrEmpty(jwtExpiryHoursStr) && int.TryParse(jwtExpiryHoursStr, out var hours) ? hours : 24;
@@ -280,7 +280,7 @@ builder.Services.AddHttpClient<ICaptchaService, CaptchaService>();
 builder.Services.AddHttpClient<RepositoryController>(client =>
 {
     client.Timeout = TimeSpan.FromMinutes(5);
-    client.DefaultRequestHeaders.Add("User-Agent", "Neelsol-App/1.0");
+    client.DefaultRequestHeaders.Add("User-Agent", "CODENEX-App/1.0");
 });
 
 builder.Services.AddHttpClient();

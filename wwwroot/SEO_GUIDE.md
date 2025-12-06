@@ -1,4 +1,4 @@
-# SEO Implementation Guide - Neelsol Technologies
+# SEO Implementation Guide - Codenex Solutions
 
 ## ✅ What's Been Implemented
 
@@ -49,8 +49,8 @@ JSON-LD markup for:
 ```json
 {
   "@type": "Organization",
-  "name": "Neelsol Technologies",
-  "url": "https://neelsol.com",
+  "name": "Codenex Solutions",
+  "url": "https://Codenex.com",
   "logo": "...",
   "foundingDate": "2020",
   "contactPoint": {...}
@@ -61,7 +61,7 @@ JSON-LD markup for:
 ```json
 {
   "@type": "WebSite",
-  "name": "Neelsol Technologies",
+  "name": "Codenex Solutions",
   "potentialAction": {
     "@type": "SearchAction"
   }
@@ -110,8 +110,8 @@ Use the template from `meta-tags-template.html` and customize:
 ### Step 2: Page-Specific Tips
 
 #### Contact Page
-- Title: "Contact Us - Get IT Solutions Quote | Neelsol Technologies"
-- Description: "Contact Neelsol Technologies for cloud migration, cybersecurity, and IT consulting. Get a free consultation and transform your business today."
+- Title: "Contact Us - Get IT Solutions Quote | Codenex Solutions"
+- Description: "Contact Codenex Solutions for cloud migration, cybersecurity, and IT consulting. Get a free consultation and transform your business today."
 - Schema: Add LocalBusiness or ContactPage schema
 
 #### Products/Services Pages
@@ -130,16 +130,16 @@ Use the template from `meta-tags-template.html` and customize:
 
 ### Google Search Console
 1. Go to: https://search.google.com/search-console
-2. Add property: `https://neelsol.com`
+2. Add property: `https://Codenex.com`
 3. Verify ownership (HTML file or DNS)
-4. Submit sitemap: `https://neelsol.com/sitemap.xml`
+4. Submit sitemap: `https://Codenex.com/sitemap.xml`
 5. Request indexing for key pages
 
 ### Bing Webmaster Tools
 1. Go to: https://www.bing.com/webmasters
-2. Add site: `https://neelsol.com`
+2. Add site: `https://Codenex.com`
 3. Verify ownership
-4. Submit sitemap: `https://neelsol.com/sitemap.xml`
+4. Submit sitemap: `https://Codenex.com/sitemap.xml`
 
 ### Testing Tools
 - **Google Rich Results Test**: https://search.google.com/test/rich-results

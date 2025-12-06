@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Neelsol.Migrations
+namespace Codenex.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

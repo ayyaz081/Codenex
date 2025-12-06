@@ -4,7 +4,7 @@
  */
 class AdminSync {
     constructor() {
-        this.channelName = 'neelsol_admin_sync';
+        this.channelName = 'CODENEX_admin_sync';
         this.listeners = new Map();
         this.useBroadcastChannel = typeof BroadcastChannel !== 'undefined';
         

@@ -1,5 +1,5 @@
-# robots.txt for Neelsol Technologies
-# https://neelsol.com
+# robots.txt for Codenex Solutions
+# https://codenex.com
 
 User-agent: *
 Allow: /
@@ -20,7 +20,7 @@ Allow: /Repository
 Allow: /Privacy-Policy
 
 # Sitemaps
-Sitemap: https://neelsol.com/sitemap.xml
+Sitemap: https://codenex.com/sitemap.xml
 
 # Crawl-delay (optional, in seconds)
 Crawl-delay: 1

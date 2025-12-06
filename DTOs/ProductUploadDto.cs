@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace Neelsol.DTOs
+namespace Codenex.DTOs
 {
     public class ProductUploadDto
     {

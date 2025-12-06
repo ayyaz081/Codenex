@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Neelsol.Services;
+using Codenex.Services;
 
-namespace Neelsol.Controllers
+namespace Codenex.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

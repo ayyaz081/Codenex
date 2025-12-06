@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
-namespace Neelsol.Models
+namespace Codenex.Models
 {
     [Index(nameof(DisplayOrder))]
     [Index(nameof(IsActive))]

@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Neelsol.Data;
-using Neelsol.DTOs;
-using Neelsol.Models;
+using Codenex.Data;
+using Codenex.DTOs;
+using Codenex.Models;
 using System.Security.Claims;
 
-namespace Neelsol.Controllers
+namespace Codenex.Controllers
 {
     [Route("api/ratings")]
     [ApiController]

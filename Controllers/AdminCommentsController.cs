@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Neelsol.Data;
-using Neelsol.Models;
+using Codenex.Data;
+using Codenex.Models;
 using System.Security.Claims;
 
-namespace Neelsol.Controllers
+namespace Codenex.Controllers
 {
     [Route("api/admin/comments")]
     [ApiController]

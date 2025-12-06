@@ -2,9 +2,9 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Neelsol.Models;
+using Codenex.Models;
 
-namespace Neelsol.Services
+namespace Codenex.Services
 {
     public class EmailService : IEmailService
     {
@@ -19,7 +19,7 @@ namespace Neelsol.Services
 
         public async Task<bool> SendEmailVerificationAsync(string email, string firstName, string verificationUrl)
         {
-            var subject = "Verify Your Email - Neelsol Technologies";
+            var subject = "Verify Your Email - Codenex Solutions";
             var htmlContent = GetEmailVerificationTemplate(firstName, verificationUrl);
             
             return await SendEmailAsync(email, subject, htmlContent);
@@ -27,7 +27,7 @@ namespace Neelsol.Services
 
         public async Task<bool> SendPasswordResetAsync(string email, string firstName, string resetUrl)
         {
-            var subject = "Reset Your Password - Neelsol Technologies";
+            var subject = "Reset Your Password - Codenex Solutions";
             var htmlContent = GetPasswordResetTemplate(firstName, resetUrl);
             
             return await SendEmailAsync(email, subject, htmlContent);
@@ -96,7 +96,7 @@ namespace Neelsol.Services
                 <body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
                     <div style='background-color: #f8f9fa; padding: 30px; border-radius: 10px;'>
                         <h2 style='color: #333; text-align: center; margin-bottom: 30px;'>
-                            Welcome to Neelsol Technologies!
+                            Welcome to Codenex Solutions!
                         </h2>
                         
                         <p style='color: #555; font-size: 16px; line-height: 1.6;'>
@@ -104,7 +104,7 @@ namespace Neelsol.Services
                         </p>
                         
                         <p style='color: #555; font-size: 16px; line-height: 1.6;'>
-                            Thank you for registering with Neelsol Technologies! To complete your registration,
+                            Thank you for registering with Codenex Solutions! To complete your registration,
                             please verify your email address by clicking the button below:
                         </p>
                         
@@ -132,7 +132,7 @@ namespace Neelsol.Services
                         <hr style='margin: 30px 0; border: none; border-top: 1px solid #ddd;'>
                         
                         <p style='color: #999; font-size: 12px; text-align: center;'>
-                            This email was sent by Neelsol Technologies. Please do not reply to this email.
+                            This email was sent by Codenex Solutions. Please do not reply to this email.
                         </p>
                     </div>
                 </body>
@@ -154,7 +154,7 @@ namespace Neelsol.Services
                         </p>
                         
                         <p style='color: #555; font-size: 16px; line-height: 1.6;'>
-                            You requested to reset your password for your Neelsol Technologies account.
+                            You requested to reset your password for your Codenex Solutions account.
                             Click the button below to reset your password:
                         </p>
                         
@@ -187,7 +187,7 @@ namespace Neelsol.Services
                         <hr style='margin: 30px 0; border: none; border-top: 1px solid #ddd;'>
                         
                         <p style='color: #999; font-size: 12px; text-align: center;'>
-                            This email was sent by Neelsol Technologies. Please do not reply to this email.
+                            This email was sent by Codenex Solutions. Please do not reply to this email.
                         </p>
                     </div>
                 </body>
@@ -263,7 +263,7 @@ namespace Neelsol.Services
                         <hr style='margin: 30px 0; border: none; border-top: 1px solid #ddd;'>
                         
                         <p style='color: #999; font-size: 12px; text-align: center; margin: 0;'>
-                            This notification was sent by the Neelsol Technologies contact form system.<br>
+                            This notification was sent by the Codenex Solutions contact form system.<br>
                             Visit your <a href='#' style='color: #007bff;'>admin dashboard</a> to manage all contact submissions.
                         </p>
                     </div>

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Neelsol.Models
+namespace Codenex.Models
 {
     /// <summary>
     /// Response model from Google reCAPTCHA verification API

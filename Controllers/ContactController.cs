@@ -2,13 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Neelsol.Data;
-using Neelsol.Models;
-using Neelsol.DTOs;
-using Neelsol.Services;
+using Codenex.Data;
+using Codenex.Models;
+using Codenex.DTOs;
+using Codenex.Services;
 using Microsoft.Extensions.Options;
 
-namespace Neelsol.Controllers
+namespace Codenex.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -388,7 +388,7 @@ namespace Neelsol.Controllers
                         Name = "Sarah Johnson",
                         Email = "sarah.j@innovatetech.com",
                         Subject = "Partnership Opportunity",
-                        Message = "Dear Neelsol Technologies,\n\nI represent InnovateTech, and we're looking for strategic partners to collaborate on upcoming projects. Your portfolio shows impressive work in cloud solutions and AI implementation.\n\nWould you be interested in discussing a potential partnership? I'd love to schedule a call at your convenience.\n\nBest regards,\nSarah Johnson\nBusiness Development Manager",
+                        Message = "Dear Codenex Solutions,\n\nI represent InnovateTech, and we're looking for strategic partners to collaborate on upcoming projects. Your portfolio shows impressive work in cloud solutions and AI implementation.\n\nWould you be interested in discussing a potential partnership? I'd love to schedule a call at your convenience.\n\nBest regards,\nSarah Johnson\nBusiness Development Manager",
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         UpdatedAt = DateTime.UtcNow.AddDays(-3),
                         IsRead = true,
@@ -411,7 +411,7 @@ namespace Neelsol.Controllers
                         Name = "Emily Rodriguez",
                         Email = "emily.rodriguez@healthcare-plus.com",
                         Subject = "Healthcare Data Analytics Solution",
-                        Message = "Hello Neelsol Team,\n\nWe are a healthcare provider looking for a data analytics solution to help us better understand patient outcomes and optimize our operations.\n\nWe've seen your work in the healthcare domain and would like to know if you can develop a custom analytics dashboard for our needs.\n\nPlease let me know if you'd like to schedule a consultation.\n\nBest,\nEmily Rodriguez\nIT Director, HealthcarePlus",
+                        Message = "Hello CODENEX Team,\n\nWe are a healthcare provider looking for a data analytics solution to help us better understand patient outcomes and optimize our operations.\n\nWe've seen your work in the healthcare domain and would like to know if you can develop a custom analytics dashboard for our needs.\n\nPlease let me know if you'd like to schedule a consultation.\n\nBest,\nEmily Rodriguez\nIT Director, HealthcarePlus",
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         UpdatedAt = DateTime.UtcNow.AddDays(-1),
                         IsRead = true,
@@ -456,7 +456,7 @@ namespace Neelsol.Controllers
                         Name = "Amanda Foster",
                         Email = "amanda@creativestudio.design",
                         Subject = "Portfolio Website Redesign",
-                        Message = "Hi Neelsol,\n\nI run a creative design studio and we need a complete redesign of our portfolio website. We want something modern, visually striking, and fast-loading.\n\nKey requirements:\n- Showcase our design work effectively\n- Easy content management\n- SEO optimization\n- Mobile-first design\n\nWhat's your process for website redesigns?\n\nThanks!\nAmanda Foster\nCreative Director",
+                        Message = "Hi CODENEX,\n\nI run a creative design studio and we need a complete redesign of our portfolio website. We want something modern, visually striking, and fast-loading.\n\nKey requirements:\n- Showcase our design work effectively\n- Easy content management\n- SEO optimization\n- Mobile-first design\n\nWhat's your process for website redesigns?\n\nThanks!\nAmanda Foster\nCreative Director",
                         CreatedAt = DateTime.UtcNow.AddHours(-6),
                         UpdatedAt = DateTime.UtcNow.AddHours(-6),
                         IsRead = false,
@@ -467,7 +467,7 @@ namespace Neelsol.Controllers
                         Name = "James Parker",
                         Email = "james.parker@consulting.com",
                         Subject = "Cloud Migration Services",
-                        Message = "Dear Neelsol Technologies,\n\nOur consulting firm is looking to migrate our entire infrastructure to the cloud. We currently have on-premise servers hosting various applications and databases.\n\nWe need help with:\n- Migration planning and strategy\n- AWS/Azure setup and configuration\n- Data migration with minimal downtime\n- Staff training on new systems\n- Ongoing support and maintenance\n\nCan you provide a comprehensive migration proposal?\n\nRegards,\nJames Parker\nIT Consultant",
+                        Message = "Dear Codenex Solutions,\n\nOur consulting firm is looking to migrate our entire infrastructure to the cloud. We currently have on-premise servers hosting various applications and databases.\n\nWe need help with:\n- Migration planning and strategy\n- AWS/Azure setup and configuration\n- Data migration with minimal downtime\n- Staff training on new systems\n- Ongoing support and maintenance\n\nCan you provide a comprehensive migration proposal?\n\nRegards,\nJames Parker\nIT Consultant",
                         CreatedAt = DateTime.UtcNow.AddHours(-2),
                         UpdatedAt = DateTime.UtcNow.AddHours(-2),
                         IsRead = false,

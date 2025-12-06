@@ -1,4 +1,4 @@
-﻿// Backend URL configuration - use HTTP on localhost:7150
+// Backend URL configuration - use HTTP on localhost:7150
         const getBackendBaseUrl = () => {
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 return 'http://localhost:7150';
@@ -164,10 +164,10 @@
                 }
                 
                 const icons = {
-                    success: 'âœ…',
-                    error: 'âŒ',
-                    warning: 'âš ï¸',
-                    info: 'â„¹ï¸'
+                    success: '✅',
+                    error: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
                 };
                 
                 alert(`${icons[type] || icons.info} ${message}`);
@@ -1995,13 +1995,13 @@
             // Set up AdminSync listeners for real-time updates
             if (window.AdminSync) {
                 window.AdminSync.on('publication_updated', async () => {
-                    console.log('🔄 Publication updated in another tab/admin, reloading...');
+                    console.log('?? Publication updated in another tab/admin, reloading...');
                     await loadPublications();
                     if (typeof showNotification === 'function') {
                         showNotification('Publication list updated', 'info', 2000);
                     }
                 });
-                console.log('✅ AdminSync listener registered for publication updates');
+                console.log('? AdminSync listener registered for publication updates');
             }
         });
         // Store comments data for each publication
