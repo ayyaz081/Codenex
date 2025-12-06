@@ -17,6 +17,8 @@ namespace Neelsol.DTOs
         [Required, StringLength(100)]
         public string Domain { get; set; } = string.Empty;
 
+        public int? RepositoryId { get; set; }
+
         public IFormFile? Image { get; set; } // Nullable for optional updates
     }
 }

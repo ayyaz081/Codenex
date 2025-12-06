@@ -18,5 +18,7 @@ namespace Neelsol.Models
 
         [StringLength(255)]
         public string? DemoImageUrl { get; set; }
+
+        public int? RepositoryId { get; set; }
     }
 }

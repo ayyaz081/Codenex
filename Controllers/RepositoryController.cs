@@ -27,13 +27,11 @@ namespace Neelsol.Controllers
 
         // GET: api/repository
         [HttpGet]
-        [ResponseCache(Duration = 60)]
         public async Task<ActionResult<IEnumerable<Repository>>> GetRepositories()
         {
             try
             {
                 return await _context.Repositories
-                    .Include(r => r.Product)
                     .Where(r => r.IsActive)
                     .OrderByDescending(r => r.CreatedAt)
                     .AsNoTracking()
@@ -48,13 +46,11 @@ namespace Neelsol.Controllers
 
         // GET: api/repository/5
         [HttpGet("{id:int}")]
-        [ResponseCache(Duration = 120)]
         public async Task<ActionResult<Repository>> GetRepository([FromRoute] int id)
         {
             try
             {
                 var repository = await _context.Repositories
-                    .Include(r => r.Product)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(r => r.Id == id && r.IsActive);
 
@@ -80,13 +76,11 @@ namespace Neelsol.Controllers
 
         // GET: api/repository/category/{category}
         [HttpGet("category/{category}")]
-        [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "category" })]
         public async Task<ActionResult<IEnumerable<Repository>>> GetByCategory([FromRoute] string category)
         {
             try
             {
                 return await _context.Repositories
-                    .Include(r => r.Product)
                     .Where(r => r.Category == category && r.IsActive)
                     .OrderByDescending(r => r.CreatedAt)
                     .AsNoTracking()
@@ -101,13 +95,11 @@ namespace Neelsol.Controllers
 
         // GET: api/repository/free
         [HttpGet("free")]
-        [ResponseCache(Duration = 60)]
         public async Task<ActionResult<IEnumerable<Repository>>> GetFreeRepositories()
         {
             try
             {
                 return await _context.Repositories
-                    .Include(r => r.Product)
                     .Where(r => r.IsFree && r.IsActive)
                     .OrderByDescending(r => r.DownloadCount)
                     .AsNoTracking()
@@ -122,13 +114,11 @@ namespace Neelsol.Controllers
 
         // GET: api/repository/premium
         [HttpGet("premium")]
-        [ResponseCache(Duration = 60)]
         public async Task<ActionResult<IEnumerable<Repository>>> GetPremiumRepositories()
         {
             try
             {
                 return await _context.Repositories
-                    .Include(r => r.Product)
                     .Where(r => r.IsPremium && r.IsActive)
                     .OrderByDescending(r => r.CreatedAt)
                     .AsNoTracking()
@@ -184,16 +174,6 @@ namespace Neelsol.Controllers
 
             try
             {
-                // Verify product exists if ProductId is provided
-                if (dto.ProductId.HasValue)
-                {
-                    var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId.Value);
-                    if (!productExists)
-                    {
-                        return BadRequest(new { message = "Product not found" });
-                    }
-                }
-
                 var repository = new Repository
                 {
                     Title = dto.Title,
@@ -205,7 +185,6 @@ namespace Neelsol.Controllers
                     TechnicalStack = dto.TechnicalStack ?? string.Empty,
                     Price = dto.Price,
                     GitHubRepoFullName = dto.GitHubRepoFullName,
-                    ProductId = dto.ProductId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsActive = true,
@@ -258,15 +237,6 @@ namespace Neelsol.Controllers
                     existing.GitHubRepoFullName = dto.GitHubRepoFullName;
                 if (dto.IsActive.HasValue)
                     existing.IsActive = dto.IsActive.Value;
-                if (dto.ProductId.HasValue)
-                {
-                    var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId.Value);
-                    if (!productExists)
-                    {
-                        return BadRequest(new { message = "Product not found" });
-                    }
-                    existing.ProductId = dto.ProductId.Value;
-                }
 
                 existing.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
@@ -375,7 +345,6 @@ namespace Neelsol.Controllers
 
         // GET: api/repository/categories
         [HttpGet("categories")]
-        [ResponseCache(Duration = 3600)] // Cache for 1 hour
         public async Task<ActionResult<IEnumerable<string>>> GetCategories()
         {
             try
@@ -398,7 +367,6 @@ namespace Neelsol.Controllers
 
         // GET: api/repository/categories/detailed
         [HttpGet("categories/detailed")]
-        [ResponseCache(Duration = 3600)] // Cache for 1 hour
         public async Task<ActionResult<IEnumerable<object>>> GetCategoriesDetailed()
         {
             try

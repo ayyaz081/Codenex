@@ -233,6 +233,7 @@ namespace Neelsol.Controllers
                     ProblemArea = dto.ProblemArea,
                     DemoImageUrl = demoImageUrl,
                     DemoVideoUrl = dto.DemoVideoUrl,
+                    RepositoryId = dto.RepositoryId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsActive = true
@@ -288,6 +289,9 @@ namespace Neelsol.Controllers
                     
                     if (form.ContainsKey("demoVideoUrl"))
                         existing.DemoVideoUrl = form["demoVideoUrl"].ToString();
+                    
+                    if (form.ContainsKey("repositoryId") && int.TryParse(form["repositoryId"], out int repoId))
+                        existing.RepositoryId = repoId > 0 ? repoId : null;
 
                     // Handle file upload
                     if (form.Files.Any(f => f.Name == "demoImageFile"))
@@ -336,6 +340,8 @@ namespace Neelsol.Controllers
                         existing.DemoVideoUrl = jsonDto.DemoVideoUrl;
                     if (!string.IsNullOrEmpty(jsonDto.DemoImageUrl))
                         existing.DemoImageUrl = jsonDto.DemoImageUrl;
+                    if (jsonDto.RepositoryId.HasValue)
+                        existing.RepositoryId = jsonDto.RepositoryId;
                 }
                 else
                 {

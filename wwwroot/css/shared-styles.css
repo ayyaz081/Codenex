@@ -1564,6 +1564,7 @@ body.mobile-menu-open {
     color: var(--text-light);
     line-height: 1.6;
     margin-bottom: 16px;
+    text-align: justify;
 }
 
 .footer-section ul {

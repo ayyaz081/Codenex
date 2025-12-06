@@ -42,11 +42,5 @@ namespace Neelsol.Models
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-    // Foreign key (optional)
-    public int? ProductId { get; set; }
-
-    // Navigation property
-    public virtual Product? Product { get; set; }
     }
 }

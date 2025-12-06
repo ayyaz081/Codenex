@@ -1989,7 +1989,21 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', loadPublications);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPublications();
+            
+            // Set up AdminSync listeners for real-time updates
+            if (window.AdminSync) {
+                window.AdminSync.on('publication_updated', async () => {
+                    console.log('🔄 Publication updated in another tab/admin, reloading...');
+                    await loadPublications();
+                    if (typeof showNotification === 'function') {
+                        showNotification('Publication list updated', 'info', 2000);
+                    }
+                });
+                console.log('✅ AdminSync listener registered for publication updates');
+            }
+        });
         // Store comments data for each publication
         const publicationComments = {};
         const commentsDisplayLimit = {};

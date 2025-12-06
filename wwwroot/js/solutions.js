@@ -532,16 +532,22 @@
                         </div>
                     </div>
                     
-                    <div style="display: flex; gap: 12px; margin-top: 24px;">
-                        <button class="btn btn-outline" onclick="viewPublications(${solution.id})" style="flex: 1;">
+                    <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+                        ${solution.repositoryId ? `
+                            <button class="btn btn-outline" onclick="viewCodebase(${solution.id})" style="flex: 1; min-width: 140px;">
+                                <i class="fas fa-code"></i>
+                                View Codebase
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-outline" onclick="viewPublications(${solution.id})" style="flex: 1; min-width: 140px;">
                             <i class="fas fa-book"></i>
                             View Publications
                         </button>
-                        <button class="btn btn-primary" onclick="requestSolution(${solution.id})" style="flex: 1;">
+                        <button class="btn btn-primary" onclick="requestSolution(${solution.id})" style="flex: 1; min-width: 140px;">
                             <i class="fas fa-envelope"></i>
                             Request Quote
                         </button>
-                        <button class="btn btn-outline" onclick="scheduleMeeting(${solution.id})" style="flex: 1;">
+                        <button class="btn btn-outline" onclick="scheduleMeeting(${solution.id})" style="flex: 1; min-width: 140px;">
                             <i class="fas fa-calendar"></i>
                             Schedule Meeting
                         </button>
@@ -555,6 +561,12 @@
         // Close modal
         function closeModal() {
             document.getElementById('solution-modal').classList.remove('show');
+        }
+
+        // View codebase for solution
+        function viewCodebase(solutionId) {
+            // Redirect to Repository page filtered by solution
+            window.location.href = `Repository.html?solutionId=${solutionId}`;
         }
 
         // View publications for solution
@@ -928,6 +940,18 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthState();
             loadSolutions();
+            
+            // Set up AdminSync listeners for real-time updates
+            if (window.AdminSync) {
+                window.AdminSync.on('solution_updated', async () => {
+                    console.log('🔄 Solution updated in another tab/admin, reloading...');
+                    await loadSolutions();
+                    if (typeof showNotification === 'function') {
+                        showNotification('Solution list updated', 'info', 2000);
+                    }
+                });
+                console.log('✅ AdminSync listener registered for solution updates');
+            }
         });
         
         // Check auth state on page focus (in case user logged in/out in another tab)

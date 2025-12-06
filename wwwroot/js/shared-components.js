@@ -1022,7 +1022,7 @@ class SharedComponents {
         // Set up auto-refresh every 30 seconds
         this.setupNavigationAutoRefresh();
         
-        // Listen for storage events from other tabs/windows
+        // Listen for storage events from other tabs/windows (for non-admin pages)
         window.addEventListener('storage', (e) => {
             if (e.key === 'navigationDataUpdated') {
                 console.log('🔄 Navigation data updated in another tab, refreshing...');
@@ -1030,6 +1030,21 @@ class SharedComponents {
                 this.loadNavigationData();
             }
         });
+        
+        // Listen for AdminSync events (for admin-initiated changes)
+        if (window.AdminSync) {
+            console.log('🔄 AdminSync detected, setting up cross-site navigation sync...');
+            
+            // Listen for any content updates that affect navigation
+            const contentTypes = ['product_updated', 'solution_updated', 'publication_updated', 'repository_updated'];
+            contentTypes.forEach(type => {
+                window.AdminSync.on(type, () => {
+                    console.log(`🔄 ${type} - Refreshing navigation dropdowns...`);
+                    sessionStorage.removeItem('navigationData');
+                    this.loadNavigationData();
+                });
+            });
+        }
     }
     
     /**

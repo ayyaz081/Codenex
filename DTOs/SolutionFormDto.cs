@@ -20,6 +20,8 @@ namespace Neelsol.Models
         [StringLength(255)]
         public string? DemoVideoUrl { get; set; }
 
+        public int? RepositoryId { get; set; }
+
         public IFormFile? DemoImageFile { get; set; }
     }
 }

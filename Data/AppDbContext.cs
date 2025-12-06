@@ -119,12 +119,19 @@ namespace Neelsol.Data
                 .HasForeignKey(up => up.PaymentId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete conflicts
 
-            // Configure Product-Repository relationship
-            modelBuilder.Entity<Repository>()
-                .HasOne(r => r.Product)
-                .WithMany(p => p.Repositories)
-                .HasForeignKey(r => r.ProductId)
-                .OnDelete(DeleteBehavior.SetNull); // Preserve repository when product deleted
+            // Configure Product-Repository relationship (Product has optional Repository)
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Repository)
+                .WithMany()
+                .HasForeignKey(p => p.RepositoryId)
+                .OnDelete(DeleteBehavior.SetNull); // Preserve product when repository deleted
+            
+            // Configure Solution-Repository relationship (Solution has optional Repository)
+            modelBuilder.Entity<Solution>()
+                .HasOne(s => s.Repository)
+                .WithMany()
+                .HasForeignKey(s => s.RepositoryId)
+                .OnDelete(DeleteBehavior.SetNull); // Preserve solution when repository deleted
 
             // Configure Solution-Publication relationship
             modelBuilder.Entity<Publication>()

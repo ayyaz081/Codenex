@@ -84,8 +84,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.WriteIndented = false;
     });
 
-// Enable response caching
-builder.Services.AddResponseCaching();
+// Response caching disabled for real-time updates
+// builder.Services.AddResponseCaching();
 
 // Configure DbContext - get connection string from environment first
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? 
@@ -436,7 +436,8 @@ app.Use((context, next) =>
 });
 
 app.UseCors("DefaultCorsPolicy");
-app.UseResponseCaching();
+// Response caching disabled for real-time updates
+// app.UseResponseCaching();
 
 var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 {
@@ -455,15 +456,26 @@ var cleanUrlMappings = new Dictionary<string, string>(StringComparer.OrdinalIgno
 
 app.UseDefaultFiles();
 
+// Add cache-busting middleware for API responses
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        // Disable caching for all API endpoints to ensure fresh data
+        context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, proxy-revalidate";
+        context.Response.Headers["Pragma"] = "no-cache";
+        context.Response.Headers["Expires"] = "0";
+    }
+    await next();
+});
+
 // Configure static files with caching
 var staticFileOptions = new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        // Cache static assets for 1 year (immutable assets)
-        if (ctx.File.Name.EndsWith(".css") || 
-            ctx.File.Name.EndsWith(".js") || 
-            ctx.File.Name.EndsWith(".woff2") || 
+        // Cache static assets for 1 year (immutable assets) - for images, fonts
+        if (ctx.File.Name.EndsWith(".woff2") || 
             ctx.File.Name.EndsWith(".woff") || 
             ctx.File.Name.EndsWith(".ttf") ||
             ctx.File.Name.EndsWith(".jpg") || 
@@ -475,10 +487,17 @@ var staticFileOptions = new StaticFileOptions
         {
             ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=31536000,immutable";
         }
-        // Cache HTML files for shorter duration
+        // Short cache for JS/CSS to allow updates
+        else if (ctx.File.Name.EndsWith(".css") || ctx.File.Name.EndsWith(".js"))
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=300,must-revalidate"; // 5 minutes
+        }
+        // No cache for HTML files to ensure fresh content
         else if (ctx.File.Name.EndsWith(".html"))
         {
-            ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=3600";
+            ctx.Context.Response.Headers["Cache-Control"] = "no-cache,no-store,must-revalidate";
+            ctx.Context.Response.Headers["Pragma"] = "no-cache";
+            ctx.Context.Response.Headers["Expires"] = "0";
         }
     }
 };

@@ -568,8 +568,18 @@
                         </div>
                     </div>
                     
-                    <div style="display: flex; gap: 12px; margin-top: 24px;">
-                        <button class="btn btn-primary" onclick="requestProduct(${product.id})" style="width: 100%;">
+                    <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+                        ${product.repositoryId ? `
+                            <button class="btn btn-outline" onclick="viewCodebase(${product.id})" style="flex: 1; min-width: 150px;">
+                                <i class="fas fa-code"></i>
+                                View Codebase
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-outline" onclick="viewPublications(${product.id})" style="flex: 1; min-width: 150px;">
+                            <i class="fas fa-book"></i>
+                            View Publications
+                        </button>
+                        <button class="btn btn-primary" onclick="requestProduct(${product.id})" style="flex: 1; min-width: 150px;">
                             <i class="fas fa-envelope"></i>
                             Contact Admin
                         </button>
@@ -601,6 +611,12 @@
         function viewCodebase(productId) {
             // Redirect to Repository page filtered by product
             window.location.href = `Repository.html?productId=${productId}`;
+        }
+
+        // View publications for product
+        function viewPublications(productId) {
+            // Redirect to Publications page filtered by product
+            window.location.href = `Publications.html?productId=${productId}`;
         }
 
         // Show error state
@@ -712,6 +728,18 @@
             checkAuthState();
             loadProducts();
             initializeGlobalSearch();
+            
+            // Set up AdminSync listeners for real-time updates
+            if (window.AdminSync) {
+                window.AdminSync.on('product_updated', async () => {
+                    console.log('🔄 Product updated in another tab/admin, reloading...');
+                    await loadProducts();
+                    if (typeof showNotification === 'function') {
+                        showNotification('Product list updated', 'info', 2000);
+                    }
+                });
+                console.log('✅ AdminSync listener registered for product updates');
+            }
         });
         
         // Check auth state on page focus (in case user logged in/out in another tab)

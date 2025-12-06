@@ -493,12 +493,21 @@
             <div class="content-section" id="contacts">
                 <div class="section-header">
                     <h2 class="section-title">Contact Forms</h2>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-warning" onclick="markAllAsRead()">
-                            <i class="fas fa-check"></i> Mark All Read
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-success" onclick="markSelectedAsRead()">
+                            <i class="fas fa-check"></i> Mark Selected Read
+                        </button>
+                        <button class="btn btn-warning" onclick="markSelectedAsUnread()">
+                            <i class="fas fa-undo"></i> Mark Selected Unread
+                        </button>
+                        <button class="btn btn-primary" onclick="markAllAsRead()">
+                            <i class="fas fa-check-double"></i> Mark All Read
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteSelectedContacts()">
+                            <i class="fas fa-trash"></i> Delete Selected
                         </button>
                         <button class="btn btn-danger" onclick="deleteReadContacts()">
-                            <i class="fas fa-trash"></i> Delete Read
+                            <i class="fas fa-trash-alt"></i> Delete All Read
                         </button>
                     </div>
                 </div>
@@ -522,6 +531,7 @@
                 <table class="data-table" id="contactsTable">
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="selectAllContacts" onchange="toggleSelectAllContacts()"></th>
                             <th><i class="fas fa-hashtag table-cell-icon"></i> ID</th>
                             <th><i class="fas fa-user table-cell-icon"></i> Name</th>
                             <th><i class="fas fa-envelope table-cell-icon"></i> Email</th>
@@ -1072,6 +1082,28 @@ list="productDomainList" style="padding-right: 35px;">
                     </small>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Publication (Optional)</label>
+                    <select id="productPublicationId" class="form-control">
+                        <option value="">Select a Publication (Optional)</option>
+                        <!-- Publications will be loaded dynamically -->
+                    </select>
+                    <small class="form-hint">
+                        <i class="fas fa-info-circle" style="color: var(--info);"></i>
+                        Select publication to view or link to this product
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Repository (Optional)</label>
+                    <select name="repositoryId" id="productRepositoryId" class="form-control">
+                        <option value="">Select a Repository (Optional)</option>
+                        <!-- Repositories will be loaded dynamically -->
+                    </select>
+                    <small class="form-hint">
+                        <i class="fas fa-info-circle" style="color: var(--info);"></i>
+                        Optionally link this product to a repository
+                    </small>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Short Description *</label>
                     <textarea name="shortDescription" id="productShortDesc" class="form-control" rows="3" required maxlength="500"></textarea>
                 </div>
@@ -1124,6 +1156,28 @@ list="productDomainList" style="padding-right: 35px;">
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Publication (Optional)</label>
+                    <select id="solutionPublicationId" class="form-control">
+                        <option value="">Select a Publication (Optional)</option>
+                        <!-- Publications will be loaded dynamically -->
+                    </select>
+                    <small class="form-hint">
+                        <i class="fas fa-info-circle" style="color: var(--info);"></i>
+                        Select publication to view or link to this solution
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Repository (Optional)</label>
+                    <select name="repositoryId" id="solutionRepositoryId" class="form-control">
+                        <option value="">Select a Repository (Optional)</option>
+                        <!-- Repositories will be loaded dynamically -->
+                    </select>
+                    <small class="form-hint">
+                        <i class="fas fa-info-circle" style="color: var(--info);"></i>
+                        Optionally link this solution to a repository
+                    </small>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Summary *</label>
                     <textarea name="summary" id="solutionSummary" class="form-control" rows="6" required maxlength="2000"></textarea>
                 </div>
@@ -1161,32 +1215,6 @@ list="productDomainList" style="padding-right: 35px;">
             </div>
             <form id="publicationForm" class="modal-form">
                 <input type="hidden" name="publicationId" id="publicationId">
-                
-                <!-- Relation Selection -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Relation Type *</label>
-                        <select id="publicationRelationType" class="form-control" required onchange="updatePublicationRelationOptions()">
-                            <option value="">Select Type</option>
-                            <option value="product">Product</option>
-                            <option value="solution">Solution</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="publicationSolutionGroup" style="display: none;">
-                        <label class="form-label">Solution *</label>
-                        <select name="solutionId" id="publicationSolutionId" class="form-control" required>
-                            <option value="">Select a Solution</option>
-                            <!-- Solutions will be loaded dynamically -->
-                        </select>
-                    </div>
-                    <div class="form-group" id="publicationProductGroup" style="display: none;">
-                        <label class="form-label">Product *</label>
-                        <select name="productId" id="publicationProductId" class="form-control" required>
-                            <option value="">Select a Product</option>
-                            <!-- Products will be loaded dynamically -->
-                        </select>
-                    </div>
-                </div>
                 
                 <!-- Title and Domain -->
                 <div class="form-row">
@@ -1279,17 +1307,6 @@ list="productDomainList" style="padding-right: 35px;">
             </div>
             <form id="repositoryForm" class="modal-form">
                 <input type="hidden" name="repositoryId" id="repositoryId">
-                <div class="form-group">
-                    <label class="form-label">Product (Optional)</label>
-                    <select name="productId" id="repositoryProductId" class="form-control">
-                        <option value="">Select a Product (Optional)</option>
-                        <!-- Products will be loaded dynamically -->
-                    </select>
-                    <small class="form-hint">
-                        <i class="fas fa-info-circle" style="color: var(--info);"></i>
-                        Optionally link this repository to a product
-                    </small>
-                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Title *</label>
@@ -1733,6 +1750,8 @@ list="productDomainList" style="padding-right: 35px;">
     <script src="/js/shared-components.js"></script>
     <!-- Include animations -->
     <script src="/js/animations.js"></script>
+    <!-- Include cross-tab sync -->
+    <script src="/js/admin-sync.js"></script>
     <script src="/js/admin.js"></script>
 </body>
 </html>

@@ -1817,12 +1817,13 @@
             if (!tbody) return;
             
             if (contacts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No contact forms received yet. Waiting for visitors to reach out!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-muted);">No contact forms received yet. Waiting for visitors to reach out!</td></tr>';
                 return;
             }
             
             tbody.innerHTML = contacts.map(contact => `
                 <tr>
+                    <td><input type="checkbox" class="contact-checkbox" data-contact-id="${contact.id}" data-is-read="${contact.isRead}"></td>
                     <td><span class="table-cell-content">#${contact.id}</span></td>
                     <td>
                         <div class="table-cell-content">
@@ -2309,11 +2310,6 @@
             document.getElementById('publicationForm').reset();
             document.getElementById('publicationId').value = '';
             
-            // Reset relation type selector
-            document.getElementById('publicationRelationType').value = '';
-            document.getElementById('publicationSolutionGroup').style.display = 'none';
-            document.getElementById('publicationProductGroup').style.display = 'none';
-            
             // Update modal title and button text
             const modalTitle = document.querySelector('#publicationModal .modal-header h3');
             const submitBtn = document.querySelector('#publicationModal button[type="submit"]');
@@ -2326,166 +2322,10 @@
                 currentImagePreview.style.display = 'none';
             }
             
-            // Load dropdowns and WAIT for them to complete before showing modal
-            await loadPublicationDropdowns();
-            
             showModal('publicationModal');
         }
 
-        async function updatePublicationRelationOptions() {
-            const relationType = document.getElementById('publicationRelationType').value;
-            const solutionGroup = document.getElementById('publicationSolutionGroup');
-            const productGroup = document.getElementById('publicationProductGroup');
-            const solutionSelect = document.getElementById('publicationSolutionId');
-            const productSelect = document.getElementById('publicationProductId');
-            
-            console.log('Relation type selected:', relationType);
-            
-            if (relationType === 'solution') {
-                solutionGroup.style.display = 'block';
-                productGroup.style.display = 'none';
-                solutionSelect.setAttribute('required', 'required');
-                productSelect.removeAttribute('required');
-                productSelect.value = '';
-            } else if (relationType === 'product') {
-                solutionGroup.style.display = 'none';
-                productGroup.style.display = 'block';
-                productSelect.setAttribute('required', 'required');
-                solutionSelect.removeAttribute('required');
-                solutionSelect.value = '';
-            } else {
-                solutionGroup.style.display = 'none';
-                productGroup.style.display = 'none';
-                solutionSelect.removeAttribute('required');
-                productSelect.removeAttribute('required');
-                solutionSelect.value = '';
-                productSelect.value = '';
-            }
-        }
-        
-        // Store loaded data for auto-fill
-        let publicationProductsData = [];
-        let publicationSolutionsData = [];
-        
-        async function loadPublicationDropdowns() {
-            console.log('🔄 Starting loadPublicationDropdowns...');
-            
-            // Load solutions
-            try {
-                console.log('📊 Fetching solutions from:', `${API_BASE_URL}/Solutions`);
-                const solutionsResp = await fetch(`${API_BASE_URL}/Solutions`);
-                console.log('📊 Solutions response status:', solutionsResp.status);
-                
-                const solutions = solutionsResp.ok ? await solutionsResp.json() : [];
-                publicationSolutionsData = solutions;
-                
-                console.log('✅ Loaded solutions:', solutions.length, solutions);
-                
-                const solutionSelect = document.getElementById('publicationSolutionId');
-                if (solutionSelect) {
-                    solutionSelect.innerHTML = '<option value="">Select a Solution</option>';
-                    solutions.forEach(s => {
-                        const opt = document.createElement('option');
-                        opt.value = s.id;
-                        opt.textContent = s.title;
-                        opt.dataset.problemArea = s.problemArea || '';
-                        solutionSelect.appendChild(opt);
-                    });
-                    console.log('✅ Solution dropdown populated with', solutions.length, 'items');
-                } else {
-                    console.error('❌ Solution select element not found!');
-                }
-            } catch (error) {
-                console.error('❌ Error loading solutions:', error);
-            }
-            
-            // Load products
-            try {
-                // Use /list endpoint to get ALL products without pagination
-                const token = getAuthToken();
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                
-                console.log('📦 Fetching products from:', `${API_BASE_URL}/Products/list`);
-                const productsResp = await fetch(`${API_BASE_URL}/Products/list`, { headers });
-                console.log('📦 Products response status:', productsResp.status);
-                
-                if (!productsResp.ok) {
-                    console.error('❌ Failed to fetch products:', productsResp.status, productsResp.statusText);
-                    const errorText = await productsResp.text();
-                    console.error('❌ Error response:', errorText);
-                }
-                
-                const products = productsResp.ok ? await productsResp.json() : [];
-                publicationProductsData = products;
-                
-                console.log('✅ Loaded products:', products.length, products);
-                
-                const productSelect = document.getElementById('publicationProductId');
-                if (productSelect) {
-                    productSelect.innerHTML = '<option value="">Select a Product</option>';
-                    products.forEach(p => {
-                        const opt = document.createElement('option');
-                        opt.value = p.id;
-                        opt.textContent = p.title;
-                        opt.dataset.domain = p.domain || '';
-                        productSelect.appendChild(opt);
-                    });
-                    console.log('✅ Product dropdown populated with', products.length, 'items');
-                } else {
-                    console.error('❌ Product select element not found!');
-                }
-            } catch (error) {
-                console.error('❌ Error loading products:', error);
-            }
-            
-            // Setup auto-fill
-            try {
-                setupPublicationAutoFill();
-                console.log('✅ Auto-fill setup complete');
-            } catch (error) {
-                console.error('❌ Error setting up auto-fill:', error);
-            }
-            
-            console.log('🔄 loadPublicationDropdowns complete!');
-        }
-        
-        function setupPublicationAutoFill() {
-            const solutionSelect = document.getElementById('publicationSolutionId');
-            const productSelect = document.getElementById('publicationProductId');
-            const domainInput = document.getElementById('publicationDomain');
-            
-            // Remove old event listeners by cloning and replacing elements
-            if (solutionSelect && !solutionSelect.dataset.listenerAttached) {
-                solutionSelect.addEventListener('change', function() {
-                    const selectedId = parseInt(this.value);
-                    if (selectedId && domainInput) {
-                        const solution = publicationSolutionsData.find(s => s.id === selectedId);
-                        if (solution && solution.problemArea) {
-                            domainInput.value = solution.problemArea;
-                            console.log('Auto-filled domain from solution:', solution.problemArea);
-                        }
-                    }
-                });
-                solutionSelect.dataset.listenerAttached = 'true';
-            }
-            
-            if (productSelect && !productSelect.dataset.listenerAttached) {
-                productSelect.addEventListener('change', function() {
-                    const selectedId = parseInt(this.value);
-                    if (selectedId && domainInput) {
-                        const product = publicationProductsData.find(p => p.id === selectedId);
-                        if (product && product.domain) {
-                            domainInput.value = product.domain;
-                            console.log('Auto-filled domain from product:', product.domain);
-                        }
-                    }
-                });
-                productSelect.dataset.listenerAttached = 'true';
-            }
-        }
-        
-        // Make function globally available
-        window.updatePublicationRelationOptions = updatePublicationRelationOptions;
+        // Removed updatePublicationRelationOptions - no longer needed since relation is set from product/solution modals
 
         function showAddRepositoryModal() {
             // Reset form for adding new repository
@@ -2860,8 +2700,10 @@
                         window.sharedComponents.loadNavigationData();
                     }
                     
-                    // Refresh publication dropdowns
-                    loadPublicationDropdowns();
+                    // Broadcast to other admin tabs
+                    if (window.AdminSync) {
+                        window.AdminSync.broadcastUpdate('product_updated');
+                    }
                     
                     return true;
                 } else {
@@ -2914,6 +2756,7 @@
                         copyIfPresent('summary', 'summary');
                         copyIfPresent('problemArea', 'problemArea');
                         copyIfPresent('demoVideoUrl', 'demoVideoUrl');
+                        copyIfPresent('repositoryId', 'repositoryId');
                         // demoImageUrl can also be updated directly via URL if provided in form
                         copyIfPresent('demoImageUrl', 'demoImageUrl');
                         requestBody = JSON.stringify(dto);
@@ -2972,8 +2815,10 @@
                         window.sharedComponents.loadNavigationData();
                     }
                     
-                    // Refresh publication dropdowns
-                    loadPublicationDropdowns();
+                    // Broadcast to other admin tabs
+                    if (window.AdminSync) {
+                        window.AdminSync.broadcastUpdate('solution_updated');
+                    }
                     
                     return true;
                 } else {
@@ -2994,33 +2839,8 @@
                 const publicationId = formData.get('publicationId');
                 const isEditing = publicationId && publicationId !== '';
                 
-                // Get relation type and IDs
-                const relationType = document.getElementById('publicationRelationType').value;
-                let solutionId = formData.get('solutionId');
-                let productId = formData.get('productId');
-                
-                // Clean up empty string values
-                solutionId = solutionId && solutionId.trim() !== '' ? solutionId : null;
-                productId = productId && productId.trim() !== '' ? productId : null;
-                
-                // Validate that one relation is selected
-                if (!relationType) {
-                    showNotification('Please select relation type (Product or Solution)', 'error');
-                    return false;
-                }
-                if (relationType === 'solution' && !solutionId) {
-                    showNotification('Please select a Solution', 'error');
-                    return false;
-                }
-                if (relationType === 'product' && !productId) {
-                    showNotification('Please select a Product', 'error');
-                    return false;
-                }
-                
                 console.log(`${isEditing ? 'Updating' : 'Creating'} publication with data:`);
-                console.log('Relation type:', relationType);
-                console.log('SolutionId:', solutionId);
-                console.log('ProductId:', productId);
+                // Publications are now created standalone - relations are set from product/solution modals
                 
                 let apiUrl, method, headers, requestBody;
                 
@@ -3048,14 +2868,9 @@
                     copyIfPresent('keywords');
                     copyIfPresent('downloadUrl');
                     
-                    // Set the appropriate relation ID
-                    if (relationType === 'solution') {
-                        dto.solutionId = parseInt(solutionId);
-                        dto.productId = null;
-                    } else {
-                        dto.productId = parseInt(productId);
-                        dto.solutionId = null;
-                    }
+                    // Relations (product/solution) are optional and set to null for standalone publications
+                    dto.solutionId = null;
+                    dto.productId = null;
                     
                     const publishedDate = formData.get('publishedDate');
                     if (publishedDate) dto.publishedDate = String(publishedDate);
@@ -3066,18 +2881,13 @@
                     }
                     requestBody = JSON.stringify(dto);
                 } else {
-                    // For creating, use POST method with FormData but add relation IDs
+                    // For creating, use POST method with FormData
                     apiUrl = `${API_BASE_URL}/Publications/upload`;
                     method = 'POST';
                     
-                    // Set the correct relation ID based on type
-                    if (relationType === 'solution') {
-                        formData.set('solutionId', solutionId);
-                        formData.set('productId', '0');
-                    } else {
-                        formData.set('productId', productId);
-                        formData.set('solutionId', '0');
-                    }
+                    // Set relation IDs to null (they can be set from product/solution modals later)
+                    formData.set('solutionId', '0');
+                    formData.set('productId', '0');
                     
                     requestBody = formData;
                 }
@@ -3108,6 +2918,11 @@
                     showNotification(`Publication ${isEditing ? 'updated' : 'created'} successfully!`, 'success');
                     closeModal('publicationModal');
                     loadPublications();
+                    
+                    // Broadcast to other admin tabs
+                    if (window.AdminSync) {
+                        window.AdminSync.broadcastUpdate('publication_updated');
+                    }
                     
                     // Also update dashboard if we're on dashboard
                     const currentSection = document.querySelector('.content-section.active');
@@ -3231,6 +3046,14 @@
                     closeModal('repositoryModal');
                     loadRepository();
                     
+                    // Reload repository dropdowns in Product and Solution modals
+                    await loadRepositoriesForDropdown();
+                    
+                    // Broadcast to other admin tabs
+                    if (window.AdminSync) {
+                        window.AdminSync.broadcastUpdate('repository_updated');
+                    }
+                    
                     // Also update dashboard if we're on dashboard
                     const currentSection = document.querySelector('.content-section.active');
                     if (currentSection && currentSection.id === 'dashboard') {
@@ -3261,12 +3084,23 @@
                 
                 const product = await response.json();
                 
+                // Load dropdowns first with product context
+                await loadProductDomains();
+                await loadRepositoriesForDropdown();
+                await loadPublicationsForDropdown(id, null);
+                
                 // Populate the form with existing data
                 document.getElementById('productId').value = product.id;
                 document.getElementById('productTitle').value = product.title;
                 document.getElementById('productDomain').value = product.domain || '';
                 document.getElementById('productShortDesc').value = product.shortDescription;
                 document.getElementById('productLongDesc').value = product.longDescription;
+                
+                // Set repository if exists
+                const repositorySelect = document.getElementById('productRepositoryId');
+                if (repositorySelect && product.repositoryId) {
+                    repositorySelect.value = product.repositoryId;
+                }
                 
                 // Show current image if exists
                 const currentImagePreview = document.getElementById('currentImagePreview');
@@ -3305,6 +3139,11 @@
                 
                 const solution = await response.json();
                 
+                // Load dropdowns first with solution context
+                await loadSolutionProblemAreas();
+                await loadRepositoriesForDropdown();
+                await loadPublicationsForDropdown(null, id);
+                
                 // Populate the form with existing data
                 document.getElementById('solutionId').value = solution.id;
                 document.getElementById('solutionTitle').value = solution.title;
@@ -3313,6 +3152,12 @@
                 document.getElementById('solutionProblemArea').value = solution.problemArea;
                 document.getElementById('solutionSummary').value = solution.summary;
                 document.getElementById('solutionVideoUrl').value = solution.demoVideoUrl || '';
+                
+                // Set repository if exists
+                const repositorySelect = document.getElementById('solutionRepositoryId');
+                if (repositorySelect && solution.repositoryId) {
+                    repositorySelect.value = solution.repositoryId;
+                }
                 
                 // Show current image if exists
                 const currentImagePreview = document.getElementById('currentSolutionImagePreview');
@@ -3382,9 +3227,6 @@
                 
                 const publication = await response.json();
                 
-                // Load dropdowns first
-                await loadPublicationDropdowns();
-                
                 // Populate the form with existing data
                 document.getElementById('publicationId').value = publication.id;
                 document.querySelector('#publicationModal input[name="title"]').value = publication.title;
@@ -3393,18 +3235,6 @@
                 document.querySelector('#publicationModal textarea[name="abstract"]').value = publication.abstract;
                 document.querySelector('#publicationModal input[name="keywords"]').value = publication.keywords || '';
                 document.getElementById('publicationDownloadUrl').value = publication.downloadUrl || '';
-                
-                // Set relation type and load appropriate dropdown
-                const relationType = document.getElementById('publicationRelationType');
-                if (publication.productId) {
-                    relationType.value = 'product';
-                    await updatePublicationRelationOptions();
-                    document.getElementById('publicationProductId').value = publication.productId;
-                } else if (publication.solutionId) {
-                    relationType.value = 'solution';
-                    await updatePublicationRelationOptions();
-                    document.getElementById('publicationSolutionId').value = publication.solutionId;
-                }
                 
                 // Set published date
                 if (publication.publishedDate) {
@@ -3514,7 +3344,12 @@
                         // Immediately refresh the products list (no delay)
                         await loadProducts();
                         
-                        // Also update dashboard if we're on dashboard or switch to dashboard
+                        // Broadcast to other admin tabs
+                        if (window.AdminSync) {
+                            window.AdminSync.broadcastUpdate('product_updated');
+                        }
+                        
+                        // Also update dashboard if we're on dashboard
                         const currentSection = document.querySelector('.content-section.active');
                         if (currentSection && currentSection.id === 'dashboard') {
                             await loadDashboardData();
@@ -3546,6 +3381,11 @@
                         
                         // Immediately refresh the solutions list (no delay)
                         await loadSolutions();
+                        
+                        // Broadcast to other admin tabs
+                        if (window.AdminSync) {
+                            window.AdminSync.broadcastUpdate('solution_updated');
+                        }
                         
                         // Also update dashboard if we're on dashboard
                         const currentSection = document.querySelector('.content-section.active');
@@ -3580,6 +3420,11 @@
                         // Immediately refresh the publications list (no delay)
                         await loadPublications();
                         
+                        // Broadcast to other admin tabs
+                        if (window.AdminSync) {
+                            window.AdminSync.broadcastUpdate('publication_updated');
+                        }
+                        
                         // Also update dashboard if we're on dashboard
                         const currentSection = document.querySelector('.content-section.active');
                         if (currentSection && currentSection.id === 'dashboard') {
@@ -3612,6 +3457,13 @@
                         
                         // Immediately refresh the repository list (no delay)
                         await loadRepository();
+                        // Refresh repository dropdowns in Product and Solution modals
+                        await loadRepositoriesForDropdown();
+                        
+                        // Broadcast to other admin tabs
+                        if (window.AdminSync) {
+                            window.AdminSync.broadcastUpdate('repository_updated');
+                        }
                         
                         // Also update dashboard if we're on dashboard
                         const currentSection = document.querySelector('.content-section.active');
@@ -3645,6 +3497,11 @@
                         
                         // Immediately refresh the contacts list (no delay)
                         await loadContacts();
+                        
+                        // Broadcast to other admin tabs
+                        if (window.AdminSync) {
+                            window.AdminSync.broadcastUpdate('contact_updated');
+                        }
                         
                         // Also update dashboard if we're on dashboard
                         const currentSection = document.querySelector('.content-section.active');
@@ -3763,8 +3620,17 @@ ${contact.message}
         }
 
         async function markAllAsRead() {
-            if (confirm('Are you sure you want to mark all contacts as read?')) {
-                try {
+            try {
+                // First, fetch all contacts to check if there are any unread ones
+                const contacts = await AdminAPI.fetchContacts();
+                const unreadContacts = contacts.filter(contact => !contact.isRead);
+                
+                if (unreadContacts.length === 0) {
+                    showNotification('There are no unread contact forms to mark as read', 'info');
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to mark ${unreadContacts.length} contact(s) as read?`)) {
                     const token = getAuthToken();
                     const headers = {};
                     if (token) {
@@ -3777,21 +3643,30 @@ ${contact.message}
                     });
                     
                     if (response.ok) {
-                        showNotification('All contacts marked as read', 'success');
+                        showNotification(`Successfully marked ${unreadContacts.length} contact(s) as read`, 'success');
                         loadContacts(); // Refresh the contact list
                     } else {
-                        showNotification('Failed to mark all contacts as read', 'error');
+                        showNotification('Failed to mark contacts as read', 'error');
                     }
-                } catch (error) {
-                    console.error('Error marking all contacts as read:', error);
-                    showNotification('Failed to mark all contacts as read', 'error');
                 }
+            } catch (error) {
+                console.error('Error marking contacts as read:', error);
+                showNotification('Failed to mark contacts as read', 'error');
             }
         }
 
         async function deleteReadContacts() {
-            if (confirm('Are you sure you want to delete all read contacts? This action cannot be undone.')) {
-                try {
+            try {
+                // First, fetch all contacts to check if there are any read ones
+                const contacts = await AdminAPI.fetchContacts();
+                const readContacts = contacts.filter(contact => contact.isRead);
+                
+                if (readContacts.length === 0) {
+                    showNotification('There are no read contact forms to delete', 'info');
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to delete ${readContacts.length} read contact(s)? This action cannot be undone.`)) {
                     const token = getAuthToken();
                     const headers = {};
                     if (token) {
@@ -3805,14 +3680,152 @@ ${contact.message}
                     
                     if (response.ok) {
                         const result = await response.json();
-                        showNotification(`Successfully deleted ${result.deletedCount || 'all'} read contacts`, 'success');
+                        const deletedCount = result.deletedCount || readContacts.length;
+                        showNotification(`Successfully deleted ${deletedCount} contact form(s)`, 'success');
                         loadContacts(); // Refresh the contact list
                     } else {
                         showNotification('Failed to delete read contacts', 'error');
                     }
+                }
+            } catch (error) {
+                console.error('Error deleting read contacts:', error);
+                showNotification('Failed to delete read contacts', 'error');
+            }
+        }
+
+        function toggleSelectAllContacts() {
+            const selectAllCheckbox = document.getElementById('selectAllContacts');
+            const checkboxes = document.querySelectorAll('.contact-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        async function markSelectedAsRead() {
+            const selectedCheckboxes = document.querySelectorAll('.contact-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                showNotification('Please select at least one contact to mark as read', 'info');
+                return;
+            }
+            
+            const contactIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.contactId));
+            
+            if (confirm(`Are you sure you want to mark ${contactIds.length} contact(s) as read?`)) {
+                try {
+                    const token = getAuthToken();
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                    }
+                    
+                    let successCount = 0;
+                    for (const id of contactIds) {
+                        const response = await fetch(`${API_BASE_URL}/Contact/${id}/read`, {
+                            method: 'PUT',
+                            headers: headers
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                        }
+                    }
+                    
+                    if (successCount > 0) {
+                        showNotification(`Successfully marked ${successCount} contact(s) as read`, 'success');
+                        loadContacts();
+                    } else {
+                        showNotification('Failed to mark contacts as read', 'error');
+                    }
                 } catch (error) {
-                    console.error('Error deleting read contacts:', error);
-                    showNotification('Failed to delete read contacts', 'error');
+                    console.error('Error marking contacts as read:', error);
+                    showNotification('Failed to mark contacts as read', 'error');
+                }
+            }
+        }
+
+        async function markSelectedAsUnread() {
+            const selectedCheckboxes = document.querySelectorAll('.contact-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                showNotification('Please select at least one contact to mark as unread', 'info');
+                return;
+            }
+            
+            const contactIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.contactId));
+            
+            if (confirm(`Are you sure you want to mark ${contactIds.length} contact(s) as unread?`)) {
+                try {
+                    const token = getAuthToken();
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                    }
+                    
+                    let successCount = 0;
+                    for (const id of contactIds) {
+                        const response = await fetch(`${API_BASE_URL}/Contact/${id}/unread`, {
+                            method: 'PUT',
+                            headers: headers
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                        }
+                    }
+                    
+                    if (successCount > 0) {
+                        showNotification(`Successfully marked ${successCount} contact(s) as unread`, 'success');
+                        loadContacts();
+                    } else {
+                        showNotification('Failed to mark contacts as unread', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error marking contacts as unread:', error);
+                    showNotification('Failed to mark contacts as unread', 'error');
+                }
+            }
+        }
+
+        async function deleteSelectedContacts() {
+            const selectedCheckboxes = document.querySelectorAll('.contact-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                showNotification('Please select at least one contact to delete', 'info');
+                return;
+            }
+            
+            const contactIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.contactId));
+            
+            if (confirm(`Are you sure you want to delete ${contactIds.length} contact(s)? This action cannot be undone.`)) {
+                try {
+                    const token = getAuthToken();
+                    const headers = {};
+                    if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                    }
+                    
+                    let successCount = 0;
+                    for (const id of contactIds) {
+                        const response = await fetch(`${API_BASE_URL}/Contact/${id}`, {
+                            method: 'DELETE',
+                            headers: headers
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                        }
+                    }
+                    
+                    if (successCount > 0) {
+                        showNotification(`Successfully deleted ${successCount} contact form(s)`, 'success');
+                        loadContacts();
+                    } else {
+                        showNotification('Failed to delete contacts', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting contacts:', error);
+                    showNotification('Failed to delete contacts', 'error');
                 }
             }
         }
@@ -7249,41 +7262,49 @@ ${contact.message}
             }
         }
         
-        // Load Products list for dropdown (Repository modal)
-        async function loadProductsForDropdown() {
+        // Load Repositories list for dropdown (Product and Solution modals)
+        async function loadRepositoriesForDropdown() {
             try {
-                console.log('Loading products for dropdown...');
-                const token = getAuthToken();
-                const response = await fetch(`${API_BASE_URL}/products/list`, {
-                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                });
+                console.log('Loading repositories for dropdown...');
+                const response = await fetch(`${API_BASE_URL}/repository`);
                 
                 if (!response.ok) {
-                    throw new Error('Failed to load products');
+                    throw new Error('Failed to load repositories');
                 }
                 
-                const products = await response.json();
-                console.log('Products loaded:', products);
+                const repositories = await response.json();
+                console.log('Repositories loaded:', repositories);
                 
-                const select = document.getElementById('repositoryProductId');
-                if (select) {
-                    // Keep first option ("Select a Product")
-                    select.innerHTML = '<option value="">Select a Product</option>';
-                    
-                    products.forEach(product => {
+                // Update Product modal dropdown
+                const productSelect = document.getElementById('productRepositoryId');
+                if (productSelect) {
+                    productSelect.innerHTML = '<option value="">Select a Repository (Optional)</option>';
+                    repositories.forEach(repo => {
                         const option = document.createElement('option');
-                        option.value = product.id;
-                        option.textContent = product.title;
-                        select.appendChild(option);
+                        option.value = repo.id;
+                        option.textContent = repo.title;
+                        productSelect.appendChild(option);
                     });
-                    
-                    console.log(`Loaded ${products.length} products into dropdown`);
+                    console.log(`Loaded ${repositories.length} repositories into product dropdown`);
                 }
                 
-                return products;
+                // Update Solution modal dropdown
+                const solutionSelect = document.getElementById('solutionRepositoryId');
+                if (solutionSelect) {
+                    solutionSelect.innerHTML = '<option value="">Select a Repository (Optional)</option>';
+                    repositories.forEach(repo => {
+                        const option = document.createElement('option');
+                        option.value = repo.id;
+                        option.textContent = repo.title;
+                        solutionSelect.appendChild(option);
+                    });
+                    console.log(`Loaded ${repositories.length} repositories into solution dropdown`);
+                }
+                
+                return repositories;
             } catch (error) {
-                console.error('Error loading products for dropdown:', error);
-                showNotification('Failed to load products', 'error');
+                console.error('Error loading repositories for dropdown:', error);
+                showNotification('Failed to load repositories', 'error');
                 return [];
             }
         }
@@ -7326,19 +7347,116 @@ ${contact.message}
                 return [];
             }
         }
+
+        // Load Publications list for dropdown (Product and Solution modals)
+        async function loadPublicationsForDropdown(productId = null, solutionId = null) {
+            try {
+                console.log('Loading publications for dropdown...', { productId, solutionId });
+                const response = await fetch(`${API_BASE_URL}/publications`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load publications');
+                }
+                
+                const publications = await response.json();
+                console.log('Publications loaded:', publications);
+                
+                // Update Product modal dropdown
+                const productSelect = document.getElementById('productPublicationId');
+                if (productSelect) {
+                    productSelect.innerHTML = '<option value="">Select a Publication (Optional)</option>';
+                    
+                    // Filter publications for this product
+                    const productPublications = productId 
+                        ? publications.filter(pub => pub.productId === parseInt(productId))
+                        : [];
+                    
+                    // Show all publications but mark which ones are linked to this product
+                    publications.forEach(pub => {
+                        const option = document.createElement('option');
+                        option.value = pub.id;
+                        const isLinked = pub.productId === parseInt(productId);
+                        option.textContent = pub.title + (isLinked ? ' ✓ (Linked)' : '');
+                        if (isLinked) {
+                            option.selected = true;
+                        }
+                        productSelect.appendChild(option);
+                    });
+                    console.log(`Loaded ${publications.length} publications (${productPublications.length} linked) into product dropdown`);
+                    
+                    // Add change handler to navigate to publication
+                    productSelect.onchange = function() {
+                        if (this.value) {
+                            const pubId = this.value;
+                            if (confirm('Do you want to view/edit this publication?')) {
+                                // Switch to publications section
+                                switchSection('publications');
+                                // Wait a bit then trigger edit
+                                setTimeout(() => editPublication(pubId), 300);
+                            }
+                        }
+                    };
+                }
+                
+                // Update Solution modal dropdown
+                const solutionSelect = document.getElementById('solutionPublicationId');
+                if (solutionSelect) {
+                    solutionSelect.innerHTML = '<option value="">Select a Publication (Optional)</option>';
+                    
+                    // Filter publications for this solution
+                    const solutionPublications = solutionId
+                        ? publications.filter(pub => pub.solutionId === parseInt(solutionId))
+                        : [];
+                    
+                    // Show all publications but mark which ones are linked to this solution
+                    publications.forEach(pub => {
+                        const option = document.createElement('option');
+                        option.value = pub.id;
+                        const isLinked = pub.solutionId === parseInt(solutionId);
+                        option.textContent = pub.title + (isLinked ? ' ✓ (Linked)' : '');
+                        if (isLinked) {
+                            option.selected = true;
+                        }
+                        solutionSelect.appendChild(option);
+                    });
+                    console.log(`Loaded ${publications.length} publications (${solutionPublications.length} linked) into solution dropdown`);
+                    
+                    // Add change handler to navigate to publication
+                    solutionSelect.onchange = function() {
+                        if (this.value) {
+                            const pubId = this.value;
+                            if (confirm('Do you want to view/edit this publication?')) {
+                                // Switch to publications section
+                                switchSection('publications');
+                                // Wait a bit then trigger edit
+                                setTimeout(() => editPublication(pubId), 300);
+                            }
+                        }
+                    };
+                }
+                
+                return publications;
+            } catch (error) {
+                console.error('Error loading publications for dropdown:', error);
+                showNotification('Failed to load publications', 'error');
+                return [];
+            }
+        }
         
         // Modal show functions that load domains when opened
         async function showAddProductModal() {
             console.log('Opening Product modal...');
             
-            // Load existing domains first
+            // Load existing domains, repositories and publications
             await loadProductDomains();
+            await loadRepositoriesForDropdown();
+            await loadPublicationsForDropdown();
             
             // Clear form
             document.getElementById('productForm').reset();
             document.getElementById('productId').value = '';
-            document.getElementById('productModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add New Product';
-            document.getElementById('productSubmitBtn').innerHTML = '<i class="fas fa-save"></i> Create Product';
+            document.getElementById('productModalTitle').innerHTML = '<i class=\"fas fa-plus\"></i> Add New Product';
+            document.getElementById('productSubmitBtn').innerHTML = '<i class=\"fas fa-save\"></i> Create Product';
             
             // Show modal
             document.getElementById('productModal').style.display = 'flex';
@@ -7352,14 +7470,16 @@ ${contact.message}
         async function showAddSolutionModal() {
             console.log('Opening Solution modal...');
             
-            // Load existing problem areas first
+            // Load existing problem areas, repositories and publications
             await loadSolutionProblemAreas();
+            await loadRepositoriesForDropdown();
+            await loadPublicationsForDropdown();
             
             // Clear form
             document.getElementById('solutionForm').reset();
             document.getElementById('solutionId').value = '';
-            document.getElementById('solutionModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add New Solution';
-            document.getElementById('solutionSubmitBtn').innerHTML = '<i class="fas fa-save"></i> Create Solution';
+            document.getElementById('solutionModalTitle').innerHTML = '<i class=\"fas fa-plus\"></i> Add New Solution';
+            document.getElementById('solutionSubmitBtn').innerHTML = '<i class=\"fas fa-save\"></i> Create Solution';
             
             // Show modal
             document.getElementById('solutionModal').style.display = 'flex';
@@ -7375,9 +7495,8 @@ ${contact.message}
         async function showAddRepositoryModal() {
             console.log('Opening Repository modal...');
             
-            // Load existing categories and products
+            // Load existing categories only (removed products dropdown)
             await loadRepositoryCategories();
-            await loadProductsForDropdown();
             
             // Clear form
             document.getElementById('repositoryForm').reset();
@@ -7396,8 +7515,7 @@ ${contact.message}
             
             // Focus on first input
             setTimeout(() => {
-                const productSelect = document.getElementById('repositoryProductId');
-                if (productSelect) productSelect.focus();
+                document.getElementById('repositoryTitle').focus();
             }, 100);
         }
         
@@ -8216,8 +8334,128 @@ ${contact.message}
             // Initialize modal form handlers for scroll fix
             initializeModalFormHandlers();
             
+            // Setup cross-tab sync listeners
+            setupAdminSyncListeners();
+            
             // Wait for shared components to initialize, then customize for admin
             setTimeout(() => {
                 initializeAdminHeader();
             }, 200);
         });
+        
+        // Setup AdminSync listeners for cross-tab synchronization
+        function setupAdminSyncListeners() {
+            if (!window.AdminSync) {
+                console.warn('AdminSync not available, cross-tab sync disabled');
+                return;
+            }
+            
+            console.log('🔄 Setting up AdminSync listeners...');
+            
+            // Listen for product updates
+            window.AdminSync.on('product_updated', async (message) => {
+                console.log('🔄 Product updated in another tab, refreshing...', message);
+                try {
+                    if (typeof loadProducts === 'function') {
+                        await loadProducts();
+                        console.log('✅ Products refreshed');
+                    }
+                    // Also refresh navigation and dropdowns
+                    if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
+                        sessionStorage.removeItem('navigationData');
+                        window.sharedComponents.loadNavigationData();
+                    }
+                    // Show subtle notification
+                    showNotification('Products updated', 'info', 2000);
+                } catch (error) {
+                    console.error('Error refreshing products:', error);
+                }
+            });
+            
+            // Listen for solution updates
+            window.AdminSync.on('solution_updated', async (message) => {
+                console.log('🔄 Solution updated in another tab, refreshing...', message);
+                try {
+                    if (typeof loadSolutions === 'function') {
+                        await loadSolutions();
+                        console.log('✅ Solutions refreshed');
+                    }
+                    // Also refresh navigation and dropdowns
+                    if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
+                        sessionStorage.removeItem('navigationData');
+                        window.sharedComponents.loadNavigationData();
+                    }
+                    // Show subtle notification
+                    showNotification('Solutions updated', 'info', 2000);
+                } catch (error) {
+                    console.error('Error refreshing solutions:', error);
+                }
+            });
+            
+            // Listen for publication updates
+            window.AdminSync.on('publication_updated', async (message) => {
+                console.log('🔄 Publication updated in another tab, refreshing...', message);
+                try {
+                    if (typeof loadPublications === 'function') {
+                        await loadPublications();
+                        console.log('✅ Publications refreshed');
+                    }
+                    // Also refresh navigation
+                    if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
+                        sessionStorage.removeItem('navigationData');
+                        window.sharedComponents.loadNavigationData();
+                    }
+                    // Show subtle notification
+                    showNotification('Publications updated', 'info', 2000);
+                } catch (error) {
+                    console.error('Error refreshing publications:', error);
+                }
+            });
+            
+            // Listen for repository updates
+            window.AdminSync.on('repository_updated', async (message) => {
+                console.log('🔄 Repository updated in another tab, refreshing...', message);
+                try {
+                    if (typeof loadRepository === 'function') {
+                        await loadRepository();
+                        console.log('✅ Repository refreshed');
+                    }
+                    if (typeof loadRepositoriesForDropdown === 'function') {
+                        await loadRepositoriesForDropdown();
+                    }
+                    // Also refresh navigation
+                    if (window.sharedComponents && typeof window.sharedComponents.loadNavigationData === 'function') {
+                        sessionStorage.removeItem('navigationData');
+                        window.sharedComponents.loadNavigationData();
+                    }
+                    // Show subtle notification
+                    showNotification('Repository updated', 'info', 2000);
+                } catch (error) {
+                    console.error('Error refreshing repository:', error);
+                }
+            });
+            
+            // Listen for contact updates
+            window.AdminSync.on('contact_updated', async (message) => {
+                console.log('🔄 Contact updated in another tab, refreshing...', message);
+                try {
+                    if (typeof loadContacts === 'function') {
+                        await loadContacts();
+                        console.log('✅ Contacts refreshed');
+                    }
+                    // Show subtle notification
+                    showNotification('Contacts updated', 'info', 2000);
+                } catch (error) {
+                    console.error('Error refreshing contacts:', error);
+                }
+            });
+            
+            console.log('✅ AdminSync listeners registered successfully');
+            console.log('📝 Available functions:', {
+                loadProducts: typeof loadProducts,
+                loadSolutions: typeof loadSolutions,
+                loadPublications: typeof loadPublications,
+                loadRepository: typeof loadRepository,
+                loadContacts: typeof loadContacts
+            });
+        }

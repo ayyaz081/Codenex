@@ -193,12 +193,7 @@ namespace Neelsol.Controllers
                     downloadUrl = await ProcessUploadedFile(dto.DocumentFile, uploadsDir, "document", AllowedDocumentExtensions);
                 }
 
-                // Verify at least one relationship exists
-                if (dto.SolutionId <= 0 && dto.ProductId <= 0)
-                {
-                    return BadRequest(new { message = "Either SolutionId or ProductId must be provided" });
-                }
-                
+                // Validate relationships if provided (both are optional - publications can be standalone)
                 if (dto.SolutionId > 0)
                 {
                     var solutionExists = await _context.Solutions.AnyAsync(s => s.Id == dto.SolutionId);

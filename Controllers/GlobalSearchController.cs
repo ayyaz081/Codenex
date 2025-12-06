@@ -23,7 +23,6 @@ namespace Neelsol.Controllers
 
         // GET: api/globalsearch
         [HttpGet]
-        [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "query", "category", "page", "pageSize" })]
         public async Task<ActionResult<GlobalSearchResponseDto>> GlobalSearch(
             [FromQuery] string query,
             [FromQuery] string? category = null,
@@ -149,7 +148,6 @@ namespace Neelsol.Controllers
 
         // GET: api/globalsearch/suggestions
         [HttpGet("suggestions")]
-        [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "query" })]
         public async Task<ActionResult<List<string>>> GetSearchSuggestions([FromQuery] string query)
         {
             if (string.IsNullOrWhiteSpace(query) || query.Length < 2)

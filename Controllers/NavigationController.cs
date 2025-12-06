@@ -19,7 +19,6 @@ namespace Neelsol.Controllers
 
         // GET: api/navigation/products/domains
         [HttpGet("products/domains")]
-        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult<List<string>>> GetProductDomains()
         {
             try
@@ -42,7 +41,6 @@ namespace Neelsol.Controllers
 
         // GET: api/navigation/publications/domains
         [HttpGet("publications/domains")]
-        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult<List<string>>> GetPublicationDomains()
         {
             try
@@ -65,7 +63,6 @@ namespace Neelsol.Controllers
 
         // GET: api/navigation/repositories/categories
         [HttpGet("repositories/categories")]
-        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult<List<string>>> GetRepositoryCategories()
         {
             try
@@ -88,7 +85,6 @@ namespace Neelsol.Controllers
 
         // GET: api/navigation/solutions/problemareas
         [HttpGet("solutions/problemareas")]
-        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult<List<string>>> GetSolutionProblemAreas()
         {
             try
@@ -111,7 +107,6 @@ namespace Neelsol.Controllers
 
         // GET: api/navigation/all - Get all navigation data in one call
         [HttpGet("all")]
-        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult> GetAllNavigationData()
         {
             try

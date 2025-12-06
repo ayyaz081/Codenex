@@ -1185,6 +1185,16 @@
             // Then load repositories
             loadRepositories();
             
+            // Set up AdminSync listeners for real-time updates
+            if (window.AdminSync) {
+                window.AdminSync.on('repository_updated', async () => {
+                    console.log('🔄 Repository updated in another tab/admin, reloading...');
+                    await loadRepositories();
+                    showNotification('Repository list updated', 'info', 2000);
+                });
+                console.log('✅ AdminSync listener registered for repository updates');
+            }
+            
             // Global search is handled by shared components
             // new GlobalSearch();
             

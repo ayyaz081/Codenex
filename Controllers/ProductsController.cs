@@ -43,7 +43,6 @@ namespace Neelsol.Controllers
                 }
 
                 var products = await query
-                    .Include(p => p.Repositories)
                     .OrderByDescending(p => p.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -66,7 +65,6 @@ namespace Neelsol.Controllers
             try
             {
                 var product = await _context.Products
-                    .Include(p => p.Repositories)
                     .FirstOrDefaultAsync(p => p.Id == id);
                 if (product == null) return NotFound();
                 return product;
@@ -107,6 +105,7 @@ namespace Neelsol.Controllers
                     ShortDescription = dto.ShortDescription,
                     LongDescription = dto.LongDescription,
                     Domain = dto.Domain,
+                    RepositoryId = dto.RepositoryId,
                     ImageUrl = $"/uploads/products/{fileName}"
                 };
 
@@ -137,6 +136,7 @@ namespace Neelsol.Controllers
                 product.ShortDescription = dto.ShortDescription;
                 product.LongDescription = dto.LongDescription;
                 product.Domain = dto.Domain;
+                product.RepositoryId = dto.RepositoryId;
                 product.UpdatedAt = DateTime.UtcNow;
 
                 // Handle image update if provided
@@ -247,35 +247,11 @@ namespace Neelsol.Controllers
             try
             {
 var product = await _context.Products
-                    .Include(p => p.Repositories)
                     .FirstOrDefaultAsync(p => p.Id == id);
                     
                 if (product == null) return NotFound();
 
-                _logger.LogInformation("Deleting product {ProductId} with {RepoCount} repositories", id, product.Repositories.Count);
-
-                // Delete the entire chain: UserPurchases -> Payments -> Repositories -> Product
-                if (product.Repositories.Any())
-                {
-                    var repositoryIds = product.Repositories.Select(r => r.Id).ToList();
-                    _logger.LogInformation("Deleting data for {Count} repositories: {RepoIds}", repositoryIds.Count, string.Join(", ", repositoryIds));
-
-                    // 1. Delete UserPurchases for these repositories
-                    await _context.Database.ExecuteSqlRawAsync(
-                        "DELETE FROM UserPurchases WHERE RepositoryId IN ({0})", 
-                        string.Join(",", repositoryIds));
-                    _logger.LogInformation("Deleted UserPurchases for repositories");
-
-                    // 2. Delete Payments for these repositories
-                    await _context.Database.ExecuteSqlRawAsync(
-                        "DELETE FROM Payments WHERE RepositoryId IN ({0})", 
-                        string.Join(",", repositoryIds));
-                    _logger.LogInformation("Deleted Payments for repositories");
-
-                    // 3. Now delete the repositories
-                    _context.Repositories.RemoveRange(product.Repositories);
-                    _logger.LogInformation("Marked {Count} repositories for deletion", product.Repositories.Count);
-                }
+                _logger.LogInformation("Deleting product {ProductId}", id);
 
                 // Delete associated image
                 if (!string.IsNullOrEmpty(product.ImageUrl))

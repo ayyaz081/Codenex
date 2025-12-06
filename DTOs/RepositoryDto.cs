@@ -29,8 +29,6 @@ namespace Neelsol.DTOs
         public string? GitHubRepoFullName { get; set; }
 
         public bool? IsActive { get; set; }
-
-        public int? ProductId { get; set; }
     }
 
     public class RepositoryCreateDto
@@ -60,7 +58,5 @@ namespace Neelsol.DTOs
 
         [StringLength(255)]
         public string? GitHubRepoFullName { get; set; }
-
-        public int? ProductId { get; set; }
     }
 }

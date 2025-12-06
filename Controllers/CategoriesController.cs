@@ -19,7 +19,6 @@ namespace Neelsol.Controllers
 
         // GET: api/categories/product-domains
         [HttpGet("product-domains")]
-        [ResponseCache(Duration = 300)] // Cache for 5 minutes
         public async Task<ActionResult<List<string>>> GetProductDomains()
         {
             try
@@ -42,7 +41,6 @@ namespace Neelsol.Controllers
 
         // GET: api/categories/solution-problem-areas
         [HttpGet("solution-problem-areas")]
-        [ResponseCache(Duration = 300)] // Cache for 5 minutes
         public async Task<ActionResult<List<string>>> GetSolutionProblemAreas()
         {
             try
@@ -65,7 +63,6 @@ namespace Neelsol.Controllers
 
         // GET: api/categories/publication-domains
         [HttpGet("publication-domains")]
-        [ResponseCache(Duration = 300)] // Cache for 5 minutes
         public async Task<ActionResult<List<string>>> GetPublicationDomains()
         {
             try
@@ -88,7 +85,6 @@ namespace Neelsol.Controllers
 
         // GET: api/categories/repository-categories
         [HttpGet("repository-categories")]
-        [ResponseCache(Duration = 300)] // Cache for 5 minutes
         public async Task<ActionResult<List<string>>> GetRepositoryCategories()
         {
             try
@@ -111,7 +107,6 @@ namespace Neelsol.Controllers
 
         // GET: api/categories/all
         [HttpGet("all")]
-        [ResponseCache(Duration = 300)] // Cache for 5 minutes
         public async Task<ActionResult<object>> GetAllCategories()
         {
             try
@@ -162,7 +157,6 @@ namespace Neelsol.Controllers
 
         // GET: api/categories/search?type={type}&query={query}
         [HttpGet("search")]
-        [ResponseCache(Duration = 60)] // Cache for 1 minute
         public async Task<ActionResult<List<string>>> SearchCategories([FromQuery] string type, [FromQuery] string query)
         {
             if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
