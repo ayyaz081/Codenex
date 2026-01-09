@@ -21,7 +21,7 @@ window.PortfolioConfig = {
             hostname.startsWith('192.168.') ||
             hostname.startsWith('10.') ||
             hostname.includes('dev') ||
-            (window.location.port && ['3000', '5000', '8080', '8000', '7150'].includes(window.location.port))) {
+            (window.location.port && ['3000', '5000', '8080', '8000'].includes(window.location.port))) {
             return 'development';
         }
         
@@ -48,8 +48,8 @@ window.PortfolioConfig = {
             if (PortfolioConfig.environment === 'development' || 
                 window.location.hostname === 'localhost' || 
                 window.location.hostname === '127.0.0.1') {
-                // Development: Always use HTTP on port 7150
-                return 'http://localhost:7150';
+                // Development: Always use HTTP on port 8080
+                return 'http://localhost:8080';
             } else {
                 // Production: Intelligent URL construction
                 const hostname = window.location.hostname;
@@ -126,25 +126,13 @@ window.PortfolioConfig = {
     
     // Initialize configuration
     init: function() {
-        // Set up environment-specific settings
-        console.log('🌍 Environment Detection:');
-        console.log('  - Hostname:', window.location.hostname);
-        console.log('  - Environment:', this.environment);
-        console.log('  - API Base URL:', this.api.getBaseUrl());
-        
+        // Set up environment-specific settings (minimal logging)
         if (this.environment === 'production') {
             // Production settings
             console.log('✅ Portfolio running in production mode');
-            
-            // Don't disable console.log in production for now (for debugging)
-            // if (!this.features.enableDebugMode()) {
-            //     console.log = function() {}; // Disable console.log in production
-            // }
         } else {
-            // Development settings
-            console.log('Portfolio running in development mode');
-            console.log('API Base URL:', this.api.getBaseUrl());
-            console.log('SSL Configuration:', this.ssl);
+            // Development settings - reduced logging
+            console.log('🌍 Development mode | API:', this.api.getBaseUrl());
         }
         
         // Check and redirect to HTTPS if needed
@@ -158,20 +146,12 @@ window.PortfolioConfig = {
             console.warn('🔒 Consider using HTTPS for better security');
         }
         
-        // Log SSL configuration
-        if (this.environment === 'development') {
-            console.log('🔒 SSL Configuration:', {
-                enforceHttps: this.ssl.shouldEnforceHttps(),
-                isSecure: this.ssl.isSecureConnection(),
-                protocol: window.location.protocol
-            });
-        }
-        
         // Set up global error handling for API requests
         this.setupGlobalErrorHandling();
         
-        // Initialize service worker if enabled (disabled in production to avoid CSP issues)
-        if (this.features.enableServiceWorker && 'serviceWorker' in navigator && this.environment !== 'production') {
+        // Initialize service worker if enabled (disabled in development and production)
+        // Service workers are currently disabled to avoid CSP issues
+        if (false && this.features.enableServiceWorker && 'serviceWorker' in navigator && this.environment !== 'production') {
             this.initServiceWorker();
         }
     },
@@ -190,7 +170,7 @@ window.PortfolioConfig = {
                         
                         // If on HTTPS and getting network error, suggest HTTP fallback for development
                         if (window.location.protocol === 'https:' && PortfolioConfig.environment === 'development') {
-                            console.warn('💡 Try accessing via HTTP for development: http://localhost:7150');
+                            console.warn('💡 Try accessing via HTTP for development: http://localhost:8080');
                         }
                     }
                     throw error;
@@ -286,6 +266,18 @@ window.addEventListener('error', (event) => {
     if (event.filename && /\d+\.js/.test(event.filename)) {
         event.preventDefault();
         return false;
+    }
+});
+
+// Suppress unhandled promise rejections from third-party scripts
+window.addEventListener('unhandledrejection', (event) => {
+    // Check if error is from third-party numbered JS files
+    if (event.reason && event.reason.stack) {
+        const stack = event.reason.stack;
+        if (/\d+\.js/.test(stack)) {
+            event.preventDefault();
+            return false;
+        }
     }
 });
 

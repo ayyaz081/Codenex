@@ -12,7 +12,7 @@
             
             // Fallback to dynamic detection
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                return 'http://localhost:7150';
+                return 'http://localhost:8080';
             }
             
             // Production: use same protocol and hostname
@@ -187,7 +187,7 @@
 
         const authManager = new InlineAuthManager();
 
-        // No HTTP to HTTPS redirection - using HTTP on localhost:7150
+        // No HTTP to HTTPS redirection - using HTTP on localhost:8080
 
         // Theme handling is managed by shared components
 

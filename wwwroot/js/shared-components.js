@@ -33,9 +33,9 @@ class SharedComponents {
             return window.WordPressConfig.getApiUrl().replace('/api', '');
         }
         
-        // For localhost development, always use HTTP on port 7150
+        // For localhost development, always use HTTP on port 8080
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return 'http://localhost:7150';
+            return 'http://localhost:8080';
         }
         
         // For production, force HTTPS for non-localhost domains
@@ -91,7 +91,6 @@ class SharedComponents {
     async loadComponents() {
         try {
             // Load header
-            console.log('Loading header component...');
             const headerResponse = await fetch('/components/header.html');
             if (!headerResponse.ok) {
                 throw new Error(`Header fetch failed: ${headerResponse.status}`);
@@ -99,7 +98,6 @@ class SharedComponents {
             const headerHtml = await headerResponse.text();
             
             // Load footer
-            console.log('Loading footer component...');
             const footerResponse = await fetch('/components/footer.html');
             if (!footerResponse.ok) {
                 console.warn('Footer fetch failed, continuing without footer');
@@ -118,19 +116,15 @@ class SharedComponents {
             // Replace header placeholder
             const headerPlaceholder = document.getElementById('header-placeholder');
             if (headerPlaceholder) {
-                console.log('Replacing header placeholder...');
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
                 headerPlaceholder.replaceWith(headerContainer.firstElementChild);
             } else {
-                console.log('Header placeholder not found, inserting at body start...');
                 // Fallback: Insert header at the beginning of body
                 const headerContainer = document.createElement('div');
                 headerContainer.innerHTML = headerHtml;
                 document.body.insertBefore(headerContainer.firstElementChild, document.body.firstChild);
             }
-            
-            console.log('Header component loaded successfully');
 
         } catch (error) {
             console.error('Error loading components:', error);
@@ -146,7 +140,6 @@ class SharedComponents {
         try {
             const solutionsList = document.getElementById('footer-solutions-list');
             if (!solutionsList) {
-                console.log('Footer solutions list not found, skipping...');
                 return;
             }
 
@@ -177,8 +170,6 @@ class SharedComponents {
                 li.appendChild(a);
                 solutionsList.appendChild(li);
             });
-
-            console.log('Footer solutions loaded successfully');
 
         } catch (error) {
             console.error('Error loading footer solutions:', error);
@@ -260,8 +251,6 @@ class SharedComponents {
      * Initialize all event handlers
      */
     initializeEventHandlers() {
-        console.log('🔧 Initializing event handlers...');
-        
         // Use setTimeout to ensure DOM is fully loaded
         setTimeout(() => {
             // Theme toggle with enhanced event handling
@@ -272,8 +261,6 @@ class SharedComponents {
     
             // Mobile navigation toggle
             this.initializeMobileNavigation();
-            
-            console.log('✅ Event handlers initialized');
         }, 100);
 
         // Check auth state on window focus
@@ -302,7 +289,6 @@ class SharedComponents {
         const wrappedHandler = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log(`🖱️ ${description} clicked`);
             
             try {
                 handler(e);
@@ -322,7 +308,6 @@ class SharedComponents {
                 if (e.type === 'touchstart') {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log(`👆 ${description} touched`);
                     
                     try {
                         handler(e);
@@ -346,7 +331,6 @@ class SharedComponents {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log(`⌨️ ${description} activated via keyboard`);
                 
                 try {
                     handler(e);
@@ -359,7 +343,6 @@ class SharedComponents {
         element.addEventListener('keydown', keyHandler);
         element._sharedComponentHandlers.push({ type: 'keydown', handler: keyHandler });
         
-        console.log(`✅ ${description}: Handler attached successfully`);
         return true;
     }
 
@@ -476,8 +459,6 @@ class SharedComponents {
      * Initialize mobile navigation functionality
      */
     initializeMobileNavigation() {
-        console.log('📱 Initializing mobile navigation...');
-        
         // Use enhanced button handler for nav toggle
         this.attachButtonHandler('nav-toggle', this.toggleMobileMenu.bind(this), 'Mobile navigation toggle');
         
@@ -1011,8 +992,6 @@ class SharedComponents {
      * Initialize navigation dropdowns
      */
     initializeNavDropdowns() {
-        console.log('🔽 Initializing navigation dropdowns...');
-        
         // Load dropdown data
         this.loadNavigationData();
         
@@ -1025,7 +1004,6 @@ class SharedComponents {
         // Listen for storage events from other tabs/windows (for non-admin pages)
         window.addEventListener('storage', (e) => {
             if (e.key === 'navigationDataUpdated') {
-                console.log('🔄 Navigation data updated in another tab, refreshing...');
                 sessionStorage.removeItem('navigationData');
                 this.loadNavigationData();
             }
@@ -1033,13 +1011,10 @@ class SharedComponents {
         
         // Listen for AdminSync events (for admin-initiated changes)
         if (window.AdminSync) {
-            console.log('🔄 AdminSync detected, setting up cross-site navigation sync...');
-            
             // Listen for any content updates that affect navigation
             const contentTypes = ['product_updated', 'solution_updated', 'publication_updated', 'repository_updated'];
             contentTypes.forEach(type => {
                 window.AdminSync.on(type, () => {
-                    console.log(`🔄 ${type} - Refreshing navigation dropdowns...`);
                     sessionStorage.removeItem('navigationData');
                     this.loadNavigationData();
                 });
@@ -1053,7 +1028,6 @@ class SharedComponents {
     setupNavigationAutoRefresh() {
         // Refresh navigation data every 30 seconds
         setInterval(() => {
-            console.log('🔄 Auto-refreshing navigation data...');
             sessionStorage.removeItem('navigationData');
             this.loadNavigationData();
         }, 30000); // 30 seconds
@@ -1094,24 +1068,17 @@ class SharedComponents {
      * Populate dropdowns with data from API
      */
     populateDropdowns(data) {
-        console.log('🔽 Populating dropdowns with data:', data);
-        
         // Publications dropdown
-        console.log('📚 Publications domains:', data.publications?.domains || []);
         this.populatePublicationsDropdown(data.publications?.domains || []);
         
         // Products dropdown
-        console.log('📦 Products domains:', data.products?.domains || []);
         this.populateProductsDropdown(data.products?.domains || []);
         
         // Repository dropdown
-        console.log('📁 Repository categories:', data.repositories?.categories || []);
         this.populateRepositoryDropdown(data.repositories?.categories || []);
         
         // Solutions dropdown
-        console.log('💡 Solutions problem areas:', data.solutions?.problemAreas || []);
         this.populateSolutionsDropdown(data.solutions?.problemAreas || []);
-        
     }
     
     /**
@@ -1122,7 +1089,6 @@ class SharedComponents {
         if (!dropdown) return;
         
         if (domains.length === 0) {
-            console.log('📚 Publications: No domains available');
             dropdown.innerHTML = `
                 <div class="dropdown-item">No domains available</div>
                 <a href="/Publications" class="dropdown-item dropdown-view-all">View All Publications</a>
@@ -1130,19 +1096,15 @@ class SharedComponents {
             return;
         }
         
-        console.log('📚 Publications: Generating HTML for domains:', domains);
         const domainsHtml = domains.map(domain => 
             `<a href="/Publications?domain=${encodeURIComponent(domain)}" class="dropdown-item">${this.escapeHtml(domain)}</a>`
         ).join('');
         
-        const finalHtml = `
+        dropdown.innerHTML = `
             <div class="dropdown-section-title">By Domain</div>
             ${domainsHtml}
             <a href="/Publications" class="dropdown-item dropdown-view-all">View All Publications</a>
         `;
-        
-        console.log('📚 Publications: Setting innerHTML to:', finalHtml);
-        dropdown.innerHTML = finalHtml;
     }
     
     /**
@@ -1179,7 +1141,6 @@ class SharedComponents {
         if (!dropdown) return;
         
         if (categories.length === 0) {
-            console.log('📁 Repository: No categories available');
             dropdown.innerHTML = `
                 <div class="dropdown-item">No categories available</div>
                 <a href="/Repository" class="dropdown-item dropdown-view-all">View All Repositories</a>
@@ -1187,19 +1148,15 @@ class SharedComponents {
             return;
         }
         
-        console.log('📁 Repository: Generating HTML for categories:', categories);
         const categoriesHtml = categories.map(category => 
             `<a href="/Repository?category=${encodeURIComponent(category)}" class="dropdown-item">${this.escapeHtml(category)}</a>`
         ).join('');
         
-        const finalHtml = `
+        dropdown.innerHTML = `
             <div class="dropdown-section-title">By Category</div>
             ${categoriesHtml}
             <a href="/Repository" class="dropdown-item dropdown-view-all">View All Repositories</a>
         `;
-        
-        console.log('📁 Repository: Setting innerHTML to:', finalHtml);
-        dropdown.innerHTML = finalHtml;
     }
     
     /**
@@ -1400,7 +1357,6 @@ class SharedComponents {
                 // Force initial state to be collapsed
                 searchContainer.classList.remove('expanded');
                 
-                console.log('Global search initialized successfully');
                 return true;
             } else {
                 retryCount++;

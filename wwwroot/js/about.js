@@ -15,7 +15,7 @@ function getBackendBaseUrl() {
     
     // Fallback to dynamic detection
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:7150';
+        return 'http://localhost:8080';
     }
     
     // Production: use same protocol and hostname

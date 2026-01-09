@@ -14,9 +14,9 @@
                 return window.WordPressConfig.getApiUrl().replace('/api', '');
             }
             
-            // For localhost development, always use HTTP on port 7150
+            // For localhost development, always use HTTP on port 8080
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                return 'http://localhost:7150';
+                return 'http://localhost:8080';
             }
             
             // For production, use same protocol and hostname

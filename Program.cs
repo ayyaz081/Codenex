@@ -417,6 +417,15 @@ app.Use((context, next) =>
         context.Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
     }
     
+    // In development, allow Visual Studio browser tools (browserLink, hot reload)
+    var connectSrcAddition = app.Environment.IsDevelopment() 
+        ? " http://localhost:* ws://localhost:*" 
+        : "";
+    
+    var workerSrcAddition = app.Environment.IsDevelopment()
+        ? " http://localhost:8080"
+        : "";
+    
     var cspDirectives = Environment.GetEnvironmentVariable("CSP_DIRECTIVES") ??
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js.stripe.com https://www.google.com https://www.gstatic.com; " +
@@ -424,10 +433,11 @@ app.Use((context, next) =>
         "style-src-elem 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
         "img-src 'self' data: https: blob:; " +
         "font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; " +
-        "connect-src 'self' https: wss: https://api.stripe.com https://r.stripe.com https://errors.stripe.com; " +
+        $"connect-src 'self' https: wss: https://api.stripe.com https://r.stripe.com https://errors.stripe.com{connectSrcAddition}; " +
         "media-src 'self' https:; " +
         "object-src 'self'; " +
         "child-src https://*.google.com https://*.googleapis.com https://*.gstatic.com; " +
+        $"worker-src 'self'{workerSrcAddition}; " +
         "frame-src 'self' https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.youtube.com https://www.youtube.com https://js.stripe.com https://checkout.stripe.com; " +
         "frame-ancestors 'none'; " +
         "form-action 'self' https://checkout.stripe.com; " +

@@ -83,8 +83,18 @@ namespace Codenex.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send email to {Email}. Host: {Host}, Port: {Port}, From: {FromEmail}", 
-                    to, _emailSettings.Host, _emailSettings.Port, _emailSettings.FromEmail);
+                _logger.LogError(ex, "Failed to send email to {Email}. Host: {Host}, Port: {Port}, From: {FromEmail}. Error: {ErrorMessage}", 
+                    to, _emailSettings.Host, _emailSettings.Port, _emailSettings.FromEmail, ex.Message);
+                
+                // Log more details for authentication errors
+                if (ex.Message.Contains("authentication") || ex.Message.Contains("Authentication"))
+                {
+                    _logger.LogError("SMTP Authentication failed. Please check:");
+                    _logger.LogError("1. Gmail 2-Step Verification is enabled");
+                    _logger.LogError("2. App Password is correct (16 characters, no spaces)");
+                    _logger.LogError("3. Username matches the email address");
+                }
+                
                 return false;
             }
         }

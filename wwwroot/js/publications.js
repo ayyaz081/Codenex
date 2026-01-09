@@ -1,7 +1,7 @@
-// Backend URL configuration - use HTTP on localhost:7150
+// Backend URL configuration - use HTTP on localhost:8080
         const getBackendBaseUrl = () => {
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                return 'http://localhost:7150';
+                return 'http://localhost:8080';
             }
             // For production, use same protocol and hostname
             return `${window.location.protocol}//${window.location.hostname}`;
